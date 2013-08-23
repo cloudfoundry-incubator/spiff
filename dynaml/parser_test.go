@@ -21,7 +21,7 @@ func parsesAs(c *C, source string, expr Expression, path ...string) {
 	c.Assert(parsed, DeepEquals, expr)
 }
 
-func (s *DynamlParserSuite) TestParsingNegativeIntegers(c *C) {
+func (s *DynamlParserSuite) TestParsingIntegers(c *C) {
 	parsesAs(c, "1", IntegerExpr{1})
 	parsesAs(c, "-1", IntegerExpr{-1})
 }
