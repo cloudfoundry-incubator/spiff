@@ -1,5 +1,12 @@
 package dynaml
 
+type Node interface{}
+
+type Context interface {
+	FindReference([]string) Node
+	FindInStubs([]string) Node
+}
+
 type Expression interface {
-	// Evaluate(context Context, stub Node) Node
+	Evaluate(Context) Node
 }

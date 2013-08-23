@@ -1,8 +1,6 @@
 package dynaml
 
 import (
-	"testing"
-
 	. "launchpad.net/gocheck"
 )
 
@@ -11,8 +9,6 @@ type DynamlParserSuite struct{}
 func init() {
 	Suite(&DynamlParserSuite{})
 }
-
-func Test(t *testing.T) { TestingT(t) }
 
 func parsesAs(c *C, source string, expr Expression, path ...string) {
 	parsed, err := Parse(source, path)
