@@ -1,0 +1,65 @@
+                                       _  __  __
+                             ___ _ __ (_)/ _|/ _|
+                            / __| '_ \| | |_| |_
+                            \__ \ |_) | |  _|  _|
+                            |___/ .__/|_|_| |_|
+                                |_|
+
+       A declarative templating system for BOSH deployment manifests.
+
+
+= usage
+
+  spiff template.yml [stub1.yml stub2.yml ...] > manifest.yml
+
+
+= dynaml templating language
+
+Spiff uses a declarative, logic-free templating language called 'dynaml'
+(dynamic yaml).
+
+Every dynaml node is guaranteed to resolve to a YAML node. It is *not*
+string interpolation. This keeps developers from having to think about how
+a value will render in the resulting template.
+
+A dynaml node appears in the .yml file as the value of a key, surrounded by
+two parentheses.
+
+The following is a complete list of dynaml expressions:
+
+  (( foo )):
+    look for the nearest 'foo' key (i.e. lexical scoping) and bring it in
+
+  (( foo.bar.baz )):
+    look for the nearest 'foo' key and get attributes on it
+
+    if foo.bar is nil, return nil
+
+  (( "foo" )):
+    string literal
+
+  (( "foo" bar ))
+    concatenation (where bar is another arbitrary expr)
+
+  (( auto )):
+    context-sensitive; in a resource pool's instances: this means calculate
+    based on the # of jobs declared in the pool
+
+  (( merge )):
+    bring the current path in from the template being diff'd against
+
+    e.g.:
+
+    foo:
+      bar:
+        baz: (( merge ))
+
+    will bring in (( foo.bar.baz ))
+
+    if the corresponding value is not defined, it will return nil
+
+  (( a || b )):
+    uses a or b if a is nil
+
+  (( static_ips(N, "foo.static") )):
+    function call (TODO)
