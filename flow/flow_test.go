@@ -13,7 +13,7 @@ var _ = Describe("Flowing YAML", func() {
 foo: bar
 `)
 
-			Expect(Flow(source)).To(Equal(source))
+			Expect(source).To(FlowAs(source))
 		})
 	})
 
@@ -35,7 +35,7 @@ foo:
   - true
 `)
 
-			Expect(Flow(source)).To(Equal(resolved))
+			Expect(source).To(FlowAs(resolved))
 		})
 	})
 
@@ -53,7 +53,7 @@ foo: 42
 bar: 42
 `)
 
-			Expect(Flow(source)).To(Equal(resolved))
+			Expect(source).To(FlowAs(resolved))
 		})
 
 		It("follows lexical scoping semantics", func() {
@@ -79,7 +79,7 @@ buzz:
   fizz: wrong
 `)
 
-			Expect(Flow(source)).To(Equal(resolved))
+			Expect(source).To(FlowAs(resolved))
 		})
 
 		Context("when the referred node is dynamic", func() {
@@ -106,7 +106,7 @@ buzz:
   quux: right
 `)
 
-				Expect(Flow(source)).To(Equal(resolved))
+				Expect(source).To(FlowAs(resolved))
 			})
 		})
 	})
@@ -130,7 +130,7 @@ foo: merged!
 bar: 42
 `)
 
-			Expect(Flow(source, stub)).To(Equal(resolved))
+			Expect(source).To(FlowAs(resolved, stub))
 		})
 	})
 })
