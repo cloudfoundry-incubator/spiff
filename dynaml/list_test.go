@@ -3,6 +3,8 @@ package dynaml
 import (
 	d "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/vito/spiff/yaml"
 )
 
 var _ = d.Describe("lists", func() {
@@ -13,6 +15,6 @@ var _ = d.Describe("lists", func() {
 				StringExpr{"two"},
 			},
 		}
-		Expect(expr.Evaluate(FakeContext{})).To(Equal([]Node{1, "two"}))
+		Expect(expr.Evaluate(FakeContext{})).To(Equal([]yaml.Node{1, "two"}))
 	})
 })

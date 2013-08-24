@@ -1,11 +1,15 @@
 package dynaml
 
+import (
+	"github.com/vito/spiff/yaml"
+)
+
 type ConcatenationExpr struct {
 	A Expression
 	B Expression
 }
 
-func (e ConcatenationExpr) Evaluate(context Context) Node {
+func (e ConcatenationExpr) Evaluate(context Context) yaml.Node {
 	a := e.A.Evaluate(context)
 	b := e.B.Evaluate(context)
 

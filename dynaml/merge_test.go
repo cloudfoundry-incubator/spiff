@@ -3,6 +3,8 @@ package dynaml
 import (
 	d "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/vito/spiff/yaml"
 )
 
 var _ = d.Describe("merges", func() {
@@ -13,7 +15,7 @@ var _ = d.Describe("merges", func() {
 			expr := MergeExpr{[]string{"foo", "bar"}}
 
 			context := FakeContext{
-				FoundInStubs: map[string]Node{
+				FoundInStubs: map[string]yaml.Node{
 					"foo.bar": referencedNode,
 				},
 			}
@@ -29,7 +31,7 @@ var _ = d.Describe("merges", func() {
 			expr := MergeExpr{[]string{"foo", "bar", "baz"}}
 
 			context := FakeContext{
-				FoundInStubs: map[string]Node{
+				FoundInStubs: map[string]yaml.Node{
 					"foo.bar": referencedNode,
 				},
 			}

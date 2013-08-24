@@ -1,12 +1,14 @@
 package dynaml
 
-type Node interface{}
+import (
+	"github.com/vito/spiff/yaml"
+)
 
 type Context interface {
-	FindReference([]string) Node
-	FindInStubs([]string) Node
+	FindReference([]string) yaml.Node
+	FindInStubs([]string) yaml.Node
 }
 
 type Expression interface {
-	Evaluate(Context) Node
+	Evaluate(Context) yaml.Node
 }

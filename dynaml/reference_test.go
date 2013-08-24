@@ -3,6 +3,8 @@ package dynaml
 import (
 	d "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/vito/spiff/yaml"
 )
 
 var _ = d.Describe("references", func() {
@@ -11,7 +13,7 @@ var _ = d.Describe("references", func() {
 			expr := ReferenceExpr{[]string{"foo", "bar"}}
 
 			context := FakeContext{
-				FoundReferences: map[string]Node{
+				FoundReferences: map[string]yaml.Node{
 					"foo.bar": 42,
 				},
 			}
@@ -26,7 +28,7 @@ var _ = d.Describe("references", func() {
 				expr := ReferenceExpr{[]string{"foo", "bar"}}
 
 				context := FakeContext{
-					FoundReferences: map[string]Node{
+					FoundReferences: map[string]yaml.Node{
 						"foo.bar": referencedNode,
 					},
 				}
@@ -43,7 +45,7 @@ var _ = d.Describe("references", func() {
 			expr := ReferenceExpr{[]string{"foo", "bar", "baz"}}
 
 			context := FakeContext{
-				FoundReferences: map[string]Node{
+				FoundReferences: map[string]yaml.Node{
 					"foo.bar": referencedNode,
 				},
 			}

@@ -1,7 +1,6 @@
 package flow
 
 import (
-	"github.com/vito/spiff/dynaml"
 	"github.com/vito/spiff/yaml"
 )
 
@@ -14,7 +13,7 @@ type Environment struct {
 	Stubs []yaml.Node
 }
 
-func (e Environment) FindReference(path []string) dynaml.Node {
+func (e Environment) FindReference(path []string) yaml.Node {
 	root, found := resolveSymbol(path[0], e.Scope)
 	if !found {
 		return nil
@@ -23,7 +22,7 @@ func (e Environment) FindReference(path []string) dynaml.Node {
 	return findInPath(path[1:], root)
 }
 
-func (e Environment) FindInStubs(path []string) dynaml.Node {
+func (e Environment) FindInStubs(path []string) yaml.Node {
 	for _, stub := range e.Stubs {
 		found := findInPath(path, stub)
 		if found != nil {

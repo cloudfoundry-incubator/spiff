@@ -1,11 +1,15 @@
 package dynaml
 
+import (
+	"github.com/vito/spiff/yaml"
+)
+
 type AdditionExpr struct {
 	A Expression
 	B Expression
 }
 
-func (e AdditionExpr) Evaluate(context Context) Node {
+func (e AdditionExpr) Evaluate(context Context) yaml.Node {
 	a := e.A.Evaluate(context)
 	b := e.B.Evaluate(context)
 

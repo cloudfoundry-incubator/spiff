@@ -26,7 +26,7 @@ func (matcher *FlowAsMatcher) Match(source interface{}) (success bool, message s
 
 	actual, err := Flow(source, matcher.Stubs...)
 	if err != nil {
-		return false, formatMessage(actual, "to to flow"), err
+		return false, "", err
 	}
 
 	if reflect.DeepEqual(actual, matcher.Expected) {
@@ -38,12 +38,8 @@ func (matcher *FlowAsMatcher) Match(source interface{}) (success bool, message s
 	return
 }
 
-func formatMessage(actual interface{}, message string, expected ...interface{}) string {
-	if len(expected) == 0 {
-		return fmt.Sprintf("Expected%s\n%s", formatYAML(actual), message)
-	} else {
-		return fmt.Sprintf("Expected%s\n%s%s", formatYAML(actual), message, formatYAML(expected[0]))
-	}
+func formatMessage(actual yaml.Node, message string, expected yaml.Node) string {
+	return fmt.Sprintf("Expected%s\n%s%s", formatYAML(actual), message, formatYAML(expected))
 }
 
 func formatYAML(yaml yaml.Node) string {
