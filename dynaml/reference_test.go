@@ -8,17 +8,31 @@ import (
 var _ = d.Describe("references", func() {
 	d.Context("when the reference is found", func() {
 		d.It("evaluates to the referenced node", func() {
-			referencedNode := IntegerExpr{42}
-
 			expr := ReferenceExpr{[]string{"foo", "bar"}}
 
 			context := FakeContext{
 				FoundReferences: map[string]Node{
-					"foo.bar": referencedNode,
+					"foo.bar": 42,
 				},
 			}
 
-			Expect(expr.Evaluate(context)).To(Equal(referencedNode))
+			Expect(expr.Evaluate(context)).To(Equal(42))
+		})
+
+		d.Context("and it refers to another expression", func() {
+			d.It("returns nil", func() {
+				referencedNode := IntegerExpr{42}
+
+				expr := ReferenceExpr{[]string{"foo", "bar"}}
+
+				context := FakeContext{
+					FoundReferences: map[string]Node{
+						"foo.bar": referencedNode,
+					},
+				}
+
+				Expect(expr.Evaluate(context)).To(BeNil())
+			})
 		})
 	})
 
