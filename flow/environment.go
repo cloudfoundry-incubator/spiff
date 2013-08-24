@@ -34,12 +34,14 @@ func (e Environment) FindInStubs(path []string) dynaml.Node {
 	return nil
 }
 
-func (e *Environment) PushScope(step map[string]yaml.Node) {
+func (e Environment) WithScope(step map[string]yaml.Node) Environment {
 	e.Scope = append(e.Scope, step)
+	return e
 }
 
-func (e *Environment) PushPath(step string) {
+func (e Environment) WithPath(step string) Environment {
 	e.Path = append(e.Path, step)
+	return e
 }
 
 func findInPath(path []string, root yaml.Node) yaml.Node {

@@ -24,10 +24,7 @@ func flow(root yaml.Node, env Environment) (yaml.Node, bool) {
 	switch root.(type) {
 	case map[string]yaml.Node:
 		node := root.(map[string]yaml.Node)
-
-		(&env).PushScope(node)
-
-		return flowMap(node, env)
+		return flowMap(node, env.WithScope(node))
 
 	case []yaml.Node:
 		return flowList(root.([]yaml.Node), env)
@@ -54,9 +51,7 @@ func flowMap(root map[string]yaml.Node, env Environment) (yaml.Node, bool) {
 	flowed := false
 
 	for key, val := range root {
-		(&env).PushPath(key)
-
-		sub, didFlow := flow(val, env)
+		sub, didFlow := flow(val, env.WithPath(key))
 		if didFlow {
 			flowed = true
 		}
