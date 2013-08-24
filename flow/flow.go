@@ -24,7 +24,9 @@ func flow(root yaml.Node, env Environment) (yaml.Node, bool) {
 	switch root.(type) {
 	case map[string]yaml.Node:
 		node := root.(map[string]yaml.Node)
+
 		(&env).PushScope(node)
+
 		return flowMap(node, env)
 
 	case string:
