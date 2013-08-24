@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"launchpad.net/goyaml"
-
-	"github.com/vito/spiff/dynaml"
 )
+
+type Node interface{}
 
 type NonStringKeyError struct {
 	Key interface{}
@@ -17,7 +17,7 @@ func (e NonStringKeyError) Error() string {
 	return fmt.Sprintf("map key must be a string: %#v", e.Key)
 }
 
-func Parse(source []byte) (dynaml.Node, error) {
+func Parse(source []byte) (Node, error) {
 	var parsed interface{}
 
 	err := goyaml.Unmarshal(source, &parsed)
@@ -28,10 +28,10 @@ func Parse(source []byte) (dynaml.Node, error) {
 	return sanitize(parsed)
 }
 
-func sanitize(root interface{}) (dynaml.Node, error) {
+func sanitize(root interface{}) (Node, error) {
 	switch root.(type) {
 	case map[interface{}]interface{}:
-		sanitized := map[string]dynaml.Node{}
+		sanitized := map[string]Node{}
 
 		for key, val := range root.(map[interface{}]interface{}) {
 			str, ok := key.(string)
@@ -47,10 +47,10 @@ func sanitize(root interface{}) (dynaml.Node, error) {
 			sanitized[str] = sub
 		}
 
-		return dynaml.Node(sanitized), nil
+		return Node(sanitized), nil
 
 	case []interface{}:
-		sanitized := []dynaml.Node{}
+		sanitized := []Node{}
 
 		for _, val := range root.([]interface{}) {
 			sub, err := sanitize(val)
@@ -61,19 +61,19 @@ func sanitize(root interface{}) (dynaml.Node, error) {
 			sanitized = append(sanitized, sub)
 		}
 
-		return dynaml.Node(sanitized), nil
+		return Node(sanitized), nil
 
 	case string:
-		return dynaml.Node(root.(string)), nil
+		return Node(root.(string)), nil
 
 	case []byte:
-		return dynaml.Node(string(root.([]byte))), nil
+		return Node(string(root.([]byte))), nil
 
 	case int:
-		return dynaml.Node(root.(int)), nil
+		return Node(root.(int)), nil
 
 	case bool:
-		return dynaml.Node(root.(bool)), nil
+		return Node(root.(bool)), nil
 
 	default:
 		return nil, errors.New(fmt.Sprintf("unknown type during sanitization: %#v\n", root))

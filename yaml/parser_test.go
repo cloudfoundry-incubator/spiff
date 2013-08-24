@@ -3,8 +3,6 @@ package yaml
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"github.com/vito/spiff/dynaml"
 )
 
 var _ = Describe("Parsing YAML", func() {
@@ -12,12 +10,12 @@ var _ = Describe("Parsing YAML", func() {
 		It("parses maps as strings mapping to Nodes", func() {
 			parsed, err := Parse([]byte(`foo: "fizz \"buzz\""`))
 			Expect(err).NotTo(HaveOccured())
-			Expect(parsed).To(Equal(map[string]dynaml.Node{"foo": `fizz "buzz"`}))
+			Expect(parsed).To(Equal(map[string]Node{"foo": `fizz "buzz"`}))
 		})
 
 		It("parses maps with block string values", func() {
-			parsesAs("foo: |\n  sup\n  :3", map[string]dynaml.Node{"foo": "sup\n:3"})
-			parsesAs("foo: >\n  sup\n  :3", map[string]dynaml.Node{"foo": "sup :3"})
+			parsesAs("foo: |\n  sup\n  :3", map[string]Node{"foo": "sup\n:3"})
+			parsesAs("foo: >\n  sup\n  :3", map[string]Node{"foo": "sup :3"})
 		})
 
 		Context("when the keys are not strings", func() {
@@ -29,8 +27,8 @@ var _ = Describe("Parsing YAML", func() {
 	})
 
 	Describe("lists", func() {
-		It("parses with dynaml.Node contents", func() {
-			parsesAs("- 1\n- two", []dynaml.Node{1, "two"})
+		It("parses with Node contents", func() {
+			parsesAs("- 1\n- two", []Node{1, "two"})
 		})
 	})
 
