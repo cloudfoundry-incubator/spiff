@@ -1,50 +1,54 @@
 package yaml
 
 import (
-	. "launchpad.net/gocheck"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-type YAMLParserSuite struct{}
+var _ = Describe("Parsing YAML", func() {
+	Describe("maps", func() {
+		It("parses maps as strings mapping to Nodes", func() {
+			parsed, err := Parse([]byte(`foo: "fizz \"buzz\""`))
+			Expect(err).NotTo(HaveOccured())
+			Expect(parsed).To(Equal(map[string]Node{"foo": `fizz "buzz"`}))
+		})
 
-func init() {
-	Suite(&YAMLParserSuite{})
-}
+		It("parses maps with block string values", func() {
+			parsesAs("foo: |\n  sup\n  :3", map[string]Node{"foo": "sup\n:3"})
+			parsesAs("foo: >\n  sup\n  :3", map[string]Node{"foo": "sup :3"})
+		})
 
-func parsesAs(c *C, source string, expr interface{}) {
+		Context("when the keys are not strings", func() {
+			It("fails", func() {
+				_, err := Parse([]byte("1: foo"))
+				Expect(err).To(Equal(NonStringKeyError{Key: 1}))
+			})
+		})
+	})
+
+	Describe("lists", func() {
+		It("parses with Node contents", func() {
+			parsesAs("- 1\n- two", []Node{1, "two"})
+		})
+	})
+
+	Describe("integers", func() {
+		It("parses as ints", func() {
+			parsesAs("1", 1)
+			parsesAs("-1", -1)
+		})
+	})
+
+	Describe("booleans", func() {
+		It("parses as bools", func() {
+			parsesAs("true", true)
+			parsesAs("false", false)
+		})
+	})
+})
+
+func parsesAs(source string, expr interface{}) {
 	parsed, err := Parse([]byte(source))
-	if err != nil {
-		c.Error(err)
-		return
-	}
-
-	c.Assert(parsed, FitsTypeOf, expr)
-	c.Assert(parsed, DeepEquals, expr)
-}
-
-func (s *YAMLParserSuite) TestParsingMaps(c *C) {
-	parsesAs(c, `foo: "fizz \"buzz\""`, map[string]Node{"foo": `fizz "buzz"`})
-}
-
-func (s *YAMLParserSuite) TestParsingMapsWithBlockStrings(c *C) {
-	parsesAs(c, "foo: |\n  sup\n  :3", map[string]Node{"foo": "sup\n:3"})
-	parsesAs(c, "foo: >\n  sup\n  :3", map[string]Node{"foo": "sup :3"})
-}
-
-func (s *YAMLParserSuite) TestParsingMapsWithNonStringKeysFails(c *C) {
-	_, err := Parse([]byte("1: foo"))
-	c.Assert(err, FitsTypeOf, NonStringKeyError{})
-}
-
-func (s *YAMLParserSuite) TestParsingLists(c *C) {
-	parsesAs(c, "- 1\n- two", []Node{1, "two"})
-}
-
-func (s *YAMLParserSuite) TestParsingIntegers(c *C) {
-	parsesAs(c, "1", 1)
-	parsesAs(c, "-1", -1)
-}
-
-func (s *YAMLParserSuite) TestParsingBooleans(c *C) {
-	parsesAs(c, "true", true)
-	parsesAs(c, "false", false)
+	Expect(err).NotTo(HaveOccured())
+	Expect(parsed).To(Equal(expr))
 }

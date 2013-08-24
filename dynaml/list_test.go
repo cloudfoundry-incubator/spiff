@@ -1,22 +1,18 @@
 package dynaml
 
 import (
-	. "launchpad.net/gocheck"
+	d "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-type ListSuite struct{}
-
-func init() {
-	Suite(&ListSuite{})
-}
-
-func (s *ListSuite) TestListEvaluate(c *C) {
-	expr := ListExpr{
-		[]Expression{
-			IntegerExpr{1},
-			StringExpr{"two"},
-		},
-	}
-
-	c.Assert(expr.Evaluate(FakeContext{}), DeepEquals, []Node{1, "two"})
-}
+var _ = d.Describe("lists", func() {
+	d.It("evaluates to an array of nodes", func() {
+		expr := ListExpr{
+			[]Expression{
+				IntegerExpr{1},
+				StringExpr{"two"},
+			},
+		}
+		Expect(expr.Evaluate(FakeContext{})).To(Equal([]Node{1, "two"}))
+	})
+})

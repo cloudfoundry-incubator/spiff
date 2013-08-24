@@ -1,38 +1,39 @@
 package dynaml
 
 import (
-	. "launchpad.net/gocheck"
+	d "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-type SubtractionSuite struct{}
+var _ = d.Describe("subtraction", func() {
+	d.It("subtracts both numbers", func() {
+		expr := SubtractionExpr{
+			IntegerExpr{7},
+			IntegerExpr{3},
+		}
 
-func init() {
-	Suite(&SubtractionSuite{})
-}
+		Expect(expr.Evaluate(FakeContext{})).To(Equal(4))
+	})
 
-func (s *SubtractionSuite) TestSubtractionEvaluate(c *C) {
-	expr := SubtractionExpr{
-		IntegerExpr{6},
-		IntegerExpr{2},
-	}
+	d.Context("when the left-hand side is not an integer", func() {
+		d.It("returns nil", func() {
+			expr := SubtractionExpr{
+				StringExpr{"lol"},
+				IntegerExpr{2},
+			}
 
-	c.Assert(expr.Evaluate(FakeContext{}), Equals, 4)
-}
+			Expect(expr.Evaluate(FakeContext{})).To(BeNil())
+		})
+	})
 
-func (s *SubtractionSuite) TestSubtractionEvaluateWithNonIntegerLHS(c *C) {
-	expr := SubtractionExpr{
-		StringExpr{"lol"},
-		IntegerExpr{2},
-	}
+	d.Context("when the right-hand side is not an integer", func() {
+		d.It("returns nil", func() {
+			expr := SubtractionExpr{
+				IntegerExpr{2},
+				StringExpr{"lol"},
+			}
 
-	c.Assert(expr.Evaluate(FakeContext{}), IsNil)
-}
-
-func (s *SubtractionSuite) TestSubtractionEvaluateWithNonIntegerRHS(c *C) {
-	expr := SubtractionExpr{
-		IntegerExpr{2},
-		StringExpr{"lol"},
-	}
-
-	c.Assert(expr.Evaluate(FakeContext{}), IsNil)
-}
+			Expect(expr.Evaluate(FakeContext{})).To(BeNil())
+		})
+	})
+})

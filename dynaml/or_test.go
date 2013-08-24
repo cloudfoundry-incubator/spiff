@@ -1,38 +1,39 @@
 package dynaml
 
 import (
-	. "launchpad.net/gocheck"
+	d "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-type OrSuite struct{}
+var _ = d.Describe("or", func() {
+	d.Context("when both sides are nil", func() {
+		expr := OrExpr{
+			ReferenceExpr{},
+			ReferenceExpr{},
+		}
 
-func init() {
-	Suite(&OrSuite{})
-}
+		Expect(expr.Evaluate(FakeContext{})).To(BeNil())
+	})
 
-func (s *OrSuite) TestOrEvaluate(c *C) {
-	expr := OrExpr{
-		IntegerExpr{2},
-		IntegerExpr{3},
-	}
+	d.Context("when the left-hand side is nil", func() {
+		d.It("returns the right-hand side", func() {
+			expr := OrExpr{
+				ReferenceExpr{},
+				IntegerExpr{2},
+			}
 
-	c.Assert(expr.Evaluate(FakeContext{}), Equals, 2)
-}
+			Expect(expr.Evaluate(FakeContext{})).To(Equal(2))
+		})
+	})
 
-func (s *OrSuite) TestOrEvaluateWithNilLHS(c *C) {
-	expr := OrExpr{
-		ReferenceExpr{},
-		IntegerExpr{3},
-	}
+	d.Context("when the right-hand side is nil", func() {
+		d.It("returns the left-hand side", func() {
+			expr := OrExpr{
+				IntegerExpr{1},
+				ReferenceExpr{},
+			}
 
-	c.Assert(expr.Evaluate(FakeContext{}), Equals, 3)
-}
-
-func (s *OrSuite) TestOrEvaluateWithNilRHS(c *C) {
-	expr := OrExpr{
-		IntegerExpr{2},
-		ReferenceExpr{},
-	}
-
-	c.Assert(expr.Evaluate(FakeContext{}), Equals, 2)
-}
+			Expect(expr.Evaluate(FakeContext{})).To(Equal(1))
+		})
+	})
+})

@@ -1,16 +1,13 @@
 package dynaml
 
 import (
-	. "launchpad.net/gocheck"
+	d "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-type BooleanSuite struct{}
-
-func init() {
-	Suite(&BooleanSuite{})
-}
-
-func (s *BooleanSuite) TestBooleanEvaluate(c *C) {
-	c.Assert(BooleanExpr{false}.Evaluate(FakeContext{}), Equals, false)
-	c.Assert(BooleanExpr{true}.Evaluate(FakeContext{}), Equals, true)
-}
+var _ = d.Describe("booleans", func() {
+	d.It("evaluates to a bool", func() {
+		Expect(BooleanExpr{true}.Evaluate(FakeContext{})).To(Equal(true))
+		Expect(BooleanExpr{false}.Evaluate(FakeContext{})).To(Equal(false))
+	})
+})

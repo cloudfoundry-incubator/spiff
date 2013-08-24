@@ -3,7 +3,11 @@ package yaml
 import (
 	"testing"
 
-	. "launchpad.net/gocheck"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-func Test(t *testing.T) { TestingT(t) }
+func Test(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "YAML parsing")
+}

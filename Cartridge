@@ -1,4 +1,5 @@
 launchpad.net/goyaml last:1
 github.com/pointlander/peg master
 
-launchpad.net/gocheck last:1
+github.com/onsi/ginkgo master
+github.com/onsi/gomega master

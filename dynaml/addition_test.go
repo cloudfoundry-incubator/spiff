@@ -1,38 +1,39 @@
 package dynaml
 
 import (
-	. "launchpad.net/gocheck"
+	d "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-type AdditionSuite struct{}
+var _ = d.Describe("addition", func() {
+	d.It("adds both numbers", func() {
+		expr := AdditionExpr{
+			IntegerExpr{2},
+			IntegerExpr{3},
+		}
 
-func init() {
-	Suite(&AdditionSuite{})
-}
+		Expect(expr.Evaluate(FakeContext{})).To(Equal(5))
+	})
 
-func (s *AdditionSuite) TestAdditionEvaluate(c *C) {
-	expr := AdditionExpr{
-		IntegerExpr{2},
-		IntegerExpr{3},
-	}
+	d.Context("when the left-hand side is not an integer", func() {
+		d.It("returns nil", func() {
+			expr := AdditionExpr{
+				StringExpr{"lol"},
+				IntegerExpr{2},
+			}
 
-	c.Assert(expr.Evaluate(FakeContext{}), Equals, 5)
-}
+			Expect(expr.Evaluate(FakeContext{})).To(BeNil())
+		})
+	})
 
-func (s *AdditionSuite) TestAdditionEvaluateWithNonIntegerLHS(c *C) {
-	expr := AdditionExpr{
-		StringExpr{"lol"},
-		IntegerExpr{2},
-	}
+	d.Context("when the right-hand side is not an integer", func() {
+		d.It("returns nil", func() {
+			expr := AdditionExpr{
+				IntegerExpr{2},
+				StringExpr{"lol"},
+			}
 
-	c.Assert(expr.Evaluate(FakeContext{}), IsNil)
-}
-
-func (s *AdditionSuite) TestAdditionEvaluateWithNonIntegerRHS(c *C) {
-	expr := AdditionExpr{
-		IntegerExpr{2},
-		StringExpr{"lol"},
-	}
-
-	c.Assert(expr.Evaluate(FakeContext{}), IsNil)
-}
+			Expect(expr.Evaluate(FakeContext{})).To(BeNil())
+		})
+	})
+})

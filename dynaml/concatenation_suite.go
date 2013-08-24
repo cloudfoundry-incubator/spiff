@@ -1,38 +1,39 @@
 package dynaml
 
 import (
-	. "launchpad.net/gocheck"
+	d "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-type ConcatenationSuite struct{}
+var _ = d.Describe("subtractioj", func() {
+	d.It("subtracts both numbers", func() {
+		expr := ConcatenationExpr{
+			StringExpr{"one"},
+			StringExpr{"two"},
+		}
 
-func init() {
-	Suite(&ConcatenationSuite{})
-}
+		Expect(expr.Evaluate(FakeContext{})).To(Equal("onetwo"))
+	})
 
-func (s *ConcatenationSuite) TestConcatenationEvaluate(c *C) {
-	expr := ConcatenationExpr{
-		StringExpr{"one"},
-		StringExpr{"two"},
-	}
+	d.Context("when the left-hand side is not a string", func() {
+		d.It("returns nil", func() {
+			expr := ConcatenationExpr{
+				StringExpr{"one"},
+				IntegerExpr{42},
+			}
 
-	c.Assert(expr.Evaluate(FakeContext{}), Equals, "onetwo")
-}
+			Expect(expr.Evaluate(FakeContext{})).To(BeNil())
+		})
+	})
 
-func (s *ConcatenationSuite) TestConcatenationEvaluateWithNonStringLHS(c *C) {
-	expr := ConcatenationExpr{
-		StringExpr{"one"},
-		IntegerExpr{42},
-	}
+	d.Context("when the right-hand side is not a string", func() {
+		d.It("returns nil", func() {
+			expr := ConcatenationExpr{
+				IntegerExpr{42},
+				StringExpr{"two"},
+			}
 
-	c.Assert(expr.Evaluate(FakeContext{}), IsNil)
-}
-
-func (s *ConcatenationSuite) TestConcatenationEvaluateWithNonStringRHS(c *C) {
-	expr := ConcatenationExpr{
-		IntegerExpr{42},
-		StringExpr{"two"},
-	}
-
-	c.Assert(expr.Evaluate(FakeContext{}), IsNil)
-}
+			Expect(expr.Evaluate(FakeContext{})).To(BeNil())
+		})
+	})
+})

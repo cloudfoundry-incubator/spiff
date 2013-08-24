@@ -1,16 +1,12 @@
 package dynaml
 
 import (
-	. "launchpad.net/gocheck"
+	d "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-type IntegerSuite struct{}
-
-func init() {
-	Suite(&IntegerSuite{})
-}
-
-func (s *IntegerSuite) TestIntegerEvaluate(c *C) {
-	expr := IntegerExpr{42}
-	c.Assert(expr.Evaluate(FakeContext{}), Equals, 42)
-}
+var _ = d.Describe("integers", func() {
+	d.It("evaluates to an int", func() {
+		Expect(IntegerExpr{42}.Evaluate(FakeContext{})).To(Equal(42))
+	})
+})

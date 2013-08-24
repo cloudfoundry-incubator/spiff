@@ -1,15 +1,12 @@
 package dynaml
 
 import (
-	. "launchpad.net/gocheck"
+	d "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-type StringSuite struct{}
-
-func init() {
-	Suite(&StringSuite{})
-}
-
-func (s *StringSuite) TestStringEvaluate(c *C) {
-	c.Assert(StringExpr{"sup"}.Evaluate(FakeContext{}), Equals, "sup")
-}
+var _ = d.Describe("integers", func() {
+	d.It("evaluates to an int", func() {
+		Expect(StringExpr{"foo"}.Evaluate(FakeContext{})).To(Equal("foo"))
+	})
+})
