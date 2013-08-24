@@ -39,7 +39,7 @@ foo:
 		})
 	})
 
-	Context("reference dynaml nodes", func() {
+	Describe("reference dynaml nodes", func() {
 		It("evaluates the node", func() {
 			source := parseYAML(`
 ---
@@ -108,6 +108,29 @@ buzz:
 
 				Expect(Flow(source)).To(Equal(resolved))
 			})
+		})
+	})
+
+	Describe("merging in from stubs", func() {
+		It("evaluates the node", func() {
+			source := parseYAML(`
+---
+foo: (( merge ))
+bar: 42
+`)
+
+			stub := parseYAML(`
+---
+foo: merged!
+`)
+
+			resolved := parseYAML(`
+---
+foo: merged!
+bar: 42
+`)
+
+			Expect(Flow(source, stub)).To(Equal(resolved))
 		})
 	})
 })

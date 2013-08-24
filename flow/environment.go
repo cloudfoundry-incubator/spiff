@@ -10,6 +10,8 @@ type Scope []map[string]yaml.Node
 type Environment struct {
 	Scope Scope
 	Path  []string
+
+	Stubs []yaml.Node
 }
 
 func (e Environment) FindReference(path []string) dynaml.Node {
@@ -22,6 +24,13 @@ func (e Environment) FindReference(path []string) dynaml.Node {
 }
 
 func (e Environment) FindInStubs(path []string) dynaml.Node {
+	for _, stub := range e.Stubs {
+		found := findInPath(path, stub)
+		if found != nil {
+			return found
+		}
+	}
+
 	return nil
 }
 

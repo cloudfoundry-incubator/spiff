@@ -88,5 +88,45 @@ foo:
 		})
 	})
 
-	Describe("finding a path in the stubs", func() {})
+	Describe("finding a path in the stubs", func() {
+		stub1 := parseYAML(`
+---
+a: 1
+c: 3
+`)
+
+		stub2 := parseYAML(`
+---
+b: 2
+c: 4
+`)
+
+		environment := Environment{
+			Stubs: []yaml.Node{stub1, stub2},
+		}
+
+		Context("when the first stub contains the path", func() {
+			It("uses the value from the first stub", func() {
+				Expect(environment.FindInStubs([]string{"a"})).To(Equal(1))
+			})
+		})
+
+		Context("when the second stub contains the path", func() {
+			It("uses the value from the second stub", func() {
+				Expect(environment.FindInStubs([]string{"b"})).To(Equal(2))
+			})
+		})
+
+		Context("when the both stubs contain the path", func() {
+			It("returns the value from the first stub", func() {
+				Expect(environment.FindInStubs([]string{"c"})).To(Equal(3))
+			})
+		})
+
+		Context("when neither stub contains the path", func() {
+			It("returns nil", func() {
+				Expect(environment.FindInStubs([]string{"d"})).To(BeNil())
+			})
+		})
+	})
 })

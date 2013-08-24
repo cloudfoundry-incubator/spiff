@@ -9,12 +9,12 @@ import (
 
 var embeddedDynaml = regexp.MustCompile(`^\(\((.*)\)\)$`)
 
-func Flow(source yaml.Node) yaml.Node {
+func Flow(source yaml.Node, stubs ...yaml.Node) yaml.Node {
 	result := source
 	didFlow := true
 
 	for didFlow {
-		result, didFlow = flow(result, Environment{})
+		result, didFlow = flow(result, Environment{Stubs: stubs})
 	}
 
 	return result
