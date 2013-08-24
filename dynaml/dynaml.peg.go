@@ -699,13 +699,19 @@ func (p *DynamlGrammar) Init() {
 
 	rules = [...]func() bool{
 		nil,
-		/* 0 Dynaml <- <(Expression !.)> */
+		/* 0 Dynaml <- <(ws Expression ws !.)> */
 		func() bool {
 			position0, tokenIndex0, depth0 := position, tokenIndex, depth
 			{
 				position1 := position
 				depth++
+				if !rules[Rulews]() {
+					goto l0
+				}
 				if !rules[RuleExpression]() {
+					goto l0
+				}
+				if !rules[Rulews]() {
 					goto l0
 				}
 				{

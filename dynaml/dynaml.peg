@@ -2,7 +2,7 @@ package dynaml
 
 type DynamlGrammar Peg {}
 
-Dynaml <- Expression !.
+Dynaml <- ws Expression ws !.
 
 Expression <- Level2
 
