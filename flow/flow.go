@@ -29,6 +29,9 @@ func flow(root yaml.Node, env Environment) (yaml.Node, bool) {
 
 		return flowMap(node, env)
 
+	case []yaml.Node:
+		return flowList(root.([]yaml.Node), env)
+
 	case string:
 		return flowString(root.(string), env)
 
@@ -62,6 +65,23 @@ func flowMap(root map[string]yaml.Node, env Environment) (yaml.Node, bool) {
 	}
 
 	return newMap, flowed
+}
+
+func flowList(root []yaml.Node, env Environment) (yaml.Node, bool) {
+	newList := []yaml.Node{}
+
+	flowed := false
+
+	for _, val := range root {
+		sub, didFlow := flow(val, env)
+		if didFlow {
+			flowed = true
+		}
+
+		newList = append(newList, sub)
+	}
+
+	return newList, flowed
 }
 
 func flowString(root string, env Environment) (yaml.Node, bool) {

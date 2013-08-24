@@ -18,19 +18,21 @@ foo: bar
 	})
 
 	Describe("basic dynaml nodes", func() {
-		It("evaluates the node", func() {
+		It("evaluates the nodes", func() {
 			source := parseYAML(`
 ---
-foo: (( "hello, world!" ))
-bar: (( 42 ))
-baz: (( true ))
+foo:
+  - (( "hello, world!" ))
+  - (( 42 ))
+  - (( true ))
 `)
 
 			resolved := parseYAML(`
 ---
-foo: hello, world!
-bar: 42
-baz: true
+foo:
+  - hello, world!
+  - 42
+  - true
 `)
 
 			Expect(Flow(source)).To(Equal(resolved))
@@ -42,7 +44,7 @@ baz: true
 			source := parseYAML(`
 ---
 foo: (( bar ))
-bar: (( 42 ))
+bar: 42
 `)
 
 			resolved := parseYAML(`
