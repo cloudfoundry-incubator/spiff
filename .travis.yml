@@ -1,0 +1,10 @@
+language: go
+
+go:
+  - 1.1
+  - tip
+
+install:
+  - go get -v github.com/xoebus/gocart/gocart
+  - gocart install
+  - go test -i ./...
