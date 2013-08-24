@@ -4,6 +4,6 @@ type ReferenceExpr struct {
 	Path []string
 }
 
-func (e ReferenceExpr) Evaluate(Context) Node {
-	return nil
+func (e ReferenceExpr) Evaluate(context Context) Node {
+	return context.FindReference(e.Path)
 }
