@@ -4,6 +4,6 @@ type MergeExpr struct {
 	Path []string
 }
 
-func (e MergeExpr) Evaluate(Context) Node {
-	return nil
+func (e MergeExpr) Evaluate(context Context) Node {
+	return context.FindInStubs(e.Path)
 }
