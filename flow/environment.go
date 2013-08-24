@@ -13,6 +13,10 @@ type Environment struct {
 	Stubs []yaml.Node
 }
 
+func (e Environment) FindFromRoot(path []string) yaml.Node {
+	return findInPath(path, e.Scope[0])
+}
+
 func (e Environment) FindReference(path []string) yaml.Node {
 	root, found := resolveSymbol(path[0], e.Scope)
 	if !found {

@@ -88,6 +88,31 @@ foo:
 		})
 	})
 
+	Describe("finding a path from the root", func() {
+		tree := parseYAML(`
+---
+foo:
+  bar:
+    baz: found
+`)
+
+		environment := Environment{
+			Scope: []map[string]yaml.Node{
+				tree.(map[string]yaml.Node),
+			},
+		}
+
+		It("returns the node found by the path from the root", func() {
+			Expect(environment.FindFromRoot([]string{"foo", "bar", "baz"})).To(Equal("found"))
+		})
+
+		Context("when the path cannot be found", func() {
+			It("returns nil", func() {
+				Expect(environment.FindFromRoot([]string{"foo", "bar", "biscuit"})).To(BeNil())
+			})
+		})
+	})
+
 	Describe("finding a path in the stubs", func() {
 		stub1 := parseYAML(`
 ---

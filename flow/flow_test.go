@@ -153,4 +153,46 @@ bar: 42
 			Expect(source).To(FlowAs(resolved, stub))
 		})
 	})
+
+	Describe("automatic resource pool sizes", func() {
+		It("evaluates the node", func() {
+			source := parseYAML(`
+---
+resource_pools:
+  some_pool:
+    size: (( auto ))
+
+jobs:
+- name: some_job
+  resource_pool: some_pool
+  instances: 2
+- name: some_other_job
+  resource_pool: some_pool
+  instances: 3
+- name: yet_another_job
+  resource_pool: some_other_pool
+  instances: 5
+`)
+
+			resolved := parseYAML(`
+---
+resource_pools:
+  some_pool:
+    size: 5
+
+jobs:
+- name: some_job
+  resource_pool: some_pool
+  instances: 2
+- name: some_other_job
+  resource_pool: some_pool
+  instances: 3
+- name: yet_another_job
+  resource_pool: some_other_pool
+  instances: 5
+`)
+
+			Expect(source).To(FlowAs(resolved))
+		})
+	})
 })

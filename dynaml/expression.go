@@ -5,6 +5,7 @@ import (
 )
 
 type Context interface {
+	FindFromRoot([]string) yaml.Node
 	FindReference([]string) yaml.Node
 	FindInStubs([]string) yaml.Node
 }
