@@ -3,6 +3,8 @@ package flow
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/vito/spiff/dynaml"
 )
 
 var _ = Describe("Flowing YAML", func() {
@@ -14,6 +16,24 @@ foo: bar
 `)
 
 			Expect(source).To(FlowAs(source))
+		})
+	})
+
+	Context("when some dynaml nodes cannot be resolved", func() {
+		It("returns an error", func() {
+			source := parseYAML(`
+---
+foo: (( auto ))
+`)
+
+			_, err := Flow(source)
+			Expect(err).To(Equal(UnresolvedNodes{
+				Nodes: []dynaml.Expression{
+					dynaml.AutoExpr{
+						Path: []string{"foo"},
+					},
+				},
+			}))
 		})
 	})
 

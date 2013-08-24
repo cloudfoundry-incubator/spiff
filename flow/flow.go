@@ -9,7 +9,7 @@ import (
 
 var embeddedDynaml = regexp.MustCompile(`^\(\((.*)\)\)$`)
 
-func Flow(source yaml.Node, stubs ...yaml.Node) yaml.Node {
+func Flow(source yaml.Node, stubs ...yaml.Node) (yaml.Node, error) {
 	result := source
 	didFlow := true
 
@@ -17,7 +17,12 @@ func Flow(source yaml.Node, stubs ...yaml.Node) yaml.Node {
 		result, didFlow = flow(result, Environment{Stubs: stubs})
 	}
 
-	return result
+	unresolved := findUnresolvedNodes(result)
+	if len(unresolved) > 0 {
+		return nil, UnresolvedNodes{unresolved}
+	}
+
+	return result, nil
 }
 
 func flow(root yaml.Node, env Environment) (yaml.Node, bool) {
