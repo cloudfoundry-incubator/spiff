@@ -208,24 +208,24 @@ jobs:
   value: foo
 `)
 
-			It("reports them as different", func() {
+			It("reports their indices as different", func() {
 				diff := Compare(a, b)
 
 				Expect(diff).To(HaveLen(2))
 
 				Expect(diff).To(ContainElement(
 					Diff{
-						A:    parseYAML("name: a\nvalue: foo\n"),
-						B:    parseYAML("name: b\nvalue: bar\n"),
-						Path: []string{"jobs", "[0]"},
+						A:    0,
+						B:    1,
+						Path: []string{"jobs", "a", "index"},
 					},
 				))
 
 				Expect(diff).To(ContainElement(
 					Diff{
-						A:    parseYAML("name: b\nvalue: bar\n"),
-						B:    parseYAML("name: a\nvalue: foo\n"),
-						Path: []string{"jobs", "[1]"},
+						A:    1,
+						B:    0,
+						Path: []string{"jobs", "b", "index"},
 					},
 				))
 			})
@@ -254,8 +254,8 @@ jobs:
 				Expect(diff).To(Equal([]Diff{
 					Diff{
 						A:    nil,
-						B:    parseYAML("name: b\nvalue: bar\n"),
-						Path: []string{"jobs", "[1]"},
+						B:    parseYAML("name: b\nvalue: bar\nindex: 1\n"),
+						Path: []string{"jobs", "b"},
 					},
 				}))
 			})

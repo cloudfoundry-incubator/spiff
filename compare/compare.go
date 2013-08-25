@@ -140,40 +140,25 @@ func compareList(a, b []yaml.Node, path []string) []Diff {
 }
 
 func compareJobs(ajobs, bjobs []yaml.Node, path []string) []Diff {
-	diff := []Diff{}
+	return compareMap(jobMap(ajobs), jobMap(bjobs), path)
+}
 
-	for index, ajob := range ajobs {
-		key := fmt.Sprintf("[%d]", index)
+func jobMap(jobs []yaml.Node) map[string]yaml.Node {
+	byName := make(map[string]yaml.Node)
 
-		aname, ok := yaml.FindString(ajob, "name")
+	for index, job := range jobs {
+		attrs, ok := job.(map[string]yaml.Node)
+		attrs["index"] = index
+
+		name, ok := yaml.FindString(job, "name")
 		if !ok {
 			panic("job without string name")
 		}
 
-		bjob := bjobs[index]
-
-		bname, ok := yaml.FindString(bjob, "name")
-		if !ok {
-			panic("job without string name")
-		}
-
-		if aname != bname {
-			diff = append(diff, Diff{A: ajob, B: bjob, Path: addPath(path, key)})
-			continue
-		}
-
-		diff = append(diff, compare(ajob, bjob, addPath(path, aname))...)
+		byName[name] = attrs
 	}
 
-	for index, bjob := range bjobs {
-		key := fmt.Sprintf("[%d]", index)
-
-		if len(ajobs) <= index {
-			diff = append(diff, Diff{A: nil, B: bjob, Path: append(path, key)})
-		}
-	}
-
-	return diff
+	return byName
 }
 
 func findByNameOrIndex(node yaml.Node, others []yaml.Node, index int) (string, yaml.Node, bool) {
