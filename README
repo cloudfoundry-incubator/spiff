@@ -8,9 +8,34 @@
        A declarative templating system for BOSH deployment manifests.
 
 
-= usage
+= installation
 
-  spiff template.yml [stub1.yml stub2.yml ...] > manifest.yml
+  go install github.com/vito/spiff
+
+
+= spiff merge template.yml [stub1.yml stub2.yml ...] > manifest.yml
+
+  Merge stub files into one template, printing out the fully resolved manifest.
+
+  See 'dynaml templating language' for details of the template file, or
+  example.yml for a complicated example.
+
+
+= spiff diff manifest.yml other-manifest.yml
+
+  Show structural differences between two deployment manifests.
+
+  Unlike 'bosh diff', this command has semantic knowledge of a deployment
+  manifest, and is not just text-based. It also doesn't modify either file.
+
+  It's tailed for checking differences between one deployment and the next.
+
+  Typical flow:
+    1. spiff merge template.yml [stubs...] > deployment.yml
+      1a. bosh download manifest [deployment] current.yml
+      1b. spiff diff deployment.yml current.yml
+    2. bosh deployment deployment.yml
+    3. bosh deploy
 
 
 = dynaml templating language
