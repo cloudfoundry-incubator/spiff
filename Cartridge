@@ -1,5 +1,6 @@
 launchpad.net/goyaml last:1
 github.com/pointlander/peg master
+github.com/codegangsta/cli master
 
 github.com/onsi/ginkgo master
 github.com/onsi/gomega master

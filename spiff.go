@@ -1,10 +1,12 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
+
+	"github.com/codegangsta/cli"
 
 	"launchpad.net/goyaml"
 
@@ -12,20 +14,34 @@ import (
 	"github.com/vito/spiff/yaml"
 )
 
-var templateFilePath = flag.String("template", "", "path to manifest template")
-var stubFilePath = flag.String("stub", "", "path to stub .yml file")
-
 func main() {
-	flag.Parse()
+	app := cli.NewApp()
+	app.Name = "spiff"
+	app.Usage = "BOSH deployment manifest toolkit"
 
-	templateFile, err := ioutil.ReadFile(*templateFilePath)
-	if err != nil {
-		log.Fatalln("error reading template:", err)
+	app.Commands = []cli.Command{
+		{
+			Name:      "merge",
+			ShortName: "m",
+			Usage:     "merge merge stub files into a manifest template",
+			Action: func(c *cli.Context) {
+				if len(c.Args()) < 2 {
+					cli.ShowCommandHelp(c, "merge")
+					os.Exit(1)
+				}
+
+				merge(c.Args()[0], c.Args()[1:])
+			},
+		},
 	}
 
-	stubFile, err := ioutil.ReadFile(*stubFilePath)
+	app.Run(os.Args)
+}
+
+func merge(templateFilePath string, stubFilePaths []string) {
+	templateFile, err := ioutil.ReadFile(templateFilePath)
 	if err != nil {
-		log.Fatalln("error reading stub:", err)
+		log.Fatalln("error reading template:", err)
 	}
 
 	templateYAML, err := yaml.Parse(templateFile)
@@ -33,12 +49,23 @@ func main() {
 		log.Fatalln("error parsing template:", err)
 	}
 
-	stubYAML, err := yaml.Parse(stubFile)
-	if err != nil {
-		log.Fatalln("error parsing stub:", err)
+	stubs := []yaml.Node{}
+
+	for _, stubFilePath := range stubFilePaths {
+		stubFile, err := ioutil.ReadFile(stubFilePath)
+		if err != nil {
+			log.Fatalln("error reading stub:", err)
+		}
+
+		stubYAML, err := yaml.Parse(stubFile)
+		if err != nil {
+			log.Fatalln("error parsing stub:", err)
+		}
+
+		stubs = append(stubs, stubYAML)
 	}
 
-	flowed, err := flow.Flow(templateYAML, stubYAML)
+	flowed, err := flow.Flow(templateYAML, stubs...)
 	if err != nil {
 		log.Fatalln("error generating manifest:", err)
 	}
