@@ -104,7 +104,7 @@ jobs:
 
     networks:
       - name: cf1
-        static_ips: (( static_ips(jobs.syslog_aggregator.instances, "cf1.static") ))
+        static_ips: (( static_ips(networks.cf1, 0) ))
 
   - name: nats
     template: nats
@@ -112,7 +112,7 @@ jobs:
     resource_pool: medium
     networks:
       - name: cf1
-        static_ips: (( static_ips(jobs.nats.instances, "cf1.static") ))
+        static_ips: (( static_ips(networks.cf1, 1) ))
 
   - name: uaa
     template: uaa
@@ -120,7 +120,7 @@ jobs:
     resource_pool: large
     networks:
       - name: cf1
-        static_ips: (( static_ips(jobs.uaa.instances, "cf1.static") ))
+        static_ips: (( static_ips(networks.cf1, 2, 7) ))
 
   - name: login
     template: login
@@ -135,7 +135,7 @@ jobs:
     resource_pool: large
     networks:
       - name: cf1
-        static_ips: (( static_ips(jobs.cloud_controller.instances, "cf1.static") ))
+        static_ips: (( static_ips(networks.cf1, 3, 4, 8, 9, 10, 11, 12, 13, 14) ))
     properties:
       ccdb: ccdb
 
@@ -175,7 +175,7 @@ jobs:
     resource_pool: small
     networks:
       - name: cf1
-        static_ips: (( static_ips(jobs.loggregator.instances, "cf1.static") ))
+        static_ips: (( static_ips(networks.cf1, 21) ))
 
   - name: router
     template: gorouter
@@ -186,7 +186,7 @@ jobs:
         default:
           - dns
           - gateway
-        static_ips: (( static_ips(jobs.router.instances, "cf1.static") ))
+        static_ips: (( static_ips(networks.cf1, 5, 6, 15, 16, 17, 18, 19, 20) ))
 
 properties:
   template_only: (( merge ))
