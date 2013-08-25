@@ -1,13 +1,3 @@
-ec2_constants:
-  memory:
-    m1_medium: 3840
-    m1_large: 7680
-    m2_2xlarge: 35020
-  disk:
-    m1_medium: 390000
-    m1_large: 400000
-    m2_2xlarge: 800000
-
 name: (( merge ))
 director_uuid: (( merge ))
 
@@ -200,6 +190,17 @@ jobs:
 
 properties:
   template_only: (( merge ))
+
+  ec2_constants:
+    memory:
+      m1_medium: 3840
+      m1_large: 7680
+      m2_2xlarge: 35020
+    disk:
+      m1_medium: 390000
+      m1_large: 400000
+      m2_2xlarge: 800000
+
   domain: (( merge ))
   system_domain: (( merge || domain ))
   system_domain_organization: (( merge || "" ))
