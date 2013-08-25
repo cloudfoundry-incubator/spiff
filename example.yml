@@ -306,7 +306,7 @@ properties:
     address: 10.10.16.10
     port: 54321
     relay_host: (( merge || "" ))
-    relay_host_port: (( merge || 0 ))
+    relay_host_port: (( merge || "" ))
     log_email:
       enabled: true
       from_email: (( merge || "" ))
