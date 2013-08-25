@@ -68,18 +68,41 @@ func findInPath(path []string, root yaml.Node) yaml.Node {
 
 func nextStep(step string, here yaml.Node) (yaml.Node, bool) {
 	found := false
+
 	switch here.(type) {
 	case map[string]yaml.Node:
-		found = true
-		here = here.(map[string]yaml.Node)[step]
+		here, found = here.(map[string]yaml.Node)[step]
+	case []yaml.Node:
+		here, found = stepThroughList(here.([]yaml.Node), step)
 	default:
 	}
 
-	if !found {
-		return nil, false
+	return here, found
+}
+
+func stepThroughList(here []yaml.Node, step string) (yaml.Node, bool) {
+	for _, sub := range here {
+		subMap, ok := sub.(map[string]yaml.Node)
+		if !ok {
+			continue
+		}
+
+		name, ok := subMap["name"]
+		if !ok {
+			continue
+		}
+
+		nameString, ok := name.(string)
+		if !ok {
+			continue
+		}
+
+		if nameString == step {
+			return subMap, true
+		}
 	}
 
-	return here, true
+	return here, false
 }
 
 func resolveSymbol(name string, context Scope) (yaml.Node, bool) {

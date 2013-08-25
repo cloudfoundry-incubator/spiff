@@ -152,6 +152,33 @@ bar: 42
 
 			Expect(source).To(FlowAs(resolved, stub))
 		})
+
+		It("follows through maps in lists by name", func() {
+			source := parseYAML(`
+---
+foo:
+- name: x
+  value: (( merge ))
+`)
+
+			stub := parseYAML(`
+---
+foo:
+- name: y
+  value: wrong
+- name: x
+  value: right
+`)
+
+			resolved := parseYAML(`
+---
+foo:
+- name: x
+  value: right
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
 	})
 
 	Describe("automatic resource pool sizes", func() {

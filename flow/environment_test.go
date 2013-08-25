@@ -26,6 +26,23 @@ foo:
 				})
 			})
 
+			Context("and the path goes through a list with a named hash", func() {
+				tree := parseYAML(`
+---
+foos:
+- name: bar
+  baz: 42
+`)
+
+				environment := Environment{
+					Scope: []map[string]yaml.Node{tree.(map[string]yaml.Node)},
+				}
+
+				It("treats the name as the key", func() {
+					Expect(environment.FindReference([]string{"foos", "bar", "baz"})).To(Equal(42))
+				})
+			})
+
 			Context("and the root does NOT contain the path", func() {
 				It("returns nil", func() {
 					Expect(environment.FindReference([]string{"foo", "x"})).To(BeNil())

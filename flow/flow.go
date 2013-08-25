@@ -1,6 +1,7 @@
 package flow
 
 import (
+	"fmt"
 	"regexp"
 
 	"github.com/vito/spiff/dynaml"
@@ -28,8 +29,7 @@ func Flow(source yaml.Node, stubs ...yaml.Node) (yaml.Node, error) {
 func flow(root yaml.Node, env Environment) (yaml.Node, bool) {
 	switch root.(type) {
 	case map[string]yaml.Node:
-		node := root.(map[string]yaml.Node)
-		return flowMap(node, env.WithScope(node))
+		return flowMap(root.(map[string]yaml.Node), env)
 
 	case []yaml.Node:
 		return flowList(root.([]yaml.Node), env)
@@ -51,6 +51,8 @@ func flow(root yaml.Node, env Environment) (yaml.Node, bool) {
 }
 
 func flowMap(root map[string]yaml.Node, env Environment) (yaml.Node, bool) {
+	env = env.WithScope(root)
+
 	newMap := make(map[string]yaml.Node)
 
 	flowed := false
@@ -72,8 +74,10 @@ func flowList(root []yaml.Node, env Environment) (yaml.Node, bool) {
 
 	flowed := false
 
-	for _, val := range root {
-		sub, didFlow := flow(val, env)
+	for idx, val := range root {
+		step := stepName(idx, val)
+
+		sub, didFlow := flow(val, env.WithPath(step))
 		if didFlow {
 			flowed = true
 		}
@@ -96,4 +100,21 @@ func flowString(root string, env Environment) (yaml.Node, bool) {
 	}
 
 	return expr, true
+}
+
+func stepName(index int, value yaml.Node) string {
+	mapval, ok := value.(map[string]yaml.Node)
+	if ok {
+		name, ok := mapval["name"]
+
+		if ok {
+			nameString, ok := name.(string)
+
+			if ok {
+				return nameString
+			}
+		}
+	}
+
+	return fmt.Sprintf("[%d]", index)
 }
