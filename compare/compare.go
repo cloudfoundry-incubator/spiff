@@ -63,17 +63,12 @@ func listToMap(list []yaml.Node) map[string]yaml.Node {
 	toMap := make(map[string]yaml.Node)
 
 	for _, val := range list {
+		name, ok := yaml.FindString(val, "name")
+		if !ok {
+			return nil
+		}
+
 		asMap, ok := val.(map[string]yaml.Node)
-		if !ok {
-			return nil
-		}
-
-		nameNode, ok := asMap["name"]
-		if !ok {
-			return nil
-		}
-
-		name, ok := nameNode.(string)
 		if !ok {
 			return nil
 		}
@@ -150,35 +145,16 @@ func compareJobs(ajobs, bjobs []yaml.Node, path []string) []Diff {
 	for index, ajob := range ajobs {
 		key := fmt.Sprintf("[%d]", index)
 
-		amap, ok := ajob.(map[string]yaml.Node)
+		aname, ok := yaml.FindString(ajob, "name")
 		if !ok {
-			panic("non-map job")
+			panic("job without string name")
 		}
 
 		bjob := bjobs[index]
-		bmap, ok := bjob.(map[string]yaml.Node)
-		if !ok {
-			panic("non-map job")
-		}
 
-		aNameNode, ok := amap["name"]
+		bname, ok := yaml.FindString(bjob, "name")
 		if !ok {
-			panic("job without name")
-		}
-
-		bNameNode, ok := bmap["name"]
-		if !ok {
-			panic("job without name")
-		}
-
-		aname, ok := aNameNode.(string)
-		if !ok {
-			panic("job with non-string name")
-		}
-
-		bname, ok := bNameNode.(string)
-		if !ok {
-			panic("job with non-string name")
+			panic("job without string name")
 		}
 
 		if aname != bname {
@@ -193,17 +169,7 @@ func compareJobs(ajobs, bjobs []yaml.Node, path []string) []Diff {
 }
 
 func findByNameOrIndex(node yaml.Node, others []yaml.Node, index int) (string, yaml.Node, bool) {
-	nodeMap, ok := node.(map[string]yaml.Node)
-	if !ok {
-		return findByIndex(others, index)
-	}
-
-	nameNode, hasName := nodeMap["name"]
-	if !hasName {
-		return findByIndex(others, index)
-	}
-
-	name, ok := nameNode.(string)
+	name, ok := yaml.FindString(node, "name")
 	if !ok {
 		return findByIndex(others, index)
 	}
@@ -218,17 +184,7 @@ func findByNameOrIndex(node yaml.Node, others []yaml.Node, index int) (string, y
 
 func findByName(name string, nodes []yaml.Node) (string, yaml.Node, bool) {
 	for _, node := range nodes {
-		nodeMap, ok := node.(map[string]yaml.Node)
-		if !ok {
-			continue
-		}
-
-		nameNode, hasName := nodeMap["name"]
-		if !hasName {
-			continue
-		}
-
-		otherName, ok := nameNode.(string)
+		otherName, ok := yaml.FindString(node, "name")
 		if !ok {
 			continue
 		}

@@ -10,7 +10,6 @@ type AutoExpr struct {
 
 func (e AutoExpr) Evaluate(context Context) yaml.Node {
 	if len(e.Path) == 3 && e.Path[0] == "resource_pools" && e.Path[2] == "size" {
-		size := 0
 
 		jobs := context.FindFromRoot([]string{"jobs"})
 		if jobs == nil {
@@ -22,18 +21,10 @@ func (e AutoExpr) Evaluate(context Context) yaml.Node {
 			return nil
 		}
 
+		size := 0
+
 		for _, job := range jobsList {
-			job, ok := job.(map[string]yaml.Node)
-			if !ok {
-				continue
-			}
-
-			resourcePool, ok := job["resource_pool"]
-			if !ok {
-				continue
-			}
-
-			poolName, ok := resourcePool.(string)
+			poolName, ok := yaml.FindString(job, "resource_pool")
 			if !ok {
 				continue
 			}
@@ -42,17 +33,12 @@ func (e AutoExpr) Evaluate(context Context) yaml.Node {
 				continue
 			}
 
-			instances, ok := job["instances"]
+			instances, ok := yaml.FindInt(job, "instances")
 			if !ok {
 				return nil
 			}
 
-			instanceCount, ok := instances.(int)
-			if !ok {
-				return nil
-			}
-
-			size += instanceCount
+			size += instances
 		}
 
 		return size

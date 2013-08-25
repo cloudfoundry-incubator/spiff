@@ -103,17 +103,9 @@ func flowString(root string, env Environment) (yaml.Node, bool) {
 }
 
 func stepName(index int, value yaml.Node) string {
-	mapval, ok := value.(map[string]yaml.Node)
+	name, ok := yaml.FindString(value, "name")
 	if ok {
-		name, ok := mapval["name"]
-
-		if ok {
-			nameString, ok := name.(string)
-
-			if ok {
-				return nameString
-			}
-		}
+		return name
 	}
 
 	return fmt.Sprintf("[%d]", index)
