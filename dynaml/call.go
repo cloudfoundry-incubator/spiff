@@ -79,7 +79,17 @@ func (e CallExpr) Evaluate(context Context) yaml.Node {
 			ips = append(ips, ipPool[i].String())
 		}
 
-		return ips
+		nearestInstances := context.FindReference([]string{"instances"})
+		if nearestInstances == nil {
+			return ips
+		}
+
+		instances, ok := nearestInstances.(int)
+		if !ok {
+			return nil
+		}
+
+		return ips[:instances]
 	default:
 		return nil
 	}
