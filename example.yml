@@ -162,6 +162,16 @@ jobs:
         stacks:
           - lucid64
 
+  - name: narc
+    template: narc
+    instances: (( merge || 1 ))
+    resource_pool: dea
+    networks:
+      - name: cf1
+        default:
+        - dns
+        - gateway
+
   - name: collector
     template: collector
     instances: 1
@@ -292,7 +302,7 @@ properties:
     memory_mb: (( merge || ec2_constants.memory.m2_2xlarge - 2048 ))
     memory_overcommit_factor: (( merge || 3 ))
     disk_mb: (( merge || ec2_constants.disk.m2_2xlarge - 2048 ))
-    disk_overcommit_factor: (( merge || 1 ))
+    disk_overcommit_factor: (( merge || 2 ))
     num_instances: 256
     deny_networks:
       - 169.254.0.0/16
@@ -319,6 +329,7 @@ properties:
       smtp_domain: gmail.com
 
   loggregator:
+    server: (( jobs.loggregator.networks.cf1.static_ips.[0] ":3456" ))
     status:
       user: (( merge || "" ))
       password: (( merge || "" ))
