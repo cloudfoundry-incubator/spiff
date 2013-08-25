@@ -215,51 +215,51 @@ jobs:
 
 				Expect(diff).To(ContainElement(
 					Diff{
-						A:    "a",
-						B:    "b",
-						Path: []string{"jobs", "[0]", "name"},
+						A:    parseYAML("name: a\nvalue: foo\n"),
+						B:    parseYAML("name: b\nvalue: bar\n"),
+						Path: []string{"jobs", "[0]"},
 					},
 				))
 
 				Expect(diff).To(ContainElement(
 					Diff{
-						A:    "b",
-						B:    "a",
-						Path: []string{"jobs", "[1]", "name"},
+						A:    parseYAML("name: b\nvalue: bar\n"),
+						B:    parseYAML("name: a\nvalue: foo\n"),
+						Path: []string{"jobs", "[1]"},
 					},
 				))
 			})
 		})
 
-		// 		Context("when there are named jobs only in B", func() {
-		// 			a := parseYAML(`
-		// ---
-		// jobs:
-		// - name: a
-		//   value: foo
-		// `)
+		Context("when there are named jobs only in B", func() {
+			a := parseYAML(`
+---
+jobs:
+- name: a
+  value: foo
+`)
 
-		// 			b := parseYAML(`
-		// ---
-		// jobs:
-		// - name: a
-		//   value: foo
-		// - name: b
-		//   value: bar
-		// `)
+			b := parseYAML(`
+---
+jobs:
+- name: a
+  value: foo
+- name: b
+  value: bar
+`)
 
-		// 			It("reports it as different", func() {
-		// 				diff := Compare(a, b)
+			It("reports it as different", func() {
+				diff := Compare(a, b)
 
-		// 				Expect(diff).To(Equal([]Diff{
-		// 					Diff{
-		// 						A:    nil,
-		// 						B:    parseYAML("name: b\nvalue: bar\n"),
-		// 						Path: []string{"jobs", "[0]", "name"},
-		// 					},
-		// 				}))
-		// 			})
-		// 		})
+				Expect(diff).To(Equal([]Diff{
+					Diff{
+						A:    nil,
+						B:    parseYAML("name: b\nvalue: bar\n"),
+						Path: []string{"jobs", "[1]"},
+					},
+				}))
+			})
+		})
 
 		Context("when there are named resource pools differing only in order", func() {
 			a := parseYAML(`

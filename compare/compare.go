@@ -158,11 +158,19 @@ func compareJobs(ajobs, bjobs []yaml.Node, path []string) []Diff {
 		}
 
 		if aname != bname {
-			diff = append(diff, Diff{A: aname, B: bname, Path: addPath(path, key, "name")})
+			diff = append(diff, Diff{A: ajob, B: bjob, Path: addPath(path, key)})
 			continue
 		}
 
 		diff = append(diff, compare(ajob, bjob, addPath(path, aname))...)
+	}
+
+	for index, bjob := range bjobs {
+		key := fmt.Sprintf("[%d]", index)
+
+		if len(ajobs) <= index {
+			diff = append(diff, Diff{A: nil, B: bjob, Path: append(path, key)})
+		}
 	}
 
 	return diff
