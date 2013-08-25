@@ -29,40 +29,11 @@ func (e CallExpr) Evaluate(context Context) yaml.Node {
 			return nil
 		}
 
-		network := context.FindFromRoot([]string{"networks", networkName})
-		if network == nil {
-			return nil
-		}
+		static := context.FindFromRoot(
+			[]string{"networks", networkName, "subnets", "[0]", "static"},
+		)
 
-		networkMap, ok := network.(map[string]yaml.Node)
-		if !ok {
-			return nil
-		}
-
-		subnets, ok := networkMap["subnets"]
-		if !ok {
-			return nil
-		}
-
-		subnetsList, ok := subnets.([]yaml.Node)
-		if !ok {
-			return nil
-		}
-
-		// :3
-		if len(subnetsList) != 1 {
-			return nil
-		}
-
-		subnet := subnetsList[0]
-
-		subnetMap, ok := subnet.(map[string]yaml.Node)
-		if !ok {
-			return nil
-		}
-
-		static, ok := subnetMap["static"]
-		if !ok {
+		if static == nil {
 			return nil
 		}
 

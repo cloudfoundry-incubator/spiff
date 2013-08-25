@@ -18,26 +18,16 @@ var _ = d.Describe("calls", func() {
 		}
 
 		d.It("returns a set of ips from the given network", func() {
-			network := parseYAML(`
-type: manual
-subnets:
-  - range: 10.10.16.0/20
-    name: default_unused
-    reserved:
-      - 10.10.16.2 - 10.10.16.9
-      - 10.10.16.255 - 10.10.16.255
-    static:
-      - 10.10.16.10 - 10.10.16.254
-    gateway: 10.10.16.1
-    dns:
-      - 10.10.0.2`)
+			static := parseYAML(`
+- 10.10.16.10 - 10.10.16.254
+`)
 
 			context := FakeContext{
 				FoundReferences: map[string]yaml.Node{
 					"name": "cf1",
 				},
 				FoundFromRoot: map[string]yaml.Node{
-					"networks.cf1": network,
+					"networks.cf1.subnets.[0].static": static,
 				},
 			}
 

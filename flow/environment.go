@@ -1,6 +1,9 @@
 package flow
 
 import (
+	"regexp"
+	"strconv"
+
 	"github.com/vito/spiff/yaml"
 )
 
@@ -80,7 +83,23 @@ func nextStep(step string, here yaml.Node) (yaml.Node, bool) {
 	return here, found
 }
 
+var listIndex = regexp.MustCompile(`^\[(\d+)\]$`)
+
 func stepThroughList(here []yaml.Node, step string) (yaml.Node, bool) {
+	match := listIndex.FindStringSubmatch(step)
+	if match != nil {
+		index, err := strconv.Atoi(match[1])
+		if err != nil {
+			panic(err)
+		}
+
+		if len(here) <= index {
+			return nil, false
+		}
+
+		return here[index], true
+	}
+
 	for _, sub := range here {
 		subMap, ok := sub.(map[string]yaml.Node)
 		if !ok {

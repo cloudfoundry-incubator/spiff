@@ -123,6 +123,26 @@ foo:
 			Expect(environment.FindFromRoot([]string{"foo", "bar", "baz"})).To(Equal("found"))
 		})
 
+		Describe("indexing a list", func() {
+			tree := parseYAML(`
+---
+foo:
+  bar:
+    - buzz: wrong
+    - fizz: right
+`)
+
+			environment := Environment{
+				Scope: []map[string]yaml.Node{
+					tree.(map[string]yaml.Node),
+				},
+			}
+
+			It("accepts [x] for following through lists", func() {
+				Expect(environment.FindFromRoot([]string{"foo", "bar", "[1]", "fizz"})).To(Equal("right"))
+			})
+		})
+
 		Context("when the path cannot be found", func() {
 			It("returns nil", func() {
 				Expect(environment.FindFromRoot([]string{"foo", "bar", "biscuit"})).To(BeNil())
