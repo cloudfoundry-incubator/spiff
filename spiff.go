@@ -130,7 +130,7 @@ func diff(aFilePath, bFilePath string) {
 				panic(err)
 			}
 
-			fmt.Printf("  %s has:\n    %s\n", aFilePath, strings.Replace(string(ayaml), "\n", "\n    ", -1))
+			fmt.Printf("  %s has:\n    \x1b[32m%s\x1b[0m\n", aFilePath, strings.Replace(string(ayaml), "\n", "\n    ", -1))
 		}
 
 		if diff.B != nil {
@@ -139,7 +139,7 @@ func diff(aFilePath, bFilePath string) {
 				panic(err)
 			}
 
-			fmt.Printf("  %s has:\n    %s\n", bFilePath, strings.Replace(string(byaml), "\n", "\n    ", -1))
+			fmt.Printf("  %s has:\n    \x1b[31m%s\x1b[0m\n", bFilePath, strings.Replace(string(byaml), "\n", "\n    ", -1))
 		}
 	}
 }
