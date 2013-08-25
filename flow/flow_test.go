@@ -179,6 +179,47 @@ foo:
 
 			Expect(source).To(FlowAs(resolved, stub))
 		})
+
+		// this is a regression test, from when Environment.WithPath
+		// used append() for adding the next step.
+		//
+		// using append() will overwrite previous steps, since it reuses the slice
+		//
+		// e.g. with inital path A:
+		//    append(A, "a")
+		//    append(A, "b")
+		//
+		// would result in all previous A/a paths becoming A/b
+		It("can be arbitrarily nested", func() {
+			source := parseYAML(`
+---
+properties:
+  something:
+    foo:
+      key: (( merge ))
+      val: (( merge ))
+`)
+
+			stub := parseYAML(`
+---
+properties:
+  something:
+    foo:
+      key: a
+      val: b
+`)
+
+			resolved := parseYAML(`
+---
+properties:
+  something:
+    foo:
+      key: a
+      val: b
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
 	})
 
 	Describe("automatic resource pool sizes", func() {

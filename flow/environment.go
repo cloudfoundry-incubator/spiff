@@ -41,12 +41,16 @@ func (e Environment) FindInStubs(path []string) yaml.Node {
 }
 
 func (e Environment) WithScope(step map[string]yaml.Node) Environment {
-	e.Scope = append(e.Scope, step)
+	newScope := make([]map[string]yaml.Node, len(e.Scope))
+	copy(newScope, e.Scope)
+	e.Scope = append(newScope, step)
 	return e
 }
 
 func (e Environment) WithPath(step string) Environment {
-	e.Path = append(e.Path, step)
+	newPath := make([]string, len(e.Path))
+	copy(newPath, e.Path)
+	e.Path = append(newPath, step)
 	return e
 }
 
