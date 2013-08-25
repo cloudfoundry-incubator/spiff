@@ -1543,7 +1543,7 @@ func (p *DynamlGrammar) Init() {
 			position, tokenIndex, depth = position95, tokenIndex95, depth95
 			return false
 		},
-		/* 21 Reference <- <(([a-z] / [A-Z] / [0-9] / '_')+ ('.' ([a-z] / [A-Z] / [0-9] / '_')+)*)> */
+		/* 21 Reference <- <(([a-z] / [A-Z] / [0-9] / '_')+ (('.' ([a-z] / [A-Z] / [0-9] / '_')+) / ('.' '[' [0-9]+ ']'))*)> */
 		func() bool {
 			position97, tokenIndex97, depth97 := position, tokenIndex, depth
 			{
@@ -1617,75 +1617,109 @@ func (p *DynamlGrammar) Init() {
 			l109:
 				{
 					position110, tokenIndex110, depth110 := position, tokenIndex, depth
-					if buffer[position] != '.' {
-						goto l110
-					}
-					position++
 					{
-						position113, tokenIndex113, depth113 := position, tokenIndex, depth
-						if c := buffer[position]; c < 'a' || c > 'z' {
-							goto l114
+						position111, tokenIndex111, depth111 := position, tokenIndex, depth
+						if buffer[position] != '.' {
+							goto l112
 						}
 						position++
-						goto l113
-					l114:
-						position, tokenIndex, depth = position113, tokenIndex113, depth113
-						if c := buffer[position]; c < 'A' || c > 'Z' {
-							goto l115
-						}
-						position++
-						goto l113
-					l115:
-						position, tokenIndex, depth = position113, tokenIndex113, depth113
-						if c := buffer[position]; c < '0' || c > '9' {
-							goto l116
-						}
-						position++
-						goto l113
-					l116:
-						position, tokenIndex, depth = position113, tokenIndex113, depth113
-						if buffer[position] != '_' {
-							goto l110
-						}
-						position++
-					}
-				l113:
-				l111:
-					{
-						position112, tokenIndex112, depth112 := position, tokenIndex, depth
 						{
-							position117, tokenIndex117, depth117 := position, tokenIndex, depth
+							position115, tokenIndex115, depth115 := position, tokenIndex, depth
 							if c := buffer[position]; c < 'a' || c > 'z' {
+								goto l116
+							}
+							position++
+							goto l115
+						l116:
+							position, tokenIndex, depth = position115, tokenIndex115, depth115
+							if c := buffer[position]; c < 'A' || c > 'Z' {
+								goto l117
+							}
+							position++
+							goto l115
+						l117:
+							position, tokenIndex, depth = position115, tokenIndex115, depth115
+							if c := buffer[position]; c < '0' || c > '9' {
 								goto l118
 							}
 							position++
-							goto l117
+							goto l115
 						l118:
-							position, tokenIndex, depth = position117, tokenIndex117, depth117
-							if c := buffer[position]; c < 'A' || c > 'Z' {
-								goto l119
-							}
-							position++
-							goto l117
-						l119:
-							position, tokenIndex, depth = position117, tokenIndex117, depth117
-							if c := buffer[position]; c < '0' || c > '9' {
-								goto l120
-							}
-							position++
-							goto l117
-						l120:
-							position, tokenIndex, depth = position117, tokenIndex117, depth117
+							position, tokenIndex, depth = position115, tokenIndex115, depth115
 							if buffer[position] != '_' {
 								goto l112
 							}
 							position++
 						}
-					l117:
+					l115:
+					l113:
+						{
+							position114, tokenIndex114, depth114 := position, tokenIndex, depth
+							{
+								position119, tokenIndex119, depth119 := position, tokenIndex, depth
+								if c := buffer[position]; c < 'a' || c > 'z' {
+									goto l120
+								}
+								position++
+								goto l119
+							l120:
+								position, tokenIndex, depth = position119, tokenIndex119, depth119
+								if c := buffer[position]; c < 'A' || c > 'Z' {
+									goto l121
+								}
+								position++
+								goto l119
+							l121:
+								position, tokenIndex, depth = position119, tokenIndex119, depth119
+								if c := buffer[position]; c < '0' || c > '9' {
+									goto l122
+								}
+								position++
+								goto l119
+							l122:
+								position, tokenIndex, depth = position119, tokenIndex119, depth119
+								if buffer[position] != '_' {
+									goto l114
+								}
+								position++
+							}
+						l119:
+							goto l113
+						l114:
+							position, tokenIndex, depth = position114, tokenIndex114, depth114
+						}
 						goto l111
 					l112:
-						position, tokenIndex, depth = position112, tokenIndex112, depth112
+						position, tokenIndex, depth = position111, tokenIndex111, depth111
+						if buffer[position] != '.' {
+							goto l110
+						}
+						position++
+						if buffer[position] != '[' {
+							goto l110
+						}
+						position++
+						if c := buffer[position]; c < '0' || c > '9' {
+							goto l110
+						}
+						position++
+					l123:
+						{
+							position124, tokenIndex124, depth124 := position, tokenIndex, depth
+							if c := buffer[position]; c < '0' || c > '9' {
+								goto l124
+							}
+							position++
+							goto l123
+						l124:
+							position, tokenIndex, depth = position124, tokenIndex124, depth124
+						}
+						if buffer[position] != ']' {
+							goto l110
+						}
+						position++
 					}
+				l111:
 					goto l109
 				l110:
 					position, tokenIndex, depth = position110, tokenIndex110, depth110
@@ -1701,46 +1735,46 @@ func (p *DynamlGrammar) Init() {
 		/* 22 ws <- <(' ' / '\t' / '\n' / '\r')*> */
 		func() bool {
 			{
-				position122 := position
+				position126 := position
 				depth++
-			l123:
+			l127:
 				{
-					position124, tokenIndex124, depth124 := position, tokenIndex, depth
+					position128, tokenIndex128, depth128 := position, tokenIndex, depth
 					{
-						position125, tokenIndex125, depth125 := position, tokenIndex, depth
+						position129, tokenIndex129, depth129 := position, tokenIndex, depth
 						if buffer[position] != ' ' {
-							goto l126
+							goto l130
 						}
 						position++
-						goto l125
-					l126:
-						position, tokenIndex, depth = position125, tokenIndex125, depth125
+						goto l129
+					l130:
+						position, tokenIndex, depth = position129, tokenIndex129, depth129
 						if buffer[position] != '\t' {
-							goto l127
+							goto l131
 						}
 						position++
-						goto l125
-					l127:
-						position, tokenIndex, depth = position125, tokenIndex125, depth125
+						goto l129
+					l131:
+						position, tokenIndex, depth = position129, tokenIndex129, depth129
 						if buffer[position] != '\n' {
+							goto l132
+						}
+						position++
+						goto l129
+					l132:
+						position, tokenIndex, depth = position129, tokenIndex129, depth129
+						if buffer[position] != '\r' {
 							goto l128
 						}
 						position++
-						goto l125
-					l128:
-						position, tokenIndex, depth = position125, tokenIndex125, depth125
-						if buffer[position] != '\r' {
-							goto l124
-						}
-						position++
 					}
-				l125:
-					goto l123
-				l124:
-					position, tokenIndex, depth = position124, tokenIndex124, depth124
+				l129:
+					goto l127
+				l128:
+					position, tokenIndex, depth = position128, tokenIndex128, depth128
 				}
 				depth--
-				add(Rulews, position122)
+				add(Rulews, position126)
 			}
 			return true
 		},

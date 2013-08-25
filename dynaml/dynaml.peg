@@ -39,6 +39,6 @@ Merge <- 'merge'
 
 Auto <- 'auto'
 
-Reference <- [a-zA-Z0-9_]+ ('.' [a-zA-Z0-9_]+)*
+Reference <- [a-zA-Z0-9_]+ ('.' [a-zA-Z0-9_]+ / '.' '[' [0-9]+ ']')*
 
 ws <- [ \t\n\r]*
