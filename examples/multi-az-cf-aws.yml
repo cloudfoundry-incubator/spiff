@@ -155,20 +155,37 @@ resource_pools:
       availability_zone: (( properties.template_only.aws.availability_zone2 ))
       elbs: (( merge || ["cfrouter"] ))
 
+meta:
+  networks:
+    cf1:
+      apps: cf1
+      management: cf1
+
+    cf2:
+      apps: cf2
+      management: cf2
+
+  instance_sizes:
+    memory:
+      m1_medium: 3840
+      m1_large: 7680
+      m2_2xlarge: 35020
+    disk:
+      m1_medium: 390000
+      m1_large: 400000
+      m2_2xlarge: 800000
+
 jobs:
-  - name: syslog_aggregator
+  - name: syslog_aggregator_z0
     template: syslog_aggregator
     instances: 1
     resource_pool: medium_z0
     persistent_disk: (( merge || 100000 ))
-
     networks:
       - name: cf1
         static_ips: (( static_ips(0) ))
     properties:
-      networks:
-        apps: cf1
-        management: cf1
+      networks: (( meta.networks.cf1 ))
 
   - name: nats_z1
     template: nats
@@ -178,9 +195,7 @@ jobs:
       - name: cf2
         static_ips: (( static_ips(1) ))
     properties:
-      networks:
-        apps: cf2
-        management: cf2
+      networks: (( meta.networks.cf2 ))
 
   - name: uaa_z0
     template: uaa
@@ -190,9 +205,7 @@ jobs:
       - name: cf1
         static_ips: (( static_ips(2, 7) ))
     properties:
-      networks:
-        apps: cf1
-        management: cf1
+      networks: (( meta.networks.cf1 ))
 
   - name: uaa_z1
     template: uaa
@@ -202,9 +215,7 @@ jobs:
       - name: cf2
         static_ips: (( static_ips(2, 7) ))
     properties:
-      networks:
-        apps: cf2
-        management: cf2
+      networks: (( meta.networks.cf2 ))
 
   - name: login_z0
     template: login
@@ -213,9 +224,7 @@ jobs:
     networks:
       - name: cf1
     properties:
-      networks:
-        apps: cf1
-        management: cf1
+      networks: (( meta.networks.cf1 ))
 
   - name: api_z0
     template: cloud_controller_ng
@@ -226,9 +235,7 @@ jobs:
         static_ips: (( static_ips(3, 4, 8, 9, 10, 11, 12, 13, 14) ))
     properties:
       ccdb: ccdb
-      networks:
-        apps: cf2
-        management: cf2
+      networks: (( meta.networks.cf2 ))
 
   - name: api_z1
     template: cloud_controller_ng
@@ -239,9 +246,7 @@ jobs:
         static_ips: (( static_ips(3, 4, 8, 9, 10, 11, 12, 13, 14) ))
     properties:
       ccdb: ccdb
-      networks:
-        apps: cf1
-        management: cf1
+      networks: (( meta.networks.cf2 ))
 
   - name: hm_z0
     template: health_manager_next
@@ -250,9 +255,7 @@ jobs:
     networks:
       - name: cf1
     properties:
-      networks:
-        apps: cf1
-        management: cf1
+      networks: (( meta.networks.cf1 ))
 
   - name: runtime_z0
     template: (( merge || ["dea_next", "dea_logging_agent"] ))
@@ -262,16 +265,11 @@ jobs:
     resource_pool: runtime_z0
     networks:
       - name: cf1
-        default:
-          - dns
-          - gateway
     properties:
       dea_next:
         stacks:
           - lucid64
-      networks:
-        apps: cf1
-        management: cf1
+      networks: (( meta.networks.cf1 ))
 
   - name: runtime_z1
     template: (( merge || ["dea_next", "dea_logging_agent"] ))
@@ -281,16 +279,11 @@ jobs:
     resource_pool: runtime_z1
     networks:
       - name: cf2
-        default:
-          - dns
-          - gateway
     properties:
       dea_next:
         stacks:
           - lucid64
-      networks:
-        apps: cf1
-        management: cf1
+      networks: (( meta.networks.cf1 ))
 
   - name: taskmaster_z0
     template: taskmaster
@@ -298,13 +291,8 @@ jobs:
     resource_pool: runtime_z0
     networks:
       - name: cf1
-        default:
-        - dns
-        - gateway
     properties:
-      networks:
-        apps: cf1
-        management: cf1
+      networks: (( meta.networks.cf1 ))
 
   - name: taskmaster_z1
     template: taskmaster
@@ -312,13 +300,8 @@ jobs:
     resource_pool: runtime_z1
     networks:
       - name: cf2
-        default:
-        - dns
-        - gateway
     properties:
-      networks:
-        apps: cf1
-        management: cf1
+      networks: (( meta.networks.cf2 ))
 
   - name: collector_z1
     template: collector
@@ -327,9 +310,7 @@ jobs:
     networks:
       - name: cf2
     properties:
-      networks:
-        apps: cf1
-        management: cf1
+      networks: (( meta.networks.cf2 ))
 
   - name: loggregator_z0
     template: loggregator
@@ -339,9 +320,7 @@ jobs:
       - name: cf1
         static_ips: (( static_ips(21) ))
     properties:
-      networks:
-        apps: cf1
-        management: cf1
+      networks: (( meta.networks.cf1 ))
 
   - name: router_z0
     template: gorouter
@@ -349,14 +328,9 @@ jobs:
     resource_pool: router_z0
     networks:
       - name: cf1
-        default:
-          - dns
-          - gateway
         static_ips: (( static_ips(5, 6, 15, 16, 17, 18, 19, 20) ))
     properties:
-      networks:
-        apps: cf1
-        management: cf1
+      networks: (( meta.networks.cf1 ))
 
   - name: router_z1
     template: gorouter
@@ -364,27 +338,12 @@ jobs:
     resource_pool: router_z1
     networks:
       - name: cf2
-        default:
-          - dns
-          - gateway
         static_ips: (( static_ips(5, 6, 15, 16, 17, 18, 19, 20) ))
     properties:
-      networks:
-        apps: cf1
-        management: cf1
+      networks: (( meta.networks.cf1 ))
 
 properties:
   template_only: (( merge ))
-
-  ec2_constants:
-    memory:
-      m1_medium: 3840
-      m1_large: 7680
-      m2_2xlarge: 35020
-    disk:
-      m1_medium: 390000
-      m1_large: 400000
-      m2_2xlarge: 800000
 
   domain: (( merge ))
   system_domain: (( merge || domain ))
@@ -477,13 +436,10 @@ properties:
       user: (( merge ))
       password: (( merge ))
 
-  dea:
-    max_memory: 4096
-
   dea_next:
-    memory_mb: (( merge || ec2_constants.memory.m2_2xlarge - 2048 ))
+    memory_mb: (( merge || meta.instance_sizes.memory.m2_2xlarge - 2048 ))
     memory_overcommit_factor: (( merge || 3 ))
-    disk_mb: (( merge || ec2_constants.disk.m2_2xlarge - 2048 ))
+    disk_mb: (( merge || meta.instance_sizes.disk.m2_2xlarge - 2048 ))
     disk_overcommit_factor: (( merge || 2 ))
     num_instances: 256
     deny_networks:
@@ -495,7 +451,7 @@ properties:
       - 10.10.17.0/24
 
   syslog_aggregator:
-    address: 10.10.16.10
+    address: (( jobs.syslog_aggregator_z0.networks.cf1.static_ips.[0] ))
     port: 54321
     relay_host: (( merge || "" ))
     relay_host_port: (( merge || "" ))

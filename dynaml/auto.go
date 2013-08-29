@@ -10,7 +10,6 @@ type AutoExpr struct {
 
 func (e AutoExpr) Evaluate(context Context) yaml.Node {
 	if len(e.Path) == 3 && e.Path[0] == "resource_pools" && e.Path[2] == "size" {
-
 		jobs := context.FindFromRoot([]string{"jobs"})
 		if jobs == nil {
 			return nil
