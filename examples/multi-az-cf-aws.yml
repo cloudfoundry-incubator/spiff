@@ -1,6 +1,5 @@
 name: (( merge ))
 director_uuid: (( merge ))
-
 releases: (( merge ))
 
 compilation:
@@ -44,7 +43,7 @@ networks:
           - 10.10.80.2 - 10.10.80.9
         static:
           - 10.10.80.10 - 10.10.80.255
-        gateway: 10.10.16.1
+        gateway: 10.10.80.1
         dns:
           - 10.10.0.2 # amazon has only 1 DNS server for the whole VPC at x.x.0.2
         cloud_properties:
@@ -52,110 +51,11 @@ networks:
             - cf
           subnet: (( properties.template_only.aws.subnet_ids.cf1 ))
 
-resource_pools:
-  small_z0:
-    network: cf1
-    size: (( auto ))
-    stemcell:
-      name: bosh-stemcell
-      version: latest
-    cloud_properties:
-      instance_type: m1.small
-      availability_zone: (( properties.template_only.aws.availability_zone ))
-
-  small_z1:
-    network: cf2
-    size: (( auto ))
-    stemcell:
-      name: bosh-stemcell
-      version: latest
-    cloud_properties:
-      instance_type: m1.small
-      availability_zone: (( properties.template_only.aws.availability_zone2 ))
-
-  medium_z0:
-    network: cf1
-    size: (( auto ))
-    stemcell:
-      name: bosh-stemcell
-      version: latest
-    cloud_properties:
-      instance_type: m1.medium
-      availability_zone: (( properties.template_only.aws.availability_zone ))
-
-  medium_z1:
-    network: cf2
-    size: (( auto ))
-    stemcell:
-      name: bosh-stemcell
-      version: latest
-    cloud_properties:
-      instance_type: m1.medium
-      availability_zone: (( properties.template_only.aws.availability_zone2 ))
-
-  large_z0:
-    network: cf1
-    size: (( auto ))
-    stemcell:
-      name: bosh-stemcell
-      version: latest
-    cloud_properties:
-      instance_type: m1.medium
-      availability_zone: (( properties.template_only.aws.availability_zone ))
-
-  large_z1:
-    network: cf2
-    size: (( auto ))
-    stemcell:
-      name: bosh-stemcell
-      version: latest
-    cloud_properties:
-      instance_type: m1.medium
-      availability_zone: (( properties.template_only.aws.availability_zone2 ))
-
-  runner_z0:
-    network: cf1
-    size: (( auto ))
-    stemcell:
-      name: bosh-stemcell
-      version: latest
-    cloud_properties:
-      instance_type: (( merge || "m1.large" ))
-      availability_zone: (( properties.template_only.aws.availability_zone ))
-
-  runner_z1:
-    network: cf2
-    size: (( auto ))
-    stemcell:
-      name: bosh-stemcell
-      version: latest
-    cloud_properties:
-      instance_type: (( merge || "m1.large" ))
-      availability_zone: (( properties.template_only.aws.availability_zone2 ))
-
-  router_z0:
-    network: cf1
-    size: (( auto ))
-    stemcell:
-      name: bosh-stemcell
-      version: latest
-    cloud_properties:
-      instance_type: m1.small
-      availability_zone: (( properties.template_only.aws.availability_zone ))
-      elbs: (( merge || ["cfrouter"] ))
-
-  router_z1:
-    network: cf2
-    size: (( auto ))
-    stemcell:
-      name: bosh-stemcell
-      version: latest
-    cloud_properties:
-      instance_type: m1.small
-      availability_zone: (( properties.template_only.aws.availability_zone2 ))
-      elbs: (( merge || ["cfrouter"] ))
-
 meta:
+  stemcell:
+    name: bosh-stemcell
+    version: latest
+
   networks:
     cf1:
       apps: cf1
@@ -174,6 +74,89 @@ meta:
       m1_medium: 390000
       m1_large: 400000
       m2_2xlarge: 800000
+
+resource_pools:
+  small_z0:
+    network: cf1
+    size: (( auto ))
+    stemcell: (( meta.stemcell ))
+    cloud_properties:
+      instance_type: m1.small
+      availability_zone: (( properties.template_only.aws.availability_zone ))
+
+  small_z1:
+    network: cf2
+    size: (( auto ))
+    stemcell: (( meta.stemcell ))
+    cloud_properties:
+      instance_type: m1.small
+      availability_zone: (( properties.template_only.aws.availability_zone2 ))
+
+  medium_z0:
+    network: cf1
+    size: (( auto ))
+    stemcell: (( meta.stemcell ))
+    cloud_properties:
+      instance_type: m1.medium
+      availability_zone: (( properties.template_only.aws.availability_zone ))
+
+  medium_z1:
+    network: cf2
+    size: (( auto ))
+    stemcell: (( meta.stemcell ))
+    cloud_properties:
+      instance_type: m1.medium
+      availability_zone: (( properties.template_only.aws.availability_zone2 ))
+
+  large_z0:
+    network: cf1
+    size: (( auto ))
+    stemcell: (( meta.stemcell ))
+    cloud_properties:
+      instance_type: m1.medium
+      availability_zone: (( properties.template_only.aws.availability_zone ))
+
+  large_z1:
+    network: cf2
+    size: (( auto ))
+    stemcell: (( meta.stemcell ))
+    cloud_properties:
+      instance_type: m1.medium
+      availability_zone: (( properties.template_only.aws.availability_zone2 ))
+
+  runner_z0:
+    network: cf1
+    size: (( auto ))
+    stemcell: (( meta.stemcell ))
+    cloud_properties:
+      instance_type: (( merge || "m1.large" ))
+      availability_zone: (( properties.template_only.aws.availability_zone ))
+
+  runner_z1:
+    network: cf2
+    size: (( auto ))
+    stemcell: (( meta.stemcell ))
+    cloud_properties:
+      instance_type: (( merge || "m1.large" ))
+      availability_zone: (( properties.template_only.aws.availability_zone2 ))
+
+  router_z0:
+    network: cf1
+    size: (( auto ))
+    stemcell: (( meta.stemcell ))
+    cloud_properties:
+      instance_type: m1.small
+      availability_zone: (( properties.template_only.aws.availability_zone ))
+      elbs: (( merge || ["cfrouter"] ))
+
+  router_z1:
+    network: cf2
+    size: (( auto ))
+    stemcell: (( meta.stemcell ))
+    cloud_properties:
+      instance_type: m1.small
+      availability_zone: (( properties.template_only.aws.availability_zone2 ))
+      elbs: (( merge || ["cfrouter"] ))
 
 jobs:
   - name: syslog_aggregator_z0
@@ -260,29 +243,23 @@ jobs:
   - name: runtime_z0
     template: (( merge || ["dea_next", "dea_logging_agent"] ))
     instances: (( merge || 1 ))
-    update:
-      max_in_flight: (( merge || 1 ))
     resource_pool: runtime_z0
     networks:
       - name: cf1
+    update:
+      max_in_flight: (( merge || 1 ))
     properties:
-      dea_next:
-        stacks:
-          - lucid64
       networks: (( meta.networks.cf1 ))
 
   - name: runtime_z1
     template: (( merge || ["dea_next", "dea_logging_agent"] ))
     instances: (( merge || 1 ))
-    update:
-      max_in_flight: (( merge || 1 ))
     resource_pool: runtime_z1
     networks:
       - name: cf2
+    update:
+      max_in_flight: (( merge || 1 ))
     properties:
-      dea_next:
-        stacks:
-          - lucid64
       networks: (( meta.networks.cf1 ))
 
   - name: taskmaster_z0
@@ -353,18 +330,9 @@ properties:
   nats:
     user: (( merge ))
     password: (( merge ))
-    address: 10.10.16.11
+    address: (( jobs.nats_z0.networks.cf1.static_ips[0] ))
     port: 4222
     authorization_timeout: 5
-
-  ccdb: (( merge ))
-
-  uaadb:
-    db_scheme: mysql
-    address: (( merge ))
-    port: 3306
-    roles: (( merge ))
-    databases: (( merge ))
 
   cc_api_version: v2
 
@@ -429,6 +397,15 @@ properties:
     db_encryption_key: (( merge ))
     tasks_disabled: (( merge || false ))
 
+  ccdb: (( merge ))
+
+  uaadb:
+    db_scheme: mysql
+    address: (( merge ))
+    port: 3306
+    roles: (( merge ))
+    databases: (( merge ))
+
   router:
     port: 8081
     status:
@@ -442,6 +419,8 @@ properties:
     disk_mb: (( merge || meta.instance_sizes.disk.m2_2xlarge - 2048 ))
     disk_overcommit_factor: (( merge || 2 ))
     num_instances: 256
+    stacks:
+      - lucid64
     deny_networks:
       - 169.254.0.0/16
       - 10.10.0.0/24
