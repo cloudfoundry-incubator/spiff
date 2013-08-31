@@ -3,6 +3,8 @@ package compare
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/vito/spiff/yaml"
 )
 
 var _ = Describe("Diffing YAML", func() {
@@ -185,6 +187,25 @@ foo:
 			It("reports one difference with the index in the path", func() {
 				Expect(Compare(a, b)).To(Equal([]Diff{
 					Diff{A: 1, B: 2, Path: []string{"[0]"}},
+				}))
+			})
+		})
+
+		Context("when comparing to a non-list", func() {
+			a := parseYAML(`
+---
+- - hello
+  - world
+`)
+
+			b := parseYAML(`
+---
+- 42
+`)
+
+			It("reports one difference with the index in the path", func() {
+				Expect(Compare(a, b)).To(Equal([]Diff{
+					Diff{A: []yaml.Node{"hello", "world"}, B: 42, Path: []string{"[0]"}},
 				}))
 			})
 		})

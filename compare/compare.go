@@ -41,7 +41,12 @@ func compare(a, b yaml.Node, path []string) []Diff {
 		}
 
 	case []yaml.Node:
-		return compareList(a.([]yaml.Node), b.([]yaml.Node), path)
+		switch b.(type) {
+		case []yaml.Node:
+			return compareList(a.([]yaml.Node), b.([]yaml.Node), path)
+		default:
+			return []Diff{mismatch}
+		}
 
 	default:
 		atype := reflect.TypeOf(a)
