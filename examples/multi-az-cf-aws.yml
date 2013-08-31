@@ -2,13 +2,41 @@ name: (( merge ))
 director_uuid: (( merge ))
 releases: (( merge ))
 
+meta:
+  stemcell:
+    name: bosh-stemcell
+    version: latest
+
+  zones:
+    primary: (( properties.template_only.aws.availability_zone ))
+    secondary: (( properties.template_only.aws.availability_zone2 ))
+
+  networks:
+    cf1:
+      apps: cf1
+      management: cf1
+
+    cf2:
+      apps: cf2
+      management: cf2
+
+  instance_sizes:
+    memory:
+      m1_medium: 3840
+      m1_large: 7680
+      m2_2xlarge: 35020
+    disk:
+      m1_medium: 390000
+      m1_large: 400000
+      m2_2xlarge: 800000
+
 compilation:
   workers: 6
   network: cf1
   reuse_compilation_vms: true
   cloud_properties:
     instance_type: c1.medium
-    availability_zone: (( properties.template_only.aws.availability_zone ))
+    availability_zone: (( meta.zones.primary ))
 
 update:
   canaries: 1
@@ -49,120 +77,96 @@ networks:
         cloud_properties:
           security_groups:
             - cf
-          subnet: (( properties.template_only.aws.subnet_ids.cf1 ))
-
-meta:
-  stemcell:
-    name: bosh-stemcell
-    version: latest
-
-  networks:
-    cf1:
-      apps: cf1
-      management: cf1
-
-    cf2:
-      apps: cf2
-      management: cf2
-
-  instance_sizes:
-    memory:
-      m1_medium: 3840
-      m1_large: 7680
-      m2_2xlarge: 35020
-    disk:
-      m1_medium: 390000
-      m1_large: 400000
-      m2_2xlarge: 800000
+          subnet: (( properties.template_only.aws.subnet_ids.cf2 ))
 
 resource_pools:
-  small_z0:
+  small_z1:
     network: cf1
     size: (( auto ))
     stemcell: (( meta.stemcell ))
     cloud_properties:
       instance_type: m1.small
-      availability_zone: (( properties.template_only.aws.availability_zone ))
+      availability_zone: (( meta.zones.primary ))
 
-  small_z1:
+  small_z2:
     network: cf2
     size: (( auto ))
     stemcell: (( meta.stemcell ))
     cloud_properties:
       instance_type: m1.small
-      availability_zone: (( properties.template_only.aws.availability_zone2 ))
-
-  medium_z0:
-    network: cf1
-    size: (( auto ))
-    stemcell: (( meta.stemcell ))
-    cloud_properties:
-      instance_type: m1.medium
-      availability_zone: (( properties.template_only.aws.availability_zone ))
+      availability_zone: (( meta.zones.secondary ))
 
   medium_z1:
-    network: cf2
-    size: (( auto ))
-    stemcell: (( meta.stemcell ))
-    cloud_properties:
-      instance_type: m1.medium
-      availability_zone: (( properties.template_only.aws.availability_zone2 ))
-
-  large_z0:
     network: cf1
     size: (( auto ))
     stemcell: (( meta.stemcell ))
     cloud_properties:
       instance_type: m1.medium
-      availability_zone: (( properties.template_only.aws.availability_zone ))
+      availability_zone: (( meta.zones.primary ))
+
+  medium_z2:
+    network: cf2
+    size: (( auto ))
+    stemcell: (( meta.stemcell ))
+    cloud_properties:
+      instance_type: m1.medium
+      availability_zone: (( meta.zones.secondary ))
 
   large_z1:
+    network: cf1
+    size: (( auto ))
+    stemcell: (( meta.stemcell ))
+    cloud_properties:
+      instance_type: m1.medium
+      availability_zone: (( meta.zones.primary ))
+
+  large_z2:
     network: cf2
     size: (( auto ))
     stemcell: (( meta.stemcell ))
     cloud_properties:
       instance_type: m1.medium
-      availability_zone: (( properties.template_only.aws.availability_zone2 ))
-
-  runner_z0:
-    network: cf1
-    size: (( auto ))
-    stemcell: (( meta.stemcell ))
-    cloud_properties:
-      instance_type: (( merge || "m1.large" ))
-      availability_zone: (( properties.template_only.aws.availability_zone ))
+      availability_zone: (( meta.zones.secondary ))
 
   runner_z1:
+    network: cf1
+    size: (( auto ))
+    stemcell: (( meta.stemcell ))
+    cloud_properties:
+      instance_type: (( merge || "m1.large" ))
+      availability_zone: (( meta.zones.primary ))
+
+  runner_z2:
     network: cf2
     size: (( auto ))
     stemcell: (( meta.stemcell ))
     cloud_properties:
       instance_type: (( merge || "m1.large" ))
-      availability_zone: (( properties.template_only.aws.availability_zone2 ))
+      availability_zone: (( meta.zones.secondary ))
 
-  router_z0:
+  router_z1:
     network: cf1
     size: (( auto ))
     stemcell: (( meta.stemcell ))
     cloud_properties:
       instance_type: m1.small
-      availability_zone: (( properties.template_only.aws.availability_zone ))
+      availability_zone: (( meta.zones.primary ))
       elbs: (( merge || ["cfrouter"] ))
 
-  router_z1:
+  router_z2:
     network: cf2
     size: (( auto ))
     stemcell: (( meta.stemcell ))
     cloud_properties:
       instance_type: m1.small
-      availability_zone: (( properties.template_only.aws.availability_zone2 ))
+      availability_zone: (( meta.zones.secondary ))
       elbs: (( merge || ["cfrouter"] ))
 
 jobs:
-  - name: syslog_aggregator_z0
+  - name: logs_z1
     template: syslog_aggregator
     instances: 1
-    resource_pool: medium_z0
+    resource_pool: medium_z1
     persistent_disk: (( merge || 100000 ))
     networks:
       - name: cf1
@@ -170,142 +174,144 @@ jobs:
     properties:
       networks: (( meta.networks.cf1 ))
 
-  - name: nats_z1
+  - name: nats_z2
     template: nats
     instances: 1
-    resource_pool: medium_z1
+    resource_pool: medium_z2
     networks:
       - name: cf2
         static_ips: (( static_ips(1) ))
     properties:
       networks: (( meta.networks.cf2 ))
 
-  - name: uaa_z0
-    template: uaa
-    instances: (( merge || 1 ))
-    resource_pool: large_z0
-    networks:
-      - name: cf1
-        static_ips: (( static_ips(2, 7) ))
-    properties:
-      networks: (( meta.networks.cf1 ))
-
   - name: uaa_z1
     template: uaa
     instances: (( merge || 1 ))
     resource_pool: large_z1
     networks:
+      - name: cf1
+        static_ips: (( static_ips(2, 7) ))
+    properties:
+      networks: (( meta.networks.cf1 ))
+
+  - name: uaa_z2
+    template: uaa
+    instances: (( merge || 1 ))
+    resource_pool: large_z2
+    networks:
       - name: cf2
         static_ips: (( static_ips(2, 7) ))
     properties:
       networks: (( meta.networks.cf2 ))
 
-  - name: login_z0
+  - name: login_z1
     template: login
     instances: (( merge || 1 ))
-    resource_pool: medium_z0
+    resource_pool: medium_z1
     networks:
       - name: cf1
     properties:
       networks: (( meta.networks.cf1 ))
-
-  - name: api_z0
-    template: cloud_controller_ng
-    instances: (( merge || 1 ))
-    resource_pool: large_z0
-    networks:
-      - name: cf2
-        static_ips: (( static_ips(3, 4, 8, 9, 10, 11, 12, 13, 14) ))
-    properties:
-      ccdb: ccdb
-      networks: (( meta.networks.cf2 ))
 
   - name: api_z1
     template: cloud_controller_ng
     instances: (( merge || 1 ))
     resource_pool: large_z1
     networks:
+      - name: cf1
+        static_ips: (( static_ips(3, 4, 8, 9, 10, 11, 12, 13, 14) ))
+    properties:
+      ccdb: ccdb
+      networks: (( meta.networks.cf1 ))
+
+  - name: api_z2
+    template: cloud_controller_ng
+    instances: (( merge || 1 ))
+    resource_pool: large_z2
+    networks:
       - name: cf2
         static_ips: (( static_ips(3, 4, 8, 9, 10, 11, 12, 13, 14) ))
     properties:
       ccdb: ccdb
       networks: (( meta.networks.cf2 ))
 
-  - name: hm_z0
+  - name: hm_z1
     template: health_manager_next
     instances: 1
-    resource_pool: medium_z0
+    resource_pool: medium_z1
     networks:
       - name: cf1
     properties:
       networks: (( meta.networks.cf1 ))
 
-  - name: runtime_z0
+  - name: runner_z1
     template: (( merge || ["dea_next", "dea_logging_agent"] ))
     instances: (( merge || 1 ))
-    resource_pool: runtime_z0
+    resource_pool: runner_z1
     networks:
       - name: cf1
+        default:
+          - dns
+          - gateway
     update:
       max_in_flight: (( merge || 1 ))
     properties:
       networks: (( meta.networks.cf1 ))
 
-  - name: runtime_z1
+  - name: runner_z2
     template: (( merge || ["dea_next", "dea_logging_agent"] ))
     instances: (( merge || 1 ))
-    resource_pool: runtime_z1
+    resource_pool: runner_z2
     networks:
       - name: cf2
+        default:
+          - dns
+          - gateway
     update:
       max_in_flight: (( merge || 1 ))
-    properties:
-      networks: (( meta.networks.cf1 ))
-
-  - name: taskmaster_z0
-    template: taskmaster
-    instances: (( merge || 1 ))
-    resource_pool: runtime_z0
-    networks:
-      - name: cf1
-    properties:
-      networks: (( meta.networks.cf1 ))
-
-  - name: taskmaster_z1
-    template: taskmaster
-    instances: (( merge || 1 ))
-    resource_pool: runtime_z1
-    networks:
-      - name: cf2
     properties:
       networks: (( meta.networks.cf2 ))
 
-  - name: collector_z1
+  - name: taskmaster_z1
+    template: narc
+    instances: (( merge || 1 ))
+    resource_pool: runner_z1
+    networks:
+      - name: cf1
+        default:
+          - dns
+          - gateway
+    properties:
+      networks: (( meta.networks.cf1 ))
+
+  - name: taskmaster_z2
+    template: narc
+    instances: (( merge || 1 ))
+    resource_pool: runner_z2
+    networks:
+      - name: cf2
+        default:
+          - dns
+          - gateway
+    properties:
+      networks: (( meta.networks.cf2 ))
+
+  - name: stats_z1
     template: collector
     instances: 1
     resource_pool: small_z1
     networks:
-      - name: cf2
-    properties:
-      networks: (( meta.networks.cf2 ))
-
-  - name: loggregator_z0
-    template: loggregator
-    instances: (( merge || 1 ))
-    resource_pool: small_z0
-    networks:
       - name: cf1
-        static_ips: (( static_ips(21) ))
     properties:
       networks: (( meta.networks.cf1 ))
 
-  - name: router_z0
-    template: gorouter
+  - name: loggregator_z1
+    template: loggregator
     instances: (( merge || 1 ))
-    resource_pool: router_z0
+    resource_pool: small_z1
     networks:
       - name: cf1
-        static_ips: (( static_ips(5, 6, 15, 16, 17, 18, 19, 20) ))
+        static_ips: (( static_ips(21) ))
     properties:
       networks: (( meta.networks.cf1 ))
 
@@ -314,10 +320,26 @@ jobs:
     instances: (( merge || 1 ))
     resource_pool: router_z1
     networks:
-      - name: cf2
+      - name: cf1
+        default:
+          - dns
+          - gateway
         static_ips: (( static_ips(5, 6, 15, 16, 17, 18, 19, 20) ))
     properties:
       networks: (( meta.networks.cf1 ))
+
+  - name: router_z2
+    template: gorouter
+    instances: (( merge || 1 ))
+    resource_pool: router_z2
+    networks:
+      - name: cf2
+        default:
+          - dns
+          - gateway
+        static_ips: (( static_ips(5, 6, 15, 16, 17, 18, 19, 20) ))
+    properties:
+      networks: (( meta.networks.cf2 ))
 
 properties:
   template_only: (( merge ))
@@ -330,14 +352,14 @@ properties:
   nats:
     user: (( merge ))
     password: (( merge ))
-    address: (( jobs.nats_z0.networks.cf1.static_ips[0] ))
+    address: (( jobs.nats_z2.networks.cf2.static_ips.[0] ))
     port: 4222
     authorization_timeout: 5
 
   cc_api_version: v2
 
   cc:
-    srv_api_uri: (( merge || "https://api." domain ))
+    srv_api_uri: (( merge || "https://ccng." domain )) # TODO: api. instead
     external_host: ccng
     logging_level: debug
     bulk_api_password: (( merge ))
@@ -350,8 +372,8 @@ properties:
       resource_directory_key: (( merge || domain "-cc-resources" ))
       fog_connection:
         provider: AWS
-        aws_access_key_id: (( properties.template_only.aws.access_key_id ))
-        aws_secret_access_key: (( properties.template_only.aws.secret_access_key ))
+        aws_access_key_id: (( template_only.aws.access_key_id ))
+        aws_secret_access_key: (( template_only.aws.secret_access_key ))
       cdn:
         uri: (( merge || "" ))
         key_pair_id: (( merge || "" ))
@@ -361,8 +383,8 @@ properties:
       app_package_directory_key: (( merge || domain "-cc-packages" ))
       fog_connection:
         provider: AWS
-        aws_access_key_id: (( properties.template_only.aws.access_key_id ))
-        aws_secret_access_key: (( properties.template_only.aws.secret_access_key ))
+        aws_access_key_id: (( template_only.aws.access_key_id ))
+        aws_secret_access_key: (( template_only.aws.secret_access_key ))
       cdn:
         uri: (( merge || "" ))
         key_pair_id: (( merge || "" ))
@@ -372,8 +394,8 @@ properties:
       droplet_directory_key: (( merge || domain "-cc-droplets" ))
       fog_connection:
         provider: AWS
-        aws_access_key_id: (( properties.template_only.aws.access_key_id ))
-        aws_secret_access_key: (( properties.template_only.aws.secret_access_key ))
+        aws_access_key_id: (( template_only.aws.access_key_id ))
+        aws_secret_access_key: (( template_only.aws.secret_access_key ))
       cdn:
         uri: (( merge || "" ))
         key_pair_id: (( merge || "" ))
@@ -399,6 +421,9 @@ properties:
 
   ccdb: (( merge ))
 
+  ccng: (( cc ))
+  ccdb_ng: (( ccdb ))
+
   uaadb:
     db_scheme: mysql
     address: (( merge ))
@@ -413,6 +438,9 @@ properties:
       user: (( merge ))
       password: (( merge ))
 
+  dea:
+    max_memory: 4096 # TODO: kill
+
   dea_next:
     memory_mb: (( merge || meta.instance_sizes.memory.m2_2xlarge - 2048 ))
     memory_overcommit_factor: (( merge || 3 ))
@@ -424,13 +452,15 @@ properties:
     deny_networks:
       - 169.254.0.0/16
       - 10.10.0.0/24
-      - 10.10.16.0/20
+      - 10.10.16.0/20 # cf1
+      - 10.10.80.0/20 # cf2
     allow_networks:
       - 10.10.0.2/32
-      - 10.10.17.0/24
+      - 10.10.17.0/24 # runner_z1
+      - 10.10.81.0/24 # runner_z2
 
   syslog_aggregator:
-    address: (( jobs.syslog_aggregator_z0.networks.cf1.static_ips.[0] ))
+    address: (( jobs.logs_z1.networks.cf1.static_ips.[0] ))
     port: 54321
     relay_host: (( merge || "" ))
     relay_host_port: (( merge || "" ))
@@ -446,7 +476,9 @@ properties:
       smtp_domain: gmail.com
 
   loggregator:
-    server: (( jobs.loggregator_z0.networks.cf1.static_ips.[0] ":3456" ))
+    router: (( jobs.loggregator_z1.networks.cf1.static_ips.[0] ":3456" ))
+    servers:
+    - (( jobs.loggregator_z1.networks.cf1.static_ips.[0] ":3456" ))
     status:
       user: (( merge || "" ))
       password: (( merge || "" ))
