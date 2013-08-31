@@ -17,4 +17,15 @@ var _ = d.Describe("lists", func() {
 		}
 		Expect(expr.Evaluate(FakeContext{})).To(Equal([]yaml.Node{1, "two"}))
 	})
+
+	d.Context("when an entry does not resolve", func() {
+		d.It("returns nil", func() {
+			expr := ListExpr{
+				[]Expression{
+					ReferenceExpr{[]string{"foo"}},
+				},
+			}
+			Expect(expr.Evaluate(FakeContext{})).To(BeNil())
+		})
+	})
 })

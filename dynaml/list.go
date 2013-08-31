@@ -12,7 +12,12 @@ func (e ListExpr) Evaluate(context Context) yaml.Node {
 	nodes := []yaml.Node{}
 
 	for _, c := range e.Contents {
-		nodes = append(nodes, c.Evaluate(context))
+		result := c.Evaluate(context)
+		if result == nil {
+			return nil
+		}
+
+		nodes = append(nodes, result)
 	}
 
 	return nodes
