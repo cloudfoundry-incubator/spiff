@@ -212,7 +212,6 @@ jobs:
     resource_pool: large_z1
     networks:
       - name: cf1
-        static_ips: (( static_ips(2, 7) ))
     properties:
       networks: (( meta.networks.z1 ))
       syslog_aggregator: (( meta.syslog.z1 ))
@@ -223,7 +222,6 @@ jobs:
     resource_pool: large_z2
     networks:
       - name: cf2
-        static_ips: (( static_ips(2, 7) ))
     properties:
       networks: (( meta.networks.z2 ))
       syslog_aggregator: (( meta.syslog.z2 ))
@@ -244,7 +242,6 @@ jobs:
     resource_pool: large_z1
     networks:
       - name: cf1
-        static_ips: (( static_ips(3, 4, 8, 9, 10, 11, 12, 13, 14) ))
     properties:
       ccdb: ccdb
       networks: (( meta.networks.z1 ))
@@ -256,7 +253,6 @@ jobs:
     resource_pool: large_z2
     networks:
       - name: cf2
-        static_ips: (( static_ips(3, 4, 8, 9, 10, 11, 12, 13, 14) ))
     properties:
       ccdb: ccdb
       networks: (( meta.networks.z2 ))
@@ -472,9 +468,6 @@ properties:
       user: (( merge ))
       password: (( merge ))
 
-  dea:
-    max_memory: 4096 # TODO: kill
-
   dea_next:
     memory_mb: (( merge || meta.instance_sizes.memory.m2_2xlarge - 2048 ))
     memory_overcommit_factor: (( merge || 3 ))
@@ -508,7 +501,7 @@ properties:
   loggregator:
     router: (( jobs.loggregator_z1.networks.cf1.static_ips.[0] ":3456" ))
     servers:
-    - (( jobs.loggregator_z1.networks.cf1.static_ips.[0] ":3456" ))
+    - (( router ))
     status:
       user: (( merge || "" ))
       password: (( merge || "" ))
