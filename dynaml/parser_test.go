@@ -22,6 +22,12 @@ var _ = d.Describe("parsing", func() {
 		})
 	})
 
+	d.Describe("nil", func() {
+		d.It("parses nil", func() {
+			parsesAs(`nil`, NilExpr{})
+		})
+	})
+
 	d.Describe("booleans", func() {
 		d.It("parses true and false", func() {
 			parsesAs(`true`, BooleanExpr{true})

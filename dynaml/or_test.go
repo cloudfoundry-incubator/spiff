@@ -36,4 +36,26 @@ var _ = d.Describe("or", func() {
 			Expect(expr).To(EvaluateAs(1, FakeContext{}))
 		})
 	})
+
+	d.Context("when the left-hand side is nil", func() {
+		d.It("returns the left-hand side", func() {
+			expr := OrExpr{
+				NilExpr{},
+				ReferenceExpr{},
+			}
+
+			Expect(expr).To(EvaluateAs(nil, FakeContext{}))
+		})
+	})
+
+	d.Context("when the right side is nil and the left fails", func() {
+		d.It("returns the left-hand side", func() {
+			expr := OrExpr{
+				ReferenceExpr{},
+				NilExpr{},
+			}
+
+			Expect(expr).To(EvaluateAs(nil, FakeContext{}))
+		})
+	})
 })

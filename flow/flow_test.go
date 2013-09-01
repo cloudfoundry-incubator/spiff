@@ -45,6 +45,7 @@ foo:
   - (( "hello, world!" ))
   - (( 42 ))
   - (( true ))
+  - (( nil ))
 `)
 
 			resolved := parseYAML(`
@@ -53,6 +54,7 @@ foo:
   - hello, world!
   - 42
   - true
+  - null
 `)
 
 			Expect(source).To(FlowAs(resolved))
