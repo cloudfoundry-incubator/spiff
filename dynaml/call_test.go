@@ -24,7 +24,8 @@ var _ = d.Describe("calls", func() {
 
 			context := FakeContext{
 				FoundReferences: map[string]yaml.Node{
-					"name": "cf1",
+					"name":      "cf1",
+					"instances": 2,
 				},
 				FoundFromRoot: map[string]yaml.Node{
 					"networks.cf1.subnets.[0].static": static,
@@ -72,6 +73,26 @@ var _ = d.Describe("calls", func() {
 					FoundReferences: map[string]yaml.Node{
 						"name":      "cf1",
 						"instances": MergeExpr{},
+					},
+					FoundFromRoot: map[string]yaml.Node{
+						"networks.cf1.subnets.[0].static": static,
+					},
+				}
+
+				Expect(expr).To(FailToEvaluate(context))
+			})
+		})
+
+		d.Context("when there are not enough IPs for the number of instances", func() {
+			d.It("fails", func() {
+				static := parseYAML(`
+- 10.10.16.10 - 10.10.16.32
+`)
+
+				context := FakeContext{
+					FoundReferences: map[string]yaml.Node{
+						"name":      "cf1",
+						"instances": 42,
 					},
 					FoundFromRoot: map[string]yaml.Node{
 						"networks.cf1.subnets.[0].static": static,
