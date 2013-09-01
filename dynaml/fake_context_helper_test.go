@@ -12,14 +12,17 @@ type FakeContext struct {
 	FoundInStubs    map[string]yaml.Node
 }
 
-func (c FakeContext) FindFromRoot(path []string) yaml.Node {
-	return c.FoundFromRoot[strings.Join(path, ".")]
+func (c FakeContext) FindFromRoot(path []string) (yaml.Node, bool) {
+	val, found := c.FoundFromRoot[strings.Join(path, ".")]
+	return val, found
 }
 
-func (c FakeContext) FindReference(path []string) yaml.Node {
-	return c.FoundReferences[strings.Join(path, ".")]
+func (c FakeContext) FindReference(path []string) (yaml.Node, bool) {
+	val, found := c.FoundReferences[strings.Join(path, ".")]
+	return val, found
 }
 
-func (c FakeContext) FindInStubs(path []string) yaml.Node {
-	return c.FoundInStubs[strings.Join(path, ".")]
+func (c FakeContext) FindInStubs(path []string) (yaml.Node, bool) {
+	val, found := c.FoundInStubs[strings.Join(path, ".")]
+	return val, found
 }

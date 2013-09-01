@@ -7,28 +7,28 @@ import (
 
 var listIndex = regexp.MustCompile(`^\[(\d+)\]$`)
 
-func Find(root Node, path ...string) Node {
+func Find(root Node, path ...string) (Node, bool) {
 	here := root
 
 	for _, step := range path {
 		if here == nil {
-			return nil
+			return nil, false
 		}
 
 		var found bool
 
 		here, found = nextStep(step, here)
 		if !found {
-			return nil
+			return nil, false
 		}
 	}
 
-	return here
+	return here, true
 }
 
 func FindString(root Node, path ...string) (string, bool) {
-	node := Find(root, path...)
-	if node == nil {
+	node, ok := Find(root, path...)
+	if !ok {
 		return "", false
 	}
 
@@ -37,8 +37,8 @@ func FindString(root Node, path ...string) (string, bool) {
 }
 
 func FindInt(root Node, path ...string) (int, bool) {
-	node := Find(root, path...)
-	if node == nil {
+	node, ok := Find(root, path...)
+	if !ok {
 		return 0, false
 	}
 

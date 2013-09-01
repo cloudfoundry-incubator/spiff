@@ -20,12 +20,12 @@ var _ = d.Describe("merges", func() {
 				},
 			}
 
-			Expect(expr.Evaluate(context)).To(Equal(referencedNode))
+			Expect(expr).To(EvaluateAs(referencedNode, context))
 		})
 	})
 
 	d.Context("when the equivalent node is NOT found", func() {
-		d.It("evaluates to nil", func() {
+		d.It("fails", func() {
 			referencedNode := IntegerExpr{42}
 
 			expr := MergeExpr{[]string{"foo", "bar", "baz"}}
@@ -36,7 +36,7 @@ var _ = d.Describe("merges", func() {
 				},
 			}
 
-			Expect(expr.Evaluate(context)).To(BeNil())
+			Expect(expr).To(FailToEvaluate(context))
 		})
 	})
 })

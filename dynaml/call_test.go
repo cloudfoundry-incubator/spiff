@@ -31,10 +31,12 @@ var _ = d.Describe("calls", func() {
 				},
 			}
 
-			Expect(expr.Evaluate(context)).To(Equal([]yaml.Node{
-				"10.10.16.10",
-				"10.10.16.14",
-			}))
+			Expect(expr).To(
+				EvaluateAs(
+					[]yaml.Node{"10.10.16.10", "10.10.16.14"},
+					context,
+				),
+			)
 		})
 
 		d.It("limits the IPs to the number of instances", func() {
@@ -52,13 +54,16 @@ var _ = d.Describe("calls", func() {
 				},
 			}
 
-			Expect(expr.Evaluate(context)).To(Equal([]yaml.Node{
-				"10.10.16.10",
-			}))
+			Expect(expr).To(
+				EvaluateAs(
+					[]yaml.Node{"10.10.16.10"},
+					context,
+				),
+			)
 		})
 
 		d.Context("when the instance count is dynamic", func() {
-			d.It("returns nil", func() {
+			d.It("fails", func() {
 				static := parseYAML(`
 - 10.10.16.10 - 10.10.16.254
 `)
@@ -73,7 +78,7 @@ var _ = d.Describe("calls", func() {
 					},
 				}
 
-				Expect(expr.Evaluate(context)).To(BeNil())
+				Expect(expr).To(FailToEvaluate(context))
 			})
 		})
 	})

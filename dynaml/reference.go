@@ -8,13 +8,16 @@ type ReferenceExpr struct {
 	Path []string
 }
 
-func (e ReferenceExpr) Evaluate(context Context) yaml.Node {
-	reference := context.FindReference(e.Path)
+func (e ReferenceExpr) Evaluate(context Context) (yaml.Node, bool) {
+	reference, ok := context.FindReference(e.Path)
+	if !ok {
+		return nil, false
+	}
 
 	switch reference.(type) {
 	case Expression:
-		return nil
+		return nil, false
 	default:
-		return reference
+		return reference, true
 	}
 }

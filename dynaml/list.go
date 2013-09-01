@@ -8,17 +8,17 @@ type ListExpr struct {
 	Contents []Expression
 }
 
-func (e ListExpr) Evaluate(context Context) yaml.Node {
+func (e ListExpr) Evaluate(context Context) (yaml.Node, bool) {
 	nodes := []yaml.Node{}
 
 	for _, c := range e.Contents {
-		result := c.Evaluate(context)
-		if result == nil {
-			return nil
+		result, ok := c.Evaluate(context)
+		if !ok {
+			return nil, false
 		}
 
 		nodes = append(nodes, result)
 	}
 
-	return nodes
+	return nodes, true
 }

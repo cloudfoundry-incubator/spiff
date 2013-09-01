@@ -12,28 +12,28 @@ var _ = d.Describe("addition", func() {
 			IntegerExpr{3},
 		}
 
-		Expect(expr.Evaluate(FakeContext{})).To(Equal(5))
+		Expect(expr).To(EvaluateAs(5, FakeContext{}))
 	})
 
 	d.Context("when the left-hand side is not an integer", func() {
-		d.It("returns nil", func() {
+		d.It("fails", func() {
 			expr := AdditionExpr{
 				StringExpr{"lol"},
 				IntegerExpr{2},
 			}
 
-			Expect(expr.Evaluate(FakeContext{})).To(BeNil())
+			Expect(expr).To(FailToEvaluate(FakeContext{}))
 		})
 	})
 
 	d.Context("when the right-hand side is not an integer", func() {
-		d.It("returns nil", func() {
+		d.It("fails", func() {
 			expr := AdditionExpr{
 				IntegerExpr{2},
 				StringExpr{"lol"},
 			}
 
-			Expect(expr.Evaluate(FakeContext{})).To(BeNil())
+			Expect(expr).To(FailToEvaluate(FakeContext{}))
 		})
 	})
 })

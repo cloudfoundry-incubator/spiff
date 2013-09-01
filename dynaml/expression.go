@@ -5,11 +5,11 @@ import (
 )
 
 type Context interface {
-	FindFromRoot([]string) yaml.Node
-	FindReference([]string) yaml.Node
-	FindInStubs([]string) yaml.Node
+	FindFromRoot([]string) (yaml.Node, bool)
+	FindReference([]string) (yaml.Node, bool)
+	FindInStubs([]string) (yaml.Node, bool)
 }
 
 type Expression interface {
-	Evaluate(Context) yaml.Node
+	Evaluate(Context) (yaml.Node, bool)
 }

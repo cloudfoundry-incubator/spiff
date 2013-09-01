@@ -8,6 +8,6 @@ type MergeExpr struct {
 	Path []string
 }
 
-func (e MergeExpr) Evaluate(context Context) yaml.Node {
+func (e MergeExpr) Evaluate(context Context) (yaml.Node, bool) {
 	return context.FindInStubs(e.Path)
 }

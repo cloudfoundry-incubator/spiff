@@ -22,7 +22,9 @@ foo:
 		Context("when the first step is found", func() {
 			Context("and the root contains the path", func() {
 				It("returns the found node", func() {
-					Expect(environment.FindReference([]string{"foo", "bar"})).To(Equal(42))
+					val, found := environment.FindReference([]string{"foo", "bar"})
+					Expect(found).To(BeTrue())
+					Expect(val).To(Equal(42))
 				})
 			})
 
@@ -39,13 +41,16 @@ foos:
 				}
 
 				It("treats the name as the key", func() {
-					Expect(environment.FindReference([]string{"foos", "bar", "baz"})).To(Equal(42))
+					val, found := environment.FindReference([]string{"foos", "bar", "baz"})
+					Expect(found).To(BeTrue())
+					Expect(val).To(Equal(42))
 				})
 			})
 
 			Context("and the root does NOT contain the path", func() {
-				It("returns nil", func() {
-					Expect(environment.FindReference([]string{"foo", "x"})).To(BeNil())
+				It("returns false as the second value", func() {
+					_, found := environment.FindReference([]string{"foo", "x"})
+					Expect(found).To(BeFalse())
 				})
 			})
 		})
@@ -69,7 +74,9 @@ foo:
 			}
 
 			It("finds the root and the path", func() {
-				Expect(environment.FindReference([]string{"fizz", "buzz"})).To(Equal(42))
+				val, found := environment.FindReference([]string{"fizz", "buzz"})
+				Expect(found).To(BeTrue())
+				Expect(val).To(Equal(42))
 			})
 		})
 
@@ -94,13 +101,16 @@ foo:
 			}
 
 			It("finds the nearest occurrence", func() {
-				Expect(environment.FindReference([]string{"fizz", "buzz"})).To(Equal(123))
+				val, found := environment.FindReference([]string{"fizz", "buzz"})
+				Expect(found).To(BeTrue())
+				Expect(val).To(Equal(123))
 			})
 		})
 
 		Context("when the first step is NOT found", func() {
-			It("returns nil", func() {
-				Expect(environment.FindReference([]string{"x"})).To(BeNil())
+			It("returns false as the second value", func() {
+				_, found := environment.FindReference([]string{"x"})
+				Expect(found).To(BeFalse())
 			})
 		})
 	})
@@ -120,7 +130,9 @@ foo:
 		}
 
 		It("returns the node found by the path from the root", func() {
-			Expect(environment.FindFromRoot([]string{"foo", "bar", "baz"})).To(Equal("found"))
+			val, found := environment.FindFromRoot([]string{"foo", "bar", "baz"})
+			Expect(found).To(BeTrue())
+			Expect(val).To(Equal("found"))
 		})
 
 		Describe("indexing a list", func() {
@@ -139,13 +151,16 @@ foo:
 			}
 
 			It("accepts [x] for following through lists", func() {
-				Expect(environment.FindFromRoot([]string{"foo", "bar", "[1]", "fizz"})).To(Equal("right"))
+				val, found := environment.FindFromRoot([]string{"foo", "bar", "[1]", "fizz"})
+				Expect(found).To(BeTrue())
+				Expect(val).To(Equal("right"))
 			})
 		})
 
 		Context("when the path cannot be found", func() {
-			It("returns nil", func() {
-				Expect(environment.FindFromRoot([]string{"foo", "bar", "biscuit"})).To(BeNil())
+			It("returns false as the second value", func() {
+				_, found := environment.FindFromRoot([]string{"foo", "bar", "biscuit"})
+				Expect(found).To(BeFalse())
 			})
 		})
 	})
@@ -169,25 +184,32 @@ c: 4
 
 		Context("when the first stub contains the path", func() {
 			It("uses the value from the first stub", func() {
-				Expect(environment.FindInStubs([]string{"a"})).To(Equal(1))
+				val, found := environment.FindInStubs([]string{"a"})
+				Expect(found).To(BeTrue())
+				Expect(val).To(Equal(1))
 			})
 		})
 
 		Context("when the second stub contains the path", func() {
 			It("uses the value from the second stub", func() {
-				Expect(environment.FindInStubs([]string{"b"})).To(Equal(2))
+				val, found := environment.FindInStubs([]string{"b"})
+				Expect(found).To(BeTrue())
+				Expect(val).To(Equal(2))
 			})
 		})
 
 		Context("when the both stubs contain the path", func() {
 			It("returns the value from the first stub", func() {
-				Expect(environment.FindInStubs([]string{"c"})).To(Equal(3))
+				val, found := environment.FindInStubs([]string{"c"})
+				Expect(found).To(BeTrue())
+				Expect(val).To(Equal(3))
 			})
 		})
 
 		Context("when neither stub contains the path", func() {
-			It("returns nil", func() {
-				Expect(environment.FindInStubs([]string{"d"})).To(BeNil())
+			It("returns false as the second argument", func() {
+				_, found := environment.FindInStubs([]string{"d"})
+				Expect(found).To(BeFalse())
 			})
 		})
 	})

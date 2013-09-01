@@ -9,10 +9,10 @@ type OrExpr struct {
 	B Expression
 }
 
-func (e OrExpr) Evaluate(context Context) yaml.Node {
-	a := e.A.Evaluate(context)
-	if a != nil {
-		return a
+func (e OrExpr) Evaluate(context Context) (yaml.Node, bool) {
+	a, ok := e.A.Evaluate(context)
+	if ok {
+		return a, true
 	}
 
 	return e.B.Evaluate(context)

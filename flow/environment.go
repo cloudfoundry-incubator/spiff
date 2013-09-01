@@ -13,28 +13,28 @@ type Environment struct {
 	Stubs []yaml.Node
 }
 
-func (e Environment) FindFromRoot(path []string) yaml.Node {
+func (e Environment) FindFromRoot(path []string) (yaml.Node, bool) {
 	return yaml.Find(e.Scope[0], path...)
 }
 
-func (e Environment) FindReference(path []string) yaml.Node {
+func (e Environment) FindReference(path []string) (yaml.Node, bool) {
 	root, found := resolveSymbol(path[0], e.Scope)
 	if !found {
-		return nil
+		return nil, false
 	}
 
 	return yaml.Find(root, path[1:]...)
 }
 
-func (e Environment) FindInStubs(path []string) yaml.Node {
+func (e Environment) FindInStubs(path []string) (yaml.Node, bool) {
 	for _, stub := range e.Stubs {
-		found := yaml.Find(stub, path...)
-		if found != nil {
-			return found
+		val, found := yaml.Find(stub, path...)
+		if found {
+			return val, true
 		}
 	}
 
-	return nil
+	return nil, false
 }
 
 func (e Environment) WithScope(step map[string]yaml.Node) Environment {

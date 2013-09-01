@@ -14,7 +14,9 @@ foo:
 `)
 
 	It("returns the node found by the path from the root", func() {
-		Expect(Find(tree, "foo", "bar", "baz")).To(Equal("found"))
+		val, found := Find(tree, "foo", "bar", "baz")
+		Expect(found).To(BeTrue())
+		Expect(val).To(Equal("found"))
 	})
 
 	Describe("indexing a list", func() {
@@ -27,13 +29,16 @@ foo:
 `)
 
 		It("accepts [x] for following through lists", func() {
-			Expect(Find(tree, "foo", "bar", "[1]", "fizz")).To(Equal("right"))
+			val, found := Find(tree, "foo", "bar", "[1]", "fizz")
+			Expect(found).To(BeTrue())
+			Expect(val).To(Equal("right"))
 		})
 	})
 
 	Context("when the path cannot be found", func() {
-		It("returns nil", func() {
-			Expect(Find(tree, "foo", "bar", "biscuit")).To(BeNil())
+		It("returns false as the second value", func() {
+			_, found := Find(tree, "foo", "bar", "biscuit")
+			Expect(found).To(BeFalse())
 		})
 	})
 

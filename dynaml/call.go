@@ -12,34 +12,34 @@ type CallExpr struct {
 	Arguments []Expression
 }
 
-func (e CallExpr) Evaluate(context Context) yaml.Node {
+func (e CallExpr) Evaluate(context Context) (yaml.Node, bool) {
 	switch e.Name {
 	case "static_ips":
 		if len(e.Arguments) == 0 {
-			return nil
+			return nil, false
 		}
 
-		nearestNetworkName := context.FindReference([]string{"name"})
-		if nearestNetworkName == nil {
-			return nil
+		nearestNetworkName, found := context.FindReference([]string{"name"})
+		if !found {
+			return nil, false
 		}
 
 		networkName, ok := nearestNetworkName.(string)
 		if !ok {
-			return nil
+			return nil, false
 		}
 
-		static := context.FindFromRoot(
+		static, found := context.FindFromRoot(
 			[]string{"networks", networkName, "subnets", "[0]", "static"},
 		)
 
-		if static == nil {
-			return nil
+		if !found {
+			return nil, false
 		}
 
 		staticList, ok := static.([]yaml.Node)
 		if !ok {
-			return nil
+			return nil, false
 		}
 
 		ipPool := []net.IP{}
@@ -62,36 +62,36 @@ func (e CallExpr) Evaluate(context Context) yaml.Node {
 
 		ips := []yaml.Node{}
 		for _, arg := range e.Arguments {
-			index := arg.Evaluate(context)
-			if index == nil {
-				return nil
+			index, ok := arg.Evaluate(context)
+			if !ok {
+				return nil, false
 			}
 
 			i, ok := index.(int)
 			if !ok {
-				return nil
+				return nil, false
 			}
 
 			if len(ipPool) <= i {
-				return nil
+				return nil, false
 			}
 
 			ips = append(ips, ipPool[i].String())
 		}
 
-		nearestInstances := context.FindReference([]string{"instances"})
-		if nearestInstances == nil {
-			return ips
+		nearestInstances, found := context.FindReference([]string{"instances"})
+		if !found {
+			return ips, true
 		}
 
 		instances, ok := nearestInstances.(int)
 		if !ok {
-			return nil
+			return nil, false
 		}
 
-		return ips[:instances]
+		return ips[:instances], true
 	default:
-		return nil
+		return nil, false
 	}
 }
 

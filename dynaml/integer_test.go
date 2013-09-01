@@ -7,6 +7,6 @@ import (
 
 var _ = d.Describe("integers", func() {
 	d.It("evaluates to an int", func() {
-		Expect(IntegerExpr{42}.Evaluate(FakeContext{})).To(Equal(42))
+		Expect(IntegerExpr{42}).To(EvaluateAs(42, FakeContext{}))
 	})
 })

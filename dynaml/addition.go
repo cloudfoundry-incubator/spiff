@@ -9,19 +9,26 @@ type AdditionExpr struct {
 	B Expression
 }
 
-func (e AdditionExpr) Evaluate(context Context) yaml.Node {
-	a := e.A.Evaluate(context)
-	b := e.B.Evaluate(context)
+func (e AdditionExpr) Evaluate(context Context) (yaml.Node, bool) {
+	a, ok := e.A.Evaluate(context)
+	if !ok {
+		return nil, false
+	}
+
+	b, ok := e.B.Evaluate(context)
+	if !ok {
+		return nil, false
+	}
 
 	aint, ok := a.(int)
 	if !ok {
-		return nil
+		return nil, false
 	}
 
 	bint, ok := b.(int)
 	if !ok {
-		return nil
+		return nil, false
 	}
 
-	return aint + bint
+	return aint + bint, true
 }

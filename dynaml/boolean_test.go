@@ -7,7 +7,7 @@ import (
 
 var _ = d.Describe("booleans", func() {
 	d.It("evaluates to a bool", func() {
-		Expect(BooleanExpr{true}.Evaluate(FakeContext{})).To(Equal(true))
-		Expect(BooleanExpr{false}.Evaluate(FakeContext{})).To(Equal(false))
+		Expect(BooleanExpr{true}).To(EvaluateAs(true, FakeContext{}))
+		Expect(BooleanExpr{false}).To(EvaluateAs(false, FakeContext{}))
 	})
 })

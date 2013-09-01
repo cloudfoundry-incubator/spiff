@@ -36,7 +36,7 @@ var _ = d.Describe("autos", func() {
 				},
 			}
 
-			Expect(expr.Evaluate(context)).To(Equal(8))
+			Expect(expr).To(EvaluateAs(8, context))
 		})
 
 		d.Context("when one of the jobs has non-numeric instances", func() {
@@ -65,7 +65,7 @@ var _ = d.Describe("autos", func() {
 					},
 				}
 
-				Expect(expr.Evaluate(context)).To(BeNil())
+				Expect(expr).To(FailToEvaluate(context))
 			})
 		})
 	})

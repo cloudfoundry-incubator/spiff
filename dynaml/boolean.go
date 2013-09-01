@@ -8,6 +8,6 @@ type BooleanExpr struct {
 	Value bool
 }
 
-func (e BooleanExpr) Evaluate(Context) yaml.Node {
-	return e.Value
+func (e BooleanExpr) Evaluate(Context) (yaml.Node, bool) {
+	return e.Value, true
 }

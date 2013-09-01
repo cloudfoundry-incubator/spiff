@@ -9,19 +9,26 @@ type ConcatenationExpr struct {
 	B Expression
 }
 
-func (e ConcatenationExpr) Evaluate(context Context) yaml.Node {
-	a := e.A.Evaluate(context)
-	b := e.B.Evaluate(context)
+func (e ConcatenationExpr) Evaluate(context Context) (yaml.Node, bool) {
+	a, ok := e.A.Evaluate(context)
+	if !ok {
+		return nil, false
+	}
+
+	b, ok := e.B.Evaluate(context)
+	if !ok {
+		return nil, false
+	}
 
 	astring, ok := a.(string)
 	if !ok {
-		return nil
+		return nil, false
 	}
 
 	bstring, ok := b.(string)
 	if !ok {
-		return nil
+		return nil, false
 	}
 
-	return astring + bstring
+	return astring + bstring, true
 }

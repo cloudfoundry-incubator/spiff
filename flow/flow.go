@@ -38,8 +38,8 @@ func flow(root yaml.Node, env Environment) (yaml.Node, bool) {
 		return flowString(root.(string), env)
 
 	case dynaml.Expression:
-		result := root.(dynaml.Expression).Evaluate(env)
-		if result == nil {
+		result, ok := root.(dynaml.Expression).Evaluate(env)
+		if !ok {
 			return root, false
 		}
 

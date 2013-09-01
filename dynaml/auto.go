@@ -8,16 +8,16 @@ type AutoExpr struct {
 	Path []string
 }
 
-func (e AutoExpr) Evaluate(context Context) yaml.Node {
+func (e AutoExpr) Evaluate(context Context) (yaml.Node, bool) {
 	if len(e.Path) == 3 && e.Path[0] == "resource_pools" && e.Path[2] == "size" {
-		jobs := context.FindFromRoot([]string{"jobs"})
-		if jobs == nil {
-			return nil
+		jobs, found := context.FindFromRoot([]string{"jobs"})
+		if !found {
+			return nil, false
 		}
 
 		jobsList, ok := jobs.([]yaml.Node)
 		if !ok {
-			return nil
+			return nil, false
 		}
 
 		size := 0
@@ -34,14 +34,14 @@ func (e AutoExpr) Evaluate(context Context) yaml.Node {
 
 			instances, ok := yaml.FindInt(job, "instances")
 			if !ok {
-				return nil
+				return nil, false
 			}
 
 			size += instances
 		}
 
-		return size
+		return size, true
 	}
 
-	return nil
+	return nil, false
 }

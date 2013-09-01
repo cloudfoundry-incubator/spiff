@@ -18,11 +18,11 @@ var _ = d.Describe("references", func() {
 				},
 			}
 
-			Expect(expr.Evaluate(context)).To(Equal(42))
+			Expect(expr).To(EvaluateAs(42, context))
 		})
 
 		d.Context("and it refers to another expression", func() {
-			d.It("returns nil", func() {
+			d.It("fails", func() {
 				referencedNode := IntegerExpr{42}
 
 				expr := ReferenceExpr{[]string{"foo", "bar"}}
@@ -33,13 +33,13 @@ var _ = d.Describe("references", func() {
 					},
 				}
 
-				Expect(expr.Evaluate(context)).To(BeNil())
+				Expect(expr).To(FailToEvaluate(context))
 			})
 		})
 	})
 
 	d.Context("when the reference is NOT found", func() {
-		d.It("evaluates to nil", func() {
+		d.It("fails", func() {
 			referencedNode := IntegerExpr{42}
 
 			expr := ReferenceExpr{[]string{"foo", "bar", "baz"}}
@@ -50,7 +50,7 @@ var _ = d.Describe("references", func() {
 				},
 			}
 
-			Expect(expr.Evaluate(context)).To(BeNil())
+			Expect(expr).To(FailToEvaluate(context))
 		})
 	})
 })
