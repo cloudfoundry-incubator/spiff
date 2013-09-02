@@ -27,7 +27,7 @@ func main() {
 			ShortName: "m",
 			Usage:     "merge merge stub files into a manifest template",
 			Action: func(c *cli.Context) {
-				if len(c.Args()) < 2 {
+				if len(c.Args()) < 1 {
 					cli.ShowCommandHelp(c, "merge")
 					os.Exit(1)
 				}
