@@ -80,7 +80,7 @@ func merge(templateFilePath string, stubFilePaths []string) {
 		stubs = append(stubs, stubYAML)
 	}
 
-	flowed, err := flow.Flow(templateYAML, stubs...)
+	flowed, err := flow.Cascade(templateYAML, stubs...)
 	if err != nil {
 		log.Fatalln("error generating manifest:", err)
 	}
