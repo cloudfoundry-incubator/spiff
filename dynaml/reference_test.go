@@ -22,7 +22,7 @@ var _ = Describe("references", func() {
 		})
 
 		Context("and it refers to another expression", func() {
-			It("fails", func() {
+			It("fails so the referred node can evaluate first", func() {
 				referencedNode := IntegerExpr{42}
 
 				expr := ReferenceExpr{[]string{"foo", "bar"}}
