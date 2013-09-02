@@ -1,14 +1,14 @@
 package dynaml
 
 import (
-	d "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"github.com/vito/spiff/yaml"
 )
 
-var _ = d.Describe("lists", func() {
-	d.It("evaluates to an array of nodes", func() {
+var _ = Describe("lists", func() {
+	It("evaluates to an array of nodes", func() {
 		expr := ListExpr{
 			[]Expression{
 				IntegerExpr{1},
@@ -16,18 +16,18 @@ var _ = d.Describe("lists", func() {
 			},
 		}
 
-		Expect(expr).To(EvaluateAs([]yaml.Node{1, "two"}, FakeContext{}))
+		Expect(expr).To(EvaluateAs([]yaml.Node{1, "two"}, FakeBinding{}))
 	})
 
-	d.Context("when an entry does not resolve", func() {
-		d.It("fails", func() {
+	Context("when an entry does not resolve", func() {
+		It("fails", func() {
 			expr := ListExpr{
 				[]Expression{
 					ReferenceExpr{[]string{"foo"}},
 				},
 			}
 
-			Expect(expr).To(FailToEvaluate(FakeContext{}))
+			Expect(expr).To(FailToEvaluate(FakeBinding{}))
 		})
 	})
 })

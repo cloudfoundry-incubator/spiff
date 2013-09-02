@@ -7,13 +7,13 @@ import (
 	"github.com/vito/spiff/yaml"
 )
 
-func EvaluateAs(expected yaml.Node, context Context) *EvaluateAsMatcher {
-	return &EvaluateAsMatcher{expected, context}
+func EvaluateAs(expected yaml.Node, binding Binding) *EvaluateAsMatcher {
+	return &EvaluateAsMatcher{expected, binding}
 }
 
 type EvaluateAsMatcher struct {
 	Expected yaml.Node
-	Context  Context
+	Binding  Binding
 }
 
 func (matcher *EvaluateAsMatcher) Match(source interface{}) (success bool, message string, err error) {
@@ -26,7 +26,7 @@ func (matcher *EvaluateAsMatcher) Match(source interface{}) (success bool, messa
 		return false, "", fmt.Errorf("Not an expression: %v\n", source)
 	}
 
-	actual, ok := expr.Evaluate(matcher.Context)
+	actual, ok := expr.Evaluate(matcher.Binding)
 	if !ok {
 		return false, "", fmt.Errorf("Node failed to evaluate.")
 	}

@@ -8,9 +8,9 @@ type AutoExpr struct {
 	Path []string
 }
 
-func (e AutoExpr) Evaluate(context Context) (yaml.Node, bool) {
+func (e AutoExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 	if len(e.Path) == 3 && e.Path[0] == "resource_pools" && e.Path[2] == "size" {
-		jobs, found := context.FindFromRoot([]string{"jobs"})
+		jobs, found := binding.FindFromRoot([]string{"jobs"})
 		if !found {
 			return nil, false
 		}

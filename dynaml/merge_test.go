@@ -1,42 +1,42 @@
 package dynaml
 
 import (
-	d "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"github.com/vito/spiff/yaml"
 )
 
-var _ = d.Describe("merges", func() {
-	d.Context("when the equivalent node is found", func() {
-		d.It("evaluates to the merged node", func() {
+var _ = Describe("merges", func() {
+	Context("when the equivalent node is found", func() {
+		It("evaluates to the merged node", func() {
 			referencedNode := IntegerExpr{42}
 
 			expr := MergeExpr{[]string{"foo", "bar"}}
 
-			context := FakeContext{
+			binding := FakeBinding{
 				FoundInStubs: map[string]yaml.Node{
 					"foo.bar": referencedNode,
 				},
 			}
 
-			Expect(expr).To(EvaluateAs(referencedNode, context))
+			Expect(expr).To(EvaluateAs(referencedNode, binding))
 		})
 	})
 
-	d.Context("when the equivalent node is NOT found", func() {
-		d.It("fails", func() {
+	Context("when the equivalent node is NOT found", func() {
+		It("fails", func() {
 			referencedNode := IntegerExpr{42}
 
 			expr := MergeExpr{[]string{"foo", "bar", "baz"}}
 
-			context := FakeContext{
+			binding := FakeBinding{
 				FoundInStubs: map[string]yaml.Node{
 					"foo.bar": referencedNode,
 				},
 			}
 
-			Expect(expr).To(FailToEvaluate(context))
+			Expect(expr).To(FailToEvaluate(binding))
 		})
 	})
 })

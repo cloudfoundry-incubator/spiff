@@ -1,17 +1,17 @@
 package dynaml
 
 import (
-	d "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"github.com/vito/spiff/yaml"
 )
 
-var _ = d.Describe("autos", func() {
-	d.Context("when the path is resource_pools.*.size", func() {
+var _ = Describe("autos", func() {
+	Context("when the path is resource_pools.*.size", func() {
 		expr := AutoExpr{[]string{"resource_pools", "some_pool", "size"}}
 
-		d.It("sums up the instances of the jobs in the pool", func() {
+		It("sums up the instances of the jobs in the pool", func() {
 			jobs := []yaml.Node{
 				map[string]yaml.Node{
 					"name":          "some_job",
@@ -30,17 +30,17 @@ var _ = d.Describe("autos", func() {
 				},
 			}
 
-			context := FakeContext{
+			binding := FakeBinding{
 				FoundFromRoot: map[string]yaml.Node{
 					"jobs": jobs,
 				},
 			}
 
-			Expect(expr).To(EvaluateAs(8, context))
+			Expect(expr).To(EvaluateAs(8, binding))
 		})
 
-		d.Context("when one of the jobs has non-numeric instances", func() {
-			d.It("returns nil", func() {
+		Context("when one of the jobs has non-numeric instances", func() {
+			It("returns nil", func() {
 				jobs := []yaml.Node{
 					map[string]yaml.Node{
 						"name":          "some_job",
@@ -59,13 +59,13 @@ var _ = d.Describe("autos", func() {
 					},
 				}
 
-				context := FakeContext{
+				binding := FakeBinding{
 					FoundFromRoot: map[string]yaml.Node{
 						"jobs": jobs,
 					},
 				}
 
-				Expect(expr).To(FailToEvaluate(context))
+				Expect(expr).To(FailToEvaluate(binding))
 			})
 		})
 	})

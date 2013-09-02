@@ -12,12 +12,12 @@ type CallExpr struct {
 	Arguments []Expression
 }
 
-func (e CallExpr) Evaluate(context Context) (yaml.Node, bool) {
+func (e CallExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 	switch e.Name {
 	case "static_ips":
 		indices := make([]int, len(e.Arguments))
 		for i, arg := range e.Arguments {
-			index, ok := arg.Evaluate(context)
+			index, ok := arg.Evaluate(binding)
 			if !ok {
 				return nil, false
 			}
@@ -28,23 +28,23 @@ func (e CallExpr) Evaluate(context Context) (yaml.Node, bool) {
 			}
 		}
 
-		return generateStaticIPs(context, indices)
+		return generateStaticIPs(binding, indices)
 	default:
 		return nil, false
 	}
 }
 
-func generateStaticIPs(context Context, indices []int) (yaml.Node, bool) {
+func generateStaticIPs(binding Binding, indices []int) (yaml.Node, bool) {
 	if len(indices) == 0 {
 		return nil, false
 	}
 
-	ranges, ok := findStaticIPRanges(context)
+	ranges, ok := findStaticIPRanges(binding)
 	if !ok {
 		return nil, false
 	}
 
-	instanceCount, ok := findInstanceCount(context)
+	instanceCount, ok := findInstanceCount(binding)
 	if !ok {
 		return nil, false
 	}
@@ -70,8 +70,8 @@ func generateStaticIPs(context Context, indices []int) (yaml.Node, bool) {
 	return ips[:instanceCount], true
 }
 
-func findInstanceCount(context Context) (int, bool) {
-	nearestInstances, found := context.FindReference([]string{"instances"})
+func findInstanceCount(binding Binding) (int, bool) {
+	nearestInstances, found := binding.FindReference([]string{"instances"})
 	if !found {
 		return 0, false
 	}
@@ -80,8 +80,8 @@ func findInstanceCount(context Context) (int, bool) {
 	return instances, ok
 }
 
-func findStaticIPRanges(context Context) ([]string, bool) {
-	nearestNetworkName, found := context.FindReference([]string{"name"})
+func findStaticIPRanges(binding Binding) ([]string, bool) {
+	nearestNetworkName, found := binding.FindReference([]string{"name"})
 	if !found {
 		return nil, false
 	}
@@ -91,7 +91,7 @@ func findStaticIPRanges(context Context) ([]string, bool) {
 		return nil, false
 	}
 
-	static, found := context.FindFromRoot(
+	static, found := binding.FindFromRoot(
 		[]string{"networks", networkName, "subnets", "[0]", "static"},
 	)
 

@@ -9,13 +9,13 @@ type AdditionExpr struct {
 	B Expression
 }
 
-func (e AdditionExpr) Evaluate(context Context) (yaml.Node, bool) {
-	a, ok := e.A.Evaluate(context)
+func (e AdditionExpr) Evaluate(binding Binding) (yaml.Node, bool) {
+	a, ok := e.A.Evaluate(binding)
 	if !ok {
 		return nil, false
 	}
 
-	b, ok := e.B.Evaluate(context)
+	b, ok := e.B.Evaluate(binding)
 	if !ok {
 		return nil, false
 	}

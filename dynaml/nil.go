@@ -6,6 +6,6 @@ import (
 
 type NilExpr struct{}
 
-func (e NilExpr) Evaluate(Context) (yaml.Node, bool) {
+func (e NilExpr) Evaluate(Binding) (yaml.Node, bool) {
 	return nil, true
 }

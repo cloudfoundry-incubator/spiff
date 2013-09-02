@@ -1,14 +1,14 @@
 package dynaml
 
 import (
-	d "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"github.com/vito/spiff/yaml"
 )
 
-var _ = d.Describe("calls", func() {
-	d.Describe("static_ips(ips...)", func() {
+var _ = Describe("calls", func() {
+	Describe("static_ips(ips...)", func() {
 		expr := CallExpr{
 			Name: "static_ips",
 			Arguments: []Expression{
@@ -17,12 +17,12 @@ var _ = d.Describe("calls", func() {
 			},
 		}
 
-		d.It("returns a set of ips from the given network", func() {
+		It("returns a set of ips from the given network", func() {
 			static := parseYAML(`
 - 10.10.16.10 - 10.10.16.254
 `)
 
-			context := FakeContext{
+			binding := FakeBinding{
 				FoundReferences: map[string]yaml.Node{
 					"name":      "cf1",
 					"instances": 2,
@@ -35,17 +35,17 @@ var _ = d.Describe("calls", func() {
 			Expect(expr).To(
 				EvaluateAs(
 					[]yaml.Node{"10.10.16.10", "10.10.16.14"},
-					context,
+					binding,
 				),
 			)
 		})
 
-		d.It("limits the IPs to the number of instances", func() {
+		It("limits the IPs to the number of instances", func() {
 			static := parseYAML(`
 - 10.10.16.10 - 10.10.16.254
 `)
 
-			context := FakeContext{
+			binding := FakeBinding{
 				FoundReferences: map[string]yaml.Node{
 					"name":      "cf1",
 					"instances": 1,
@@ -58,18 +58,18 @@ var _ = d.Describe("calls", func() {
 			Expect(expr).To(
 				EvaluateAs(
 					[]yaml.Node{"10.10.16.10"},
-					context,
+					binding,
 				),
 			)
 		})
 
-		d.Context("when the instance count is dynamic", func() {
-			d.It("fails", func() {
+		Context("when the instance count is dynamic", func() {
+			It("fails", func() {
 				static := parseYAML(`
 - 10.10.16.10 - 10.10.16.254
 `)
 
-				context := FakeContext{
+				binding := FakeBinding{
 					FoundReferences: map[string]yaml.Node{
 						"name":      "cf1",
 						"instances": MergeExpr{},
@@ -79,17 +79,17 @@ var _ = d.Describe("calls", func() {
 					},
 				}
 
-				Expect(expr).To(FailToEvaluate(context))
+				Expect(expr).To(FailToEvaluate(binding))
 			})
 		})
 
-		d.Context("when there are not enough IPs for the number of instances", func() {
-			d.It("fails", func() {
+		Context("when there are not enough IPs for the number of instances", func() {
+			It("fails", func() {
 				static := parseYAML(`
 - 10.10.16.10 - 10.10.16.32
 `)
 
-				context := FakeContext{
+				binding := FakeBinding{
 					FoundReferences: map[string]yaml.Node{
 						"name":      "cf1",
 						"instances": 42,
@@ -99,7 +99,7 @@ var _ = d.Describe("calls", func() {
 					},
 				}
 
-				Expect(expr).To(FailToEvaluate(context))
+				Expect(expr).To(FailToEvaluate(binding))
 			})
 		})
 	})

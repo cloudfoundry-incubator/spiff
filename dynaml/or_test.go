@@ -1,61 +1,61 @@
 package dynaml
 
 import (
-	d "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-var _ = d.Describe("or", func() {
-	d.Context("when both sides fail", func() {
+var _ = Describe("or", func() {
+	Context("when both sides fail", func() {
 		expr := OrExpr{
 			ReferenceExpr{},
 			ReferenceExpr{},
 		}
 
-		Expect(expr).To(FailToEvaluate(FakeContext{}))
+		Expect(expr).To(FailToEvaluate(FakeBinding{}))
 	})
 
-	d.Context("when the left-hand side fails", func() {
-		d.It("returns the right-hand side", func() {
+	Context("when the left-hand side fails", func() {
+		It("returns the right-hand side", func() {
 			expr := OrExpr{
 				ReferenceExpr{},
 				IntegerExpr{2},
 			}
 
-			Expect(expr).To(EvaluateAs(2, FakeContext{}))
+			Expect(expr).To(EvaluateAs(2, FakeBinding{}))
 		})
 	})
 
-	d.Context("when the right-hand side fails", func() {
-		d.It("returns the left-hand side", func() {
+	Context("when the right-hand side fails", func() {
+		It("returns the left-hand side", func() {
 			expr := OrExpr{
 				IntegerExpr{1},
 				ReferenceExpr{},
 			}
 
-			Expect(expr).To(EvaluateAs(1, FakeContext{}))
+			Expect(expr).To(EvaluateAs(1, FakeBinding{}))
 		})
 	})
 
-	d.Context("when the left-hand side is nil", func() {
-		d.It("returns the left-hand side", func() {
+	Context("when the left-hand side is nil", func() {
+		It("returns the left-hand side", func() {
 			expr := OrExpr{
 				NilExpr{},
 				ReferenceExpr{},
 			}
 
-			Expect(expr).To(EvaluateAs(nil, FakeContext{}))
+			Expect(expr).To(EvaluateAs(nil, FakeBinding{}))
 		})
 	})
 
-	d.Context("when the right side is nil and the left fails", func() {
-		d.It("returns the left-hand side", func() {
+	Context("when the right side is nil and the left fails", func() {
+		It("returns the left-hand side", func() {
 			expr := OrExpr{
 				ReferenceExpr{},
 				NilExpr{},
 			}
 
-			Expect(expr).To(EvaluateAs(nil, FakeContext{}))
+			Expect(expr).To(EvaluateAs(nil, FakeBinding{}))
 		})
 	})
 })

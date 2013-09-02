@@ -4,12 +4,12 @@ import (
 	"github.com/vito/spiff/yaml"
 )
 
-type Context interface {
+type Binding interface {
 	FindFromRoot([]string) (yaml.Node, bool)
 	FindReference([]string) (yaml.Node, bool)
 	FindInStubs([]string) (yaml.Node, bool)
 }
 
 type Expression interface {
-	Evaluate(Context) (yaml.Node, bool)
+	Evaluate(Binding) (yaml.Node, bool)
 }

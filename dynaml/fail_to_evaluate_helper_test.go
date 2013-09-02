@@ -4,12 +4,12 @@ import (
 	"fmt"
 )
 
-func FailToEvaluate(context Context) *FailToEvaluateMatcher {
-	return &FailToEvaluateMatcher{context}
+func FailToEvaluate(binding Binding) *FailToEvaluateMatcher {
+	return &FailToEvaluateMatcher{binding}
 }
 
 type FailToEvaluateMatcher struct {
-	Context Context
+	Binding Binding
 }
 
 func (matcher *FailToEvaluateMatcher) Match(source interface{}) (success bool, message string, err error) {
@@ -18,7 +18,7 @@ func (matcher *FailToEvaluateMatcher) Match(source interface{}) (success bool, m
 		return false, "", fmt.Errorf("Not an expression: %v", source)
 	}
 
-	actual, ok := expr.Evaluate(matcher.Context)
+	actual, ok := expr.Evaluate(matcher.Binding)
 	if ok {
 		return false, "", fmt.Errorf("Node evaluated to: %#v", actual)
 	}

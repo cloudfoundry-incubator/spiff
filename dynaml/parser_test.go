@@ -1,60 +1,60 @@
 package dynaml
 
 import (
-	d "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-var _ = d.Describe("parsing", func() {
-	d.Describe("integers", func() {
-		d.It("parses positive numbers", func() {
+var _ = Describe("parsing", func() {
+	Describe("integers", func() {
+		It("parses positive numbers", func() {
 			parsesAs("1", IntegerExpr{1})
 		})
 
-		d.It("parses negative numbers", func() {
+		It("parses negative numbers", func() {
 			parsesAs("-1", IntegerExpr{-1})
 		})
 	})
 
-	d.Describe("strings", func() {
-		d.It("parses strings with escaped quotes", func() {
+	Describe("strings", func() {
+		It("parses strings with escaped quotes", func() {
 			parsesAs(`"foo \"bar\" baz"`, StringExpr{`foo "bar" baz`})
 		})
 	})
 
-	d.Describe("nil", func() {
-		d.It("parses nil", func() {
+	Describe("nil", func() {
+		It("parses nil", func() {
 			parsesAs(`nil`, NilExpr{})
 		})
 	})
 
-	d.Describe("booleans", func() {
-		d.It("parses true and false", func() {
+	Describe("booleans", func() {
+		It("parses true and false", func() {
 			parsesAs(`true`, BooleanExpr{true})
 			parsesAs(`false`, BooleanExpr{false})
 		})
 	})
 
-	d.Describe("merge", func() {
-		d.It("parses as a merge node with the given path", func() {
+	Describe("merge", func() {
+		It("parses as a merge node with the given path", func() {
 			parsesAs("merge", MergeExpr{[]string{"foo", "bar"}}, "foo", "bar")
 		})
 	})
 
-	d.Describe("auto", func() {
-		d.It("parses as a auto node with the given path", func() {
+	Describe("auto", func() {
+		It("parses as a auto node with the given path", func() {
 			parsesAs("auto", AutoExpr{[]string{"foo", "bar"}}, "foo", "bar")
 		})
 	})
 
-	d.Describe("references", func() {
-		d.It("parses as a reference node", func() {
+	Describe("references", func() {
+		It("parses as a reference node", func() {
 			parsesAs("foo.bar.baz", ReferenceExpr{[]string{"foo", "bar", "baz"}})
 		})
 	})
 
-	d.Describe("concatenation", func() {
-		d.It("parses adjacent nodes as concatenation", func() {
+	Describe("concatenation", func() {
+		It("parses adjacent nodes as concatenation", func() {
 			parsesAs(
 				`"foo" bar`,
 				ConcatenationExpr{
@@ -76,8 +76,8 @@ var _ = d.Describe("parsing", func() {
 		})
 	})
 
-	d.Describe("or", func() {
-		d.It("parses nodes separated by ||", func() {
+	Describe("or", func() {
+		It("parses nodes separated by ||", func() {
 			parsesAs(
 				`"foo" || bar`,
 				OrExpr{
@@ -99,8 +99,8 @@ var _ = d.Describe("parsing", func() {
 		})
 	})
 
-	d.Describe("addition", func() {
-		d.It("parses nodes separated by +", func() {
+	Describe("addition", func() {
+		It("parses nodes separated by +", func() {
 			parsesAs(
 				`"foo" + bar`,
 				AdditionExpr{
@@ -122,8 +122,8 @@ var _ = d.Describe("parsing", func() {
 		})
 	})
 
-	d.Describe("subtraction", func() {
-		d.It("parses nodes separated by -", func() {
+	Describe("subtraction", func() {
+		It("parses nodes separated by -", func() {
 			parsesAs(
 				`"foo" - bar`,
 				SubtractionExpr{
@@ -145,8 +145,8 @@ var _ = d.Describe("parsing", func() {
 		})
 	})
 
-	d.Describe("lists", func() {
-		d.It("parses nodes in brackets separated by commas", func() {
+	Describe("lists", func() {
+		It("parses nodes in brackets separated by commas", func() {
 			parsesAs(
 				`[1, "two", three]`,
 				ListExpr{
@@ -160,8 +160,8 @@ var _ = d.Describe("parsing", func() {
 		})
 	})
 
-	d.Describe("calls", func() {
-		d.It("parses nodes in arguments to function calls", func() {
+	Describe("calls", func() {
+		It("parses nodes in arguments to function calls", func() {
 			parsesAs(
 				`foo(1, "two", three)`,
 				CallExpr{
@@ -176,8 +176,8 @@ var _ = d.Describe("parsing", func() {
 		})
 	})
 
-	d.Describe("grouping", func() {
-		d.It("influences parser precedence", func() {
+	Describe("grouping", func() {
+		It("influences parser precedence", func() {
 			parsesAs(
 				`("foo" - bar) - merge`,
 				SubtractionExpr{

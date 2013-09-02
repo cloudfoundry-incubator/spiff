@@ -8,8 +8,8 @@ type ReferenceExpr struct {
 	Path []string
 }
 
-func (e ReferenceExpr) Evaluate(context Context) (yaml.Node, bool) {
-	reference, ok := context.FindReference(e.Path)
+func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, bool) {
+	reference, ok := binding.FindReference(e.Path)
 	if !ok {
 		return nil, false
 	}
