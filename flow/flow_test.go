@@ -19,6 +19,17 @@ foo: bar
 		})
 	})
 
+	Context("when there are no dynaml nodes", func() {
+		It("is a no-op", func() {
+			source := parseYAML(`
+---
+foo: bar
+`)
+
+			Expect(source).To(FlowAs(source))
+		})
+	})
+
 	Context("when some dynaml nodes cannot be resolved", func() {
 		It("returns an error", func() {
 			source := parseYAML(`
@@ -34,6 +45,34 @@ foo: (( auto ))
 					},
 				},
 			}))
+		})
+	})
+
+	Context("when a reference is made to a yet-to-be-resolved node, in a || expression", func() {
+		It("eventually resolves to the referenced node", func() {
+			source := parseYAML(`
+---
+properties:
+  template_only: (( merge ))
+  something: (( template_only.foo || "wrong" ))
+`)
+
+			stub := parseYAML(`
+---
+properties:
+  template_only:
+    foo: right
+`)
+
+			resolved := parseYAML(`
+---
+properties:
+  template_only:
+    foo: right
+  something: right
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
 		})
 	})
 

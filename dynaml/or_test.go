@@ -7,18 +7,20 @@ import (
 
 var _ = Describe("or", func() {
 	Context("when both sides fail", func() {
-		expr := OrExpr{
-			ReferenceExpr{},
-			ReferenceExpr{},
-		}
+		It("fails", func() {
+			expr := OrExpr{
+				FailingExpr{},
+				FailingExpr{},
+			}
 
-		Expect(expr).To(FailToEvaluate(FakeBinding{}))
+			Expect(expr).To(FailToEvaluate(FakeBinding{}))
+		})
 	})
 
 	Context("when the left-hand side fails", func() {
 		It("returns the right-hand side", func() {
 			expr := OrExpr{
-				ReferenceExpr{},
+				FailingExpr{},
 				IntegerExpr{2},
 			}
 
@@ -30,7 +32,7 @@ var _ = Describe("or", func() {
 		It("returns the left-hand side", func() {
 			expr := OrExpr{
 				IntegerExpr{1},
-				ReferenceExpr{},
+				FailingExpr{},
 			}
 
 			Expect(expr).To(EvaluateAs(1, FakeBinding{}))
@@ -41,7 +43,7 @@ var _ = Describe("or", func() {
 		It("returns the left-hand side", func() {
 			expr := OrExpr{
 				NilExpr{},
-				ReferenceExpr{},
+				FailingExpr{},
 			}
 
 			Expect(expr).To(EvaluateAs(nil, FakeBinding{}))
@@ -51,7 +53,7 @@ var _ = Describe("or", func() {
 	Context("when the right side is nil and the left fails", func() {
 		It("returns the left-hand side", func() {
 			expr := OrExpr{
-				ReferenceExpr{},
+				FailingExpr{},
 				NilExpr{},
 			}
 

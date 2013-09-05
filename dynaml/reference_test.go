@@ -14,6 +14,7 @@ var _ = Describe("references", func() {
 
 			binding := FakeBinding{
 				FoundReferences: map[string]yaml.Node{
+					"foo":     nil,
 					"foo.bar": 42,
 				},
 			}
@@ -22,33 +23,25 @@ var _ = Describe("references", func() {
 		})
 
 		Context("and it refers to another expression", func() {
-			It("fails so the referred node can evaluate first", func() {
-				referencedNode := IntegerExpr{42}
-
+			It("returns itself so the referred node can evaluate first", func() {
 				expr := ReferenceExpr{[]string{"foo", "bar"}}
 
 				binding := FakeBinding{
 					FoundReferences: map[string]yaml.Node{
-						"foo.bar": referencedNode,
+						"foo": MergeExpr{},
 					},
 				}
 
-				Expect(expr).To(FailToEvaluate(binding))
+				Expect(expr).To(EvaluateAs(expr, binding))
 			})
 		})
 	})
 
 	Context("when the reference is NOT found", func() {
 		It("fails", func() {
-			referencedNode := IntegerExpr{42}
-
 			expr := ReferenceExpr{[]string{"foo", "bar", "baz"}}
 
-			binding := FakeBinding{
-				FoundReferences: map[string]yaml.Node{
-					"foo.bar": referencedNode,
-				},
-			}
+			binding := FakeBinding{}
 
 			Expect(expr).To(FailToEvaluate(binding))
 		})
