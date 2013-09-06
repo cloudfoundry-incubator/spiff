@@ -13,12 +13,16 @@
   go install github.com/vito/spiff
 
 
-= spiff merge template.yml [stub1.yml stub2.yml ...] > manifest.yml
+= spiff merge template.yml [template2.yml template3.yml ...] > manifest.yml
 
-  Merge stub files into one template, printing out the fully resolved manifest.
+  Merge a bunch of template files into one manifest, printing it out.
 
   See 'dynaml templating language' for details of the template file, or
   example.yml for a complicated example.
+
+  Example:
+
+    spiff merge cf-release/templates/cf-deployment.yml my-cloud-stub.yml
 
 
 = spiff diff manifest.yml other-manifest.yml
