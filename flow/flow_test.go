@@ -76,6 +76,32 @@ properties:
 		})
 	})
 
+	Context("when a reference is made to an unresolveable node, in a || expression", func() {
+		It("eventually resolves to the referenced node", func() {
+			source := parseYAML(`
+---
+properties:
+  template_only: (( merge ))
+  something: (( template_only.foo || "right" ))
+`)
+
+			stub := parseYAML(`
+---
+properties:
+  template_only:
+`)
+
+			resolved := parseYAML(`
+---
+properties:
+  template_only:
+  something: right
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
+	})
+
 	Describe("basic dynaml nodes", func() {
 		It("evaluates the nodes", func() {
 			source := parseYAML(`

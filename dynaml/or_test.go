@@ -3,6 +3,8 @@ package dynaml
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/vito/spiff/yaml"
 )
 
 var _ = Describe("or", func() {
@@ -58,6 +60,23 @@ var _ = Describe("or", func() {
 			}
 
 			Expect(expr).To(EvaluateAs(nil, FakeBinding{}))
+		})
+	})
+
+	Context("when the left side evaluates to itself (i.e. reference)", func() {
+		It("fails assuming the left hand side cannot be determined yet", func() {
+			expr := OrExpr{
+				ReferenceExpr{[]string{"foo", "bar"}},
+				NilExpr{},
+			}
+
+			binding := FakeBinding{
+				FoundReferences: map[string]yaml.Node{
+					"foo": MergeExpr{},
+				},
+			}
+
+			Expect(expr).To(FailToEvaluate(binding))
 		})
 	})
 })

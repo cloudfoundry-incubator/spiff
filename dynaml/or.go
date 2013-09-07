@@ -1,6 +1,8 @@
 package dynaml
 
 import (
+	"reflect"
+
 	"github.com/vito/spiff/yaml"
 )
 
@@ -12,6 +14,10 @@ type OrExpr struct {
 func (e OrExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 	a, ok := e.A.Evaluate(binding)
 	if ok {
+		if reflect.DeepEqual(a, e.A) {
+			return nil, false
+		}
+
 		return a, true
 	}
 
