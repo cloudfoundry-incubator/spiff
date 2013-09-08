@@ -2,6 +2,7 @@ package flow
 
 import (
 	"fmt"
+	"reflect"
 	"regexp"
 
 	"github.com/vito/spiff/dynaml"
@@ -12,10 +13,15 @@ var embeddedDynaml = regexp.MustCompile(`^\(\((.*)\)\)$`)
 
 func Flow(source yaml.Node, stubs ...yaml.Node) (yaml.Node, error) {
 	result := source
-	didFlow := true
 
-	for didFlow {
-		result, didFlow = flow(result, Environment{Stubs: stubs})
+	for {
+		next := flow(result, Environment{Stubs: stubs})
+
+		if reflect.DeepEqual(result, next) {
+			break
+		}
+
+		result = next
 	}
 
 	unresolved := findUnresolvedNodes(result)
@@ -26,7 +32,7 @@ func Flow(source yaml.Node, stubs ...yaml.Node) (yaml.Node, error) {
 	return result, nil
 }
 
-func flow(root yaml.Node, env Environment) (yaml.Node, bool) {
+func flow(root yaml.Node, env Environment) yaml.Node {
 	switch root.(type) {
 	case map[string]yaml.Node:
 		return flowMap(root.(map[string]yaml.Node), env)
@@ -40,66 +46,51 @@ func flow(root yaml.Node, env Environment) (yaml.Node, bool) {
 	case dynaml.Expression:
 		result, ok := root.(dynaml.Expression).Evaluate(env)
 		if !ok {
-			return root, false
+			return root
 		}
 
-		return result, true
+		return result
 
 	default:
-		return root, false
+		return root
 	}
 }
 
-func flowMap(root map[string]yaml.Node, env Environment) (yaml.Node, bool) {
+func flowMap(root map[string]yaml.Node, env Environment) yaml.Node {
 	env = env.WithScope(root)
 
 	newMap := make(map[string]yaml.Node)
 
-	flowed := false
-
 	for key, val := range root {
-		sub, didFlow := flow(val, env.WithPath(key))
-		if didFlow {
-			flowed = true
-		}
-
-		newMap[key] = sub
+		newMap[key] = flow(val, env.WithPath(key))
 	}
 
-	return newMap, flowed
+	return newMap
 }
 
-func flowList(root []yaml.Node, env Environment) (yaml.Node, bool) {
+func flowList(root []yaml.Node, env Environment) yaml.Node {
 	newList := []yaml.Node{}
-
-	flowed := false
 
 	for idx, val := range root {
 		step := stepName(idx, val)
-
-		sub, didFlow := flow(val, env.WithPath(step))
-		if didFlow {
-			flowed = true
-		}
-
-		newList = append(newList, sub)
+		newList = append(newList, flow(val, env.WithPath(step)))
 	}
 
-	return newList, flowed
+	return newList
 }
 
-func flowString(root string, env Environment) (yaml.Node, bool) {
+func flowString(root string, env Environment) yaml.Node {
 	sub := embeddedDynaml.FindStringSubmatch(root)
 	if sub == nil {
-		return root, false
+		return root
 	}
 
 	expr, err := dynaml.Parse(sub[1], env.Path)
 	if err != nil {
-		return root, false
+		return root
 	}
 
-	return expr, true
+	return expr
 }
 
 func stepName(index int, value yaml.Node) string {

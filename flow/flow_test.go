@@ -76,6 +76,20 @@ properties:
 		})
 	})
 
+	Context("when a refence is made to an unresolveable node", func() {
+		It("fails to flow", func() {
+			source := parseYAML(`
+---
+properties:
+  template_only: (( abc ))
+  something: (( template_only.foo ))
+`)
+
+			_, err := Flow(source)
+			Expect(err).To(HaveOccured())
+		})
+	})
+
 	Context("when a reference is made to an unresolveable node, in a || expression", func() {
 		It("eventually resolves to the referenced node", func() {
 			source := parseYAML(`
