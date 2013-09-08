@@ -19,6 +19,12 @@ var _ = Describe("lists", func() {
 		Expect(expr).To(EvaluateAs([]yaml.Node{1, "two"}, FakeBinding{}))
 	})
 
+	Context("when empty", func() {
+		It("evaluates to an empty array", func() {
+			Expect(ListExpr{}).To(EvaluateAs([]yaml.Node{}, FakeBinding{}))
+		})
+	})
+
 	Context("when an entry does not resolve", func() {
 		It("fails", func() {
 			expr := ListExpr{

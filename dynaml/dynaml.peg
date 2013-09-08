@@ -34,7 +34,7 @@ Boolean <- 'true' / 'false'
 
 Nil <- 'nil'
 
-List <- '[' Contents ']'
+List <- '[' Contents? ']'
 Contents <- Expression (Comma ws Expression)*
 
 Merge <- 'merge'

@@ -146,6 +146,10 @@ var _ = Describe("parsing", func() {
 	})
 
 	Describe("lists", func() {
+		It("parses an empty list", func() {
+			parsesAs(`[]`, ListExpr{})
+		})
+
 		It("parses nodes in brackets separated by commas", func() {
 			parsesAs(
 				`[1, "two", three]`,
