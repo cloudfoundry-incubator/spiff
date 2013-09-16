@@ -123,12 +123,19 @@ func staticIPPool(ranges []string) ([]net.IP, bool) {
 
 	for _, r := range ranges {
 		segments := strings.Split(r, "-")
-		if len(segments) != 2 {
+		if len(segments) == 0 {
 			return nil, false
 		}
 
-		start := net.ParseIP(strings.Trim(segments[0], " "))
-		end := net.ParseIP(strings.Trim(segments[1], " "))
+		var start, end net.IP
+
+		start = net.ParseIP(strings.Trim(segments[0], " "))
+
+		if len(segments) == 1 {
+			end = start
+		} else {
+			end = net.ParseIP(strings.Trim(segments[1], " "))
+		}
 
 		ipPool = append(ipPool, ipRange(start, end)...)
 	}

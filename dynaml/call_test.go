@@ -102,5 +102,42 @@ var _ = Describe("calls", func() {
 				Expect(expr).To(FailToEvaluate(binding))
 			})
 		})
+
+		Context("when there are singular static IPs listed", func() {
+			It("includes them in the pool", func() {
+				static := parseYAML(`
+- 10.10.16.10 - 10.10.16.32
+- 10.10.16.33
+- 10.10.16.34
+`)
+
+				expr := CallExpr{
+					Name: "static_ips",
+					Arguments: []Expression{
+						IntegerExpr{0},
+						IntegerExpr{4},
+						IntegerExpr{23},
+					},
+				}
+
+				binding := FakeBinding{
+					FoundReferences: map[string]yaml.Node{
+						"name":      "cf1",
+						"instances": 3,
+					},
+					FoundFromRoot: map[string]yaml.Node{
+						"networks.cf1.subnets.[0].static": static,
+					},
+				}
+
+
+				Expect(expr).To(
+					EvaluateAs(
+						[]yaml.Node{"10.10.16.10", "10.10.16.14", "10.10.16.33"},
+						binding,
+					),
+				)
+			})
+		})
 	})
 })
