@@ -30,6 +30,34 @@ foo: bar
 		})
 	})
 
+	Context("when a value is defined in the template and a stub", func() {
+		It("overrides the value with the stubbed value", func() {
+			source := parseYAML(`
+---
+a: ~
+b: 1
+c: foo
+fizz: buzz
+`)
+
+			stub := parseYAML(`
+---
+a: b
+b: 2
+c: bar
+`)
+
+			result := parseYAML(`
+---
+a: b
+b: 2
+c: bar
+fizz: buzz
+`)
+			Expect(source).To(FlowAs(result, stub))
+		})
+	})
+
 	Context("when some dynaml nodes cannot be resolved", func() {
 		It("returns an error", func() {
 			source := parseYAML(`

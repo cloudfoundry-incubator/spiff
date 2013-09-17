@@ -40,9 +40,6 @@ func flow(root yaml.Node, env Environment) yaml.Node {
 	case []yaml.Node:
 		return flowList(root.([]yaml.Node), env)
 
-	case string:
-		return flowString(root.(string), env)
-
 	case dynaml.Expression:
 		result, ok := root.(dynaml.Expression).Evaluate(env)
 		if !ok {
@@ -52,6 +49,16 @@ func flow(root yaml.Node, env Environment) yaml.Node {
 		return result
 
 	default:
+		overridden, found := env.FindInStubs(env.Path)
+		if found {
+			return overridden
+		}
+
+		str, ok := root.(string)
+		if ok {
+			return flowString(str, env)
+		}
+
 		return root
 	}
 }
