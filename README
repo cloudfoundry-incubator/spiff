@@ -10,7 +10,15 @@
 
 = installation
 
-  go install github.com/vito/spiff
+  # set up $GOPATH if not already
+  export GOPATH=~/go
+  export PATH=~/go/bin:$PATH
+
+  # install
+  go get -v github.com/vito/spiff
+
+  # run
+  spiff
 
 
 = spiff merge template.yml [template2.yml template3.yml ...] > manifest.yml
