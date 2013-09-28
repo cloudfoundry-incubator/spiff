@@ -47,20 +47,19 @@ func flow(root yaml.Node, env Environment) yaml.Node {
 		}
 
 		return result
-
-	default:
-		overridden, found := env.FindInStubs(env.Path)
-		if found {
-			return overridden
-		}
-
-		str, ok := root.(string)
-		if ok {
-			return flowString(str, env)
-		}
-
-		return root
 	}
+
+	overridden, found := env.FindInStubs(env.Path)
+	if found {
+		return overridden
+	}
+
+	str, ok := root.(string)
+	if ok {
+		return flowString(str, env)
+	}
+
+	return root
 }
 
 func flowMap(root map[string]yaml.Node, env Environment) yaml.Node {

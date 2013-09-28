@@ -29,9 +29,9 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 		}
 
 		return generateStaticIPs(binding, indices)
-	default:
-		return nil, false
 	}
+
+	return nil, false
 }
 
 func generateStaticIPs(binding Binding, indices []int) (yaml.Node, bool) {
