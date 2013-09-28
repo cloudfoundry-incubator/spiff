@@ -77,8 +77,7 @@ func sanitize(root interface{}) (Node, error) {
 
 	case nil:
 		return Node(nil), nil
-
-	default:
-		return nil, errors.New(fmt.Sprintf("unknown type during sanitization: %#v\n", root))
 	}
+
+	return nil, errors.New(fmt.Sprintf("unknown type during sanitization: %#v\n", root))
 }
