@@ -24,7 +24,7 @@ func Flow(source yaml.Node, stubs ...yaml.Node) (yaml.Node, error) {
 		result = next
 	}
 
-	unresolved := findUnresolvedNodes(result)
+	result, unresolved := ResolveNodes(result)
 	if len(unresolved) > 0 {
 		return nil, UnresolvedNodes{unresolved}
 	}
@@ -46,17 +46,29 @@ func flow(root yaml.Node, env Environment) yaml.Node {
 			return root
 		}
 
-		return result
+		switch result.(type) {
+		case string, nil, int:
+			return resolvedNode{result}
+		default:
+			return result
+		}
+
+	case resolvedNode:
+		return root
+	}
+
+	str, ok := root.(string)
+	if ok {
+		expr, ok := flowString(str, env)
+
+		if ok {
+			return expr
+		}
 	}
 
 	overridden, found := env.FindInStubs(env.Path)
 	if found {
 		return overridden
-	}
-
-	str, ok := root.(string)
-	if ok {
-		return flowString(str, env)
 	}
 
 	return root
@@ -85,18 +97,18 @@ func flowList(root []yaml.Node, env Environment) yaml.Node {
 	return newList
 }
 
-func flowString(root string, env Environment) yaml.Node {
+func flowString(root string, env Environment) (yaml.Node, bool) {
 	sub := embeddedDynaml.FindStringSubmatch(root)
 	if sub == nil {
-		return root
+		return root, false
 	}
 
 	expr, err := dynaml.Parse(sub[1], env.Path)
 	if err != nil {
-		return root
+		return root, false
 	}
 
-	return expr
+	return expr, true
 }
 
 func stepName(index int, value yaml.Node) string {
