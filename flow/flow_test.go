@@ -262,25 +262,6 @@ bar: 42
 			Expect(source).To(FlowAs(resolved, stub))
 		})
 
-		It("merges in from the same name dynamically", func() {
-			source := parseYAML(`
----
-foo: (( merge "-foo" ))
-`)
-
-			stub := parseYAML(`
----
-foo: merged!
-`)
-
-			resolved := parseYAML(`
----
-foo: merged!-foo
-`)
-
-			Expect(source).To(FlowAs(resolved, stub))
-		})
-
 		It("follows through maps in lists by name", func() {
 			source := parseYAML(`
 ---

@@ -5,24 +5,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/vito/spiff/dynaml"
-	"github.com/vito/spiff/yaml"
 )
 
-var _ = Describe("Resolving nodes", func() {
-	It("replaces resolved nodes with their values", func() {
-		result := map[string]yaml.Node{
-			"foo": resolvedNode{"bar"},
-		}
-
-		expected := map[string]yaml.Node{
-			"foo": "bar",
-		}
-
-		resolved, _ := ResolveNodes(result)
-
-		Expect(resolved).To(Equal(expected))
-	})
-
+var _ = Describe("Reporting unresolved nodes", func() {
 	It("formats a message listing the nodes", func() {
 		err := UnresolvedNodes{
 			Nodes: []dynaml.Expression{

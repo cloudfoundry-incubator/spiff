@@ -130,6 +130,7 @@ var _ = Describe("calls", func() {
 					},
 				}
 
+
 				Expect(expr).To(
 					EvaluateAs(
 						[]yaml.Node{"10.10.16.10", "10.10.16.14", "10.10.16.33"},
