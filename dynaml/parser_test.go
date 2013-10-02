@@ -49,7 +49,7 @@ var _ = Describe("parsing", func() {
 
 	Describe("references", func() {
 		It("parses as a reference node", func() {
-			parsesAs("foo.bar.baz", ReferenceExpr{[]string{"foo", "bar", "baz"}})
+			parsesAs("foo.bar-baz.fizz_buzz", ReferenceExpr{[]string{"foo", "bar-baz", "fizz_buzz"}})
 		})
 	})
 

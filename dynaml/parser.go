@@ -84,6 +84,7 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 		case RuleLevel0, RuleLevel1, RuleLevel2:
 		case RuleExpression:
 		case Rulews:
+		case Rulereq_ws:
 		default:
 			panic("unhandled:" + Rul3s[token.Rule])
 		}
