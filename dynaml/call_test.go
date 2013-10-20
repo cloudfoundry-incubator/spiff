@@ -17,9 +17,12 @@ var _ = Describe("calls", func() {
 			},
 		}
 
-		It("returns a set of ips from the given network", func() {
-			static := parseYAML(`
-- 10.10.16.10 - 10.10.16.254
+		It("returns a set of ips from the given network's subnets", func() {
+			subnets := parseYAML(`
+- static:
+    - 10.10.16.10
+- static:
+    - 10.10.16.11 - 10.10.16.254
 `)
 
 			binding := FakeBinding{
@@ -28,7 +31,7 @@ var _ = Describe("calls", func() {
 					"instances": 2,
 				},
 				FoundFromRoot: map[string]yaml.Node{
-					"networks.cf1.subnets.[0].static": static,
+					"networks.cf1.subnets": subnets,
 				},
 			}
 
@@ -41,8 +44,9 @@ var _ = Describe("calls", func() {
 		})
 
 		It("limits the IPs to the number of instances", func() {
-			static := parseYAML(`
-- 10.10.16.10 - 10.10.16.254
+			subnets := parseYAML(`
+- static:
+    - 10.10.16.10 - 10.10.16.254
 `)
 
 			binding := FakeBinding{
@@ -51,7 +55,7 @@ var _ = Describe("calls", func() {
 					"instances": 1,
 				},
 				FoundFromRoot: map[string]yaml.Node{
-					"networks.cf1.subnets.[0].static": static,
+					"networks.cf1.subnets": subnets,
 				},
 			}
 
@@ -65,8 +69,9 @@ var _ = Describe("calls", func() {
 
 		Context("when the instance count is dynamic", func() {
 			It("fails", func() {
-				static := parseYAML(`
-- 10.10.16.10 - 10.10.16.254
+				subnets := parseYAML(`
+- static:
+    - 10.10.16.10 - 10.10.16.254
 `)
 
 				binding := FakeBinding{
@@ -75,7 +80,7 @@ var _ = Describe("calls", func() {
 						"instances": MergeExpr{},
 					},
 					FoundFromRoot: map[string]yaml.Node{
-						"networks.cf1.subnets.[0].static": static,
+						"networks.cf1.subnets": subnets,
 					},
 				}
 
@@ -85,8 +90,9 @@ var _ = Describe("calls", func() {
 
 		Context("when there are not enough IPs for the number of instances", func() {
 			It("fails", func() {
-				static := parseYAML(`
-- 10.10.16.10 - 10.10.16.32
+				subnets := parseYAML(`
+- static:
+    - 10.10.16.10 - 10.10.16.32
 `)
 
 				binding := FakeBinding{
@@ -95,7 +101,7 @@ var _ = Describe("calls", func() {
 						"instances": 42,
 					},
 					FoundFromRoot: map[string]yaml.Node{
-						"networks.cf1.subnets.[0].static": static,
+						"networks.cf1.subnets": subnets,
 					},
 				}
 
@@ -105,10 +111,11 @@ var _ = Describe("calls", func() {
 
 		Context("when there are singular static IPs listed", func() {
 			It("includes them in the pool", func() {
-				static := parseYAML(`
-- 10.10.16.10 - 10.10.16.32
-- 10.10.16.33
-- 10.10.16.34
+				subnets := parseYAML(`
+- static:
+    - 10.10.16.10 - 10.10.16.32
+    - 10.10.16.33
+    - 10.10.16.34
 `)
 
 				expr := CallExpr{
@@ -126,7 +133,7 @@ var _ = Describe("calls", func() {
 						"instances": 3,
 					},
 					FoundFromRoot: map[string]yaml.Node{
-						"networks.cf1.subnets.[0].static": static,
+						"networks.cf1.subnets": subnets,
 					},
 				}
 

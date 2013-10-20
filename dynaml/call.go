@@ -91,31 +91,53 @@ func findStaticIPRanges(binding Binding) ([]string, bool) {
 		return nil, false
 	}
 
-	static, found := binding.FindFromRoot(
-		[]string{"networks", networkName, "subnets", "[0]", "static"},
+	subnets, found := binding.FindFromRoot(
+		[]string{"networks", networkName, "subnets"},
 	)
 
 	if !found {
 		return nil, false
 	}
 
-	staticList, ok := static.([]yaml.Node)
+	subnetsList, ok := subnets.([]yaml.Node)
 	if !ok {
 		return nil, false
 	}
 
-	ranges := make([]string, len(staticList))
+	allRanges := []string{}
 
-	for i, r := range staticList {
-		ipsString, ok := r.(string)
+	for _, subnet := range subnetsList {
+		subnetMap, ok := subnet.(map[string]yaml.Node)
 		if !ok {
 			return nil, false
 		}
 
-		ranges[i] = ipsString
+		static, ok := subnetMap["static"]
+
+		if !ok {
+			return nil, false
+		}
+
+		staticList, ok := static.([]yaml.Node)
+		if !ok {
+			return nil, false
+		}
+
+		ranges := make([]string, len(staticList))
+
+		for i, r := range staticList {
+			ipsString, ok := r.(string)
+			if !ok {
+				return nil, false
+			}
+
+			ranges[i] = ipsString
+		}
+
+		allRanges = append(allRanges, ranges...)
 	}
 
-	return ranges, true
+	return allRanges, true
 }
 
 func staticIPPool(ranges []string) ([]net.IP, bool) {
