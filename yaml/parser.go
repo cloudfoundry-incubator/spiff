@@ -72,6 +72,9 @@ func sanitize(root interface{}) (Node, error) {
 	case int:
 		return Node(root.(int)), nil
 
+	case float64:
+		return Node(root.(float64)), nil
+
 	case bool:
 		return Node(root.(bool)), nil
 

@@ -37,6 +37,7 @@ foo: bar
 a: ~
 b: 1
 c: foo
+d: 2.5
 fizz: buzz
 `)
 
@@ -45,6 +46,7 @@ fizz: buzz
 a: b
 b: 2
 c: bar
+d: 3.14
 `)
 
 			result := parseYAML(`
@@ -52,6 +54,7 @@ c: bar
 a: b
 b: 2
 c: bar
+d: 3.14
 fizz: buzz
 `)
 			Expect(source).To(FlowAs(result, stub))

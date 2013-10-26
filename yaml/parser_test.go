@@ -39,6 +39,13 @@ var _ = Describe("Parsing YAML", func() {
 		})
 	})
 
+	Describe("floats", func() {
+		It("parses as float64s", func() {
+			parsesAs("1.0", 1.0)
+			parsesAs("-1.0", -1.0)
+		})
+	})
+
 	Describe("booleans", func() {
 		It("parses as bools", func() {
 			parsesAs("true", true)
