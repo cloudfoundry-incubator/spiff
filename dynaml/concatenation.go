@@ -20,15 +20,17 @@ func (e ConcatenationExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 		return nil, false
 	}
 
-	astring, ok := a.(string)
-	if !ok {
-		return nil, false
+	astring, aok := a.(string)
+	bstring, bok := b.(string)
+	if aok && bok {
+		return astring + bstring, true
 	}
 
-	bstring, ok := b.(string)
-	if !ok {
-		return nil, false
+	alist, aok := a.([]yaml.Node)
+	blist, bok := b.([]yaml.Node)
+	if aok && bok {
+		return append(alist, blist...), true
 	}
 
-	return astring + bstring, true
+	return nil, false
 }

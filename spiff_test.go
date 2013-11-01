@@ -48,7 +48,6 @@ foo: bar
 				Expect(err).NotTo(HaveOccured())
 			})
 
-
 			It("resolves the template and prints it out", func() {
 				Expect(merge).To(Say(`foo: bar`))
 				Expect(merge).To(ExitWith(0))
