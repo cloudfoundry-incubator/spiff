@@ -17,6 +17,9 @@
   # install
   go get -v github.com/vito/spiff
 
+  # to update a previously installed version of spiff
+  go get -u github.com/vito/spiff
+
   # run
   spiff
 
