@@ -7,6 +7,14 @@
 
        A declarative templating system for BOSH deployment manifests.
 
+= pre-reqs
+
+  # you must have bzr installed
+  $ which bzr
+  /usr/local/bin/bzr
+  
+  # if you do not have it, get it with something like
+  $ brew install bzr
 
 = installation
 
