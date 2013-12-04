@@ -7,7 +7,12 @@
 
        A declarative templating system for BOSH deployment manifests.
 
-= pre-reqs
+= install latest release
+
+  curl -s http://spiff.cfapps.io/install.sh | bash
+  ./spiff
+
+= pre-reqs to install from source
 
   # you must have bzr installed
   $ which bzr
@@ -16,7 +21,7 @@
   # if you do not have it, get it with something like
   $ brew install bzr
 
-= installation
+= installation from source
 
   # set up $GOPATH if not already
   export GOPATH=~/go
