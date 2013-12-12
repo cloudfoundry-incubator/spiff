@@ -3,12 +3,13 @@ package main
 import (
 	"io/ioutil"
 	"os"
+	"os/exec"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry-incubator/cmdtest"
-	. "github.com/cloudfoundry-incubator/cmdtest/matchers"
+	"github.com/vito/cmdtest"
+	. "github.com/vito/cmdtest/matchers"
 )
 
 var _ = Describe("Running spiff", func() {
@@ -22,7 +23,7 @@ var _ = Describe("Running spiff", func() {
 
 		Context("when given a bad file path", func() {
 			BeforeEach(func() {
-				merge, err = cmdtest.Start(spiff, "merge", "foo.yml")
+				merge, err = cmdtest.Start(exec.Command(spiff, "merge", "foo.yml"))
 				Expect(err).NotTo(HaveOccured())
 			})
 
@@ -44,7 +45,7 @@ foo: bar
 `))
 
 			BeforeEach(func() {
-				merge, err = cmdtest.Start(spiff, "merge", basicTemplate.Name())
+				merge, err = cmdtest.Start(exec.Command(spiff, "merge", basicTemplate.Name()))
 				Expect(err).NotTo(HaveOccured())
 			})
 
