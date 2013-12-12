@@ -11,9 +11,9 @@ import (
 
 	"launchpad.net/goyaml"
 
-	"github.com/vito/spiff/compare"
-	"github.com/vito/spiff/flow"
-	"github.com/vito/spiff/yaml"
+	"github.com/cloudfoundry-incubator/spiff/compare"
+	"github.com/cloudfoundry-incubator/spiff/flow"
+	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
 func main() {

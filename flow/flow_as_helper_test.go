@@ -7,7 +7,7 @@ import (
 
 	"launchpad.net/goyaml"
 
-	"github.com/vito/spiff/yaml"
+	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
 func FlowAs(expected yaml.Node, stubs ...yaml.Node) *FlowAsMatcher {

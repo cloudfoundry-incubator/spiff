@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/vito/spiff/yaml"
+	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
 var _ = Describe("autos", func() {

@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"regexp"
 
-	"github.com/vito/spiff/dynaml"
-	"github.com/vito/spiff/yaml"
+	"github.com/cloudfoundry-incubator/spiff/dynaml"
+	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
 var embeddedDynaml = regexp.MustCompile(`^\(\((.*)\)\)$`)

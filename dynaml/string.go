@@ -1,7 +1,7 @@
 package dynaml
 
 import (
-	"github.com/vito/spiff/yaml"
+	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
 type StringExpr struct {

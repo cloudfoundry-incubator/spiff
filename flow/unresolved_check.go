@@ -3,8 +3,8 @@ package flow
 import (
 	"fmt"
 
-	"github.com/vito/spiff/dynaml"
-	"github.com/vito/spiff/yaml"
+	"github.com/cloudfoundry-incubator/spiff/dynaml"
+	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
 type UnresolvedNodes struct {

@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/vito/spiff/dynaml"
+	"github.com/cloudfoundry-incubator/spiff/dynaml"
 )
 
 var _ = Describe("Reporting unresolved nodes", func() {

@@ -23,10 +23,10 @@
   export PATH=~/go/bin:$PATH
 
   # install
-  go get -v github.com/vito/spiff
+  go get -v github.com/cloudfoundry-incubator/spiff
 
   # to update a previously installed version of spiff
-  go get -u github.com/vito/spiff
+  go get -u github.com/cloudfoundry-incubator/spiff
 
   # run
   spiff

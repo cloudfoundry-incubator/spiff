@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/vito/cmdtest"
-	. "github.com/vito/cmdtest/matchers"
+	"github.com/cloudfoundry-incubator/cmdtest"
+	. "github.com/cloudfoundry-incubator/cmdtest/matchers"
 )
 
 var _ = Describe("Running spiff", func() {
