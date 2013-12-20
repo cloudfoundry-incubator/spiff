@@ -9,7 +9,7 @@ var _ = Describe("Parsing YAML", func() {
 	Describe("maps", func() {
 		It("parses maps as strings mapping to Nodes", func() {
 			parsed, err := Parse([]byte(`foo: "fizz \"buzz\""`))
-			Expect(err).NotTo(HaveOccured())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(parsed).To(Equal(map[string]Node{"foo": `fizz "buzz"`}))
 		})
 
@@ -56,6 +56,6 @@ var _ = Describe("Parsing YAML", func() {
 
 func parsesAs(source string, expr interface{}) {
 	parsed, err := Parse([]byte(source))
-	Expect(err).NotTo(HaveOccured())
+	Expect(err).NotTo(HaveOccurred())
 	Expect(parsed).To(Equal(expr))
 }

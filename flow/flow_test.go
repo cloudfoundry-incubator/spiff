@@ -117,7 +117,7 @@ properties:
 `)
 
 			_, err := Flow(source)
-			Expect(err).To(HaveOccured())
+			Expect(err).To(HaveOccurred())
 		})
 	})
 
