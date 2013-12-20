@@ -16,6 +16,7 @@
   # if you do not have it, get it with something like
   $ brew install bzr
 
+
 = installation
 
   # set up $GOPATH if not already
@@ -30,6 +31,20 @@
 
   # run
   spiff
+
+
+= development
+
+  # install dependencies
+  go get github.com/xoebus/gocart/gocart
+  gocart install
+
+  # run tests
+  go test -v ./...
+
+  # or, with ginkgo:
+  go install github.com/onsi/ginkgo/ginkgo
+  ginkgo -r
 
 
 = spiff merge template.yml [template2.yml template3.yml ...] > manifest.yml
