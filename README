@@ -186,7 +186,21 @@ The following is a complete list of dynaml expressions:
     unresolved template. See '||'.
 
   (( a || b )):
-    Uses a, or b if a is nil.
+    Uses a, or b if a cannot be resolved.
+    
+    e.g.:
+    
+      foo:
+        bar:
+          - name: some
+          - name: complicated
+          - name: structure
+     
+      mything:
+        complicated_structure: (( merge || foo.bar ))
+    
+    This will try to merge in (( mything.complicated_structure )), or, if it
+    cannot be merged in, use the default specified in (( foo.bar )).
 
   (( static_ips(0, 1, 3) )):
     Create the static IPs for a job's network.
