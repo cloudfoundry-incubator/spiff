@@ -24,7 +24,7 @@ var _ = Describe("Running spiff", func() {
 		Context("when given a bad file path", func() {
 			BeforeEach(func() {
 				merge, err = cmdtest.Start(exec.Command(spiff, "merge", "foo.yml"))
-				Expect(err).NotTo(HaveOccured())
+				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("says file not found", func() {
@@ -46,7 +46,7 @@ foo: bar
 
 			BeforeEach(func() {
 				merge, err = cmdtest.Start(exec.Command(spiff, "merge", basicTemplate.Name()))
-				Expect(err).NotTo(HaveOccured())
+				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("resolves the template and prints it out", func() {
