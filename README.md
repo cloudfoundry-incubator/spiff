@@ -1,3 +1,4 @@
+```
                                        _  __  __
                              ___ _ __ (_)/ _|/ _|
                             / __| '_ \| | |_| |_
@@ -232,3 +233,7 @@ The following is a complete list of dynaml expressions:
     This will create 3 IPs from 'mynetwork's subnet, and return two entries,
     as there are only two instances. The two entries will be the 0th and 3rd
     offsets from the static IP ranges defined by the network.
+
+```
+Here are a few more examples of how spiff works:
+[examples.md](examples.md)
