@@ -1,12 +1,14 @@
-
-```                                       _  __  __
+<pre>
+                                       _  __  __
                              ___ _ __ (_)/ _|/ _|
                             / __| '_ \| | |_| |_
                             \__ \ |_) | |  _|  _|
                             |___/ .__/|_|_| |_|
                                 |_|
-```
-       A declarative templating system for BOSH deployment manifests.
+                                
+             A declarative templating system for BOSH deployment manifests.
+</pre>
+
 
 # pre-reqs
 
@@ -21,7 +23,8 @@
 
 ## installation
 
-```  # set up $GOPATH if not already
+```
+# set up $GOPATH if not already
   export GOPATH=~/go
   export PATH=~/go/bin:$PATH
 
@@ -94,13 +97,12 @@ parentheses. They can be used as the value of a map or an entry in a list.
 
 The following is a complete list of dynaml expressions:
 
-```
-  (( foo )):
-```
-    Look for the nearest 'foo' key (i.e. lexical scoping) in the current
-    template and bring it in.
+#### ```(( foo ))```
 
-    e.g.:
+Look for the nearest 'foo' key (i.e. lexical scoping) in the current
+template and bring it in.
+
+e.g.:
 
 ```
       fizz:
@@ -111,7 +113,7 @@ The following is a complete list of dynaml expressions:
       foo: 3
       bar: (( foo ))
 ```
-    This example will resolve to:
+This example will resolve to:
 
 ```
       fizz:
@@ -123,27 +125,25 @@ The following is a complete list of dynaml expressions:
       bar: 3
 ```
 
-  ```
-  (( foo.bar.[1].baz )):
-  ```
+#### ``` (( foo.bar.[1].baz )) ```
 
-    Look for the nearest 'foo' key, and from there follow through to .bar.baz.
+Look for the nearest ```foo``` key, and from there follow through to .bar.baz.
 
-    A path is a sequence of steps separated by dots. A step is either a word
-    for maps, or digits surrounded by brackets for list indexing.
+A path is a sequence of steps separated by dots. A step is either a word
+for maps, or digits surrounded by brackets for list indexing.
 
-    If the path cannot be resolved, this evaluates to nil. A reference node at
-    the top level cannot evaluate to nil; the template will be considered not
-    fully resolved. If a reference is expected to sometimes not be provided,
-    it should be used in combination with '||' (see below) to guarantee
-    resolution.
+If the path cannot be resolved, this evaluates to nil. A reference node at
+the top level cannot evaluate to nil; the template will be considered not
+fully resolved. If a reference is expected to sometimes not be provided,
+it should be used in combination with '||' (see below) to guarantee
+resolution.
 
-    Note that references are always within the template, and order does not
-    matter. You can refer to another dynamic node and presume it's resolved,
-    and the reference node will just eventually resolve once the dependent
-    node resolves.
+Note that references are always within the template, and order does not
+matter. You can refer to another dynamic node and presume it's resolved,
+and the reference node will just eventually resolve once the dependent
+node resolves.
 
-    e.g.:
+e.g.:
 
 ```
       properties:
@@ -151,8 +151,8 @@ The following is a complete list of dynaml expressions:
         something: (( merge ))
 ```
 
-    This will resolve as long as 'something' is resolveable, and as long as it
-    brings in something like this:
+This will resolve as long as ```something``` is resolveable, and as long as it
+brings in something like this:
 
 ```
       from:
@@ -160,33 +160,30 @@ The following is a complete list of dynaml expressions:
           stub: foo
 ```
 
-```
-  (( "foo" )):
-```
-    String literal. The only escape character handled currently is '"'.
+#### ```(( "foo" ))```
 
-```
-  (( "foo" bar ))
-```
-    Concatenation (where bar is another arbitrary expr).
+String literal. The only escape character handled currently is ``` " ```.
 
-    e.g.
+#### ```(( "foo" bar ))```
+    
+Concatenation (where bar is another arbitrary expr).
+
+e.g.
 ```
       domain: example.com
       uri: (( "https://" domain ))
 ```
-    In this example 'uri' will resolve to the value 'https://example.com'.
+In this example 'uri' will resolve to the value 'https://example.com'.
 
-```
-  (( auto )):
-```
-    Context-sensitive automatic value calculation.
+#### ```(( auto ))```
+    
+Context-sensitive automatic value calculation.
 
-    In a resource pool's 'size' attribute, this means calculate based on the
-    total instances of all jobs that declare themselves to be in the current
-    resource pool.
+In a resource pool's 'size' attribute, this means calculate based on the
+total instances of all jobs that declare themselves to be in the current
+resource pool.
 
-    e.g.:
+e.g.:
 
 ```
       resource_pools:
@@ -204,14 +201,13 @@ The following is a complete list of dynaml expressions:
         resource_pool: otherpool
         instances: 3
 ```
-    In this case the resource pool size will resolve to '5'.
+In this case the resource pool size will resolve to '5'.
 
-```
-  (( merge )):
-```
-    Bring the current path in from the stub files that are being merged in.
+#### ```(( merge ))```
 
-    e.g.:
+Bring the current path in from the stub files that are being merged in.
+
+e.g.:
 
 ```
       foo:
@@ -219,19 +215,18 @@ The following is a complete list of dynaml expressions:
           baz: (( merge ))
 ```
 
-    Will try to bring in (( foo.bar.baz )) from the first stub, or the second,
-    etc., returning the value from the first stub that provides it.
+Will try to bring in (( foo.bar.baz )) from the first stub, or the second,
+etc., returning the value from the first stub that provides it.
 
-    If the corresponding value is not defined, it will return nil. This then
-    has the same semantics as reference expressions; a nil merge is an
-    unresolved template. See '||'.
+If the corresponding value is not defined, it will return nil. This then
+has the same semantics as reference expressions; a nil merge is an
+unresolved template. See '||'.
 
-```
-  (( a || b )):
-```
-    Uses a, or b if a cannot be resolved.
+#### ```(( a || b ))```
+
+Uses a, or b if a cannot be resolved.
     
-    e.g.:
+e.g.:
     
 ```
       foo:
@@ -243,15 +238,14 @@ The following is a complete list of dynaml expressions:
       mything:
         complicated_structure: (( merge || foo.bar ))
 ```
-    This will try to merge in (( mything.complicated_structure )), or, if it
-    cannot be merged in, use the default specified in (( foo.bar )).
+This will try to merge in (( mything.complicated_structure )), or, if it
+cannot be merged in, use the default specified in (( foo.bar )).
 
-```
-  (( static_ips(0, 1, 3) )):
-```
-    Create the static IPs for a job's network.
+#### ``` (( static_ips(0, 1, 3) )) ```
 
-    e.g.:
+Create the static IPs for a job's network.
+
+e.g.:
 ```
       jobs:
       - name: myjob
@@ -261,6 +255,6 @@ The following is a complete list of dynaml expressions:
           static_ips: (( static_ips(0, 3, 4) ))
 ```
 
-    This will create 3 IPs from 'mynetwork's subnet, and return two entries,
-    as there are only two instances. The two entries will be the 0th and 3rd
-    offsets from the static IP ranges defined by the network.
+This will create 3 IPs from 'mynetwork's subnet, and return two entries,
+as there are only two instances. The two entries will be the 0th and 3rd
+offsets from the static IP ranges defined by the network.
