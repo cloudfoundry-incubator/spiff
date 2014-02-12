@@ -42,7 +42,7 @@
 
 ```
   # install dependencies
-  go get github.com/xoebus/gocart/gocart
+  go get github.com/xoebus/gocart
   gocart install
 
   # run tests
