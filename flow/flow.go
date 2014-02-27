@@ -15,7 +15,7 @@ func Flow(source yaml.Node, stubs ...yaml.Node) (yaml.Node, error) {
 	result := source
 
 	for {
-		next := flow(result, Environment{Stubs: stubs})
+		next := flow(result, Environment{Stubs: stubs}, true)
 
 		if reflect.DeepEqual(result, next) {
 			break
@@ -32,7 +32,7 @@ func Flow(source yaml.Node, stubs ...yaml.Node) (yaml.Node, error) {
 	return result, nil
 }
 
-func flow(root yaml.Node, env Environment) yaml.Node {
+func flow(root yaml.Node, env Environment, shouldOverride bool) yaml.Node {
 	switch root.(type) {
 	case map[string]yaml.Node:
 		return flowMap(root.(map[string]yaml.Node), env)
@@ -49,9 +49,11 @@ func flow(root yaml.Node, env Environment) yaml.Node {
 		return result
 	}
 
-	overridden, found := env.FindInStubs(env.Path)
-	if found {
-		return overridden
+	if shouldOverride {
+		overridden, found := env.FindInStubs(env.Path)
+		if found {
+			return overridden
+		}
 	}
 
 	str, ok := root.(string)
@@ -69,7 +71,7 @@ func flowMap(root map[string]yaml.Node, env Environment) yaml.Node {
 
 	for key, val := range root {
 		if key == "<<" {
-			base := flow(val, env)
+			base := flow(val, env, true)
 			baseMap, ok := base.(map[string]yaml.Node)
 			if ok {
 				for k, v := range baseMap {
@@ -80,7 +82,7 @@ func flowMap(root map[string]yaml.Node, env Environment) yaml.Node {
 			continue
 		}
 
-		newMap[key] = flow(val, env.WithPath(key))
+		newMap[key] = flow(val, env.WithPath(key), true)
 	}
 
 	return newMap
@@ -91,7 +93,7 @@ func flowList(root []yaml.Node, env Environment) yaml.Node {
 
 	for idx, val := range root {
 		step := stepName(idx, val)
-		newList = append(newList, flow(val, env.WithPath(step)))
+		newList = append(newList, flow(val, env.WithPath(step), false))
 	}
 
 	return newList

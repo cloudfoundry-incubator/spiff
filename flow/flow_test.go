@@ -59,6 +59,24 @@ fizz: buzz
 `)
 			Expect(source).To(FlowAs(result, stub))
 		})
+
+		Context("in a list", func() {
+			It("does not override the value", func() {
+				source := parseYAML(`
+---
+- 1
+- 2
+`)
+
+				stub := parseYAML(`
+---
+- 3
+- 4
+`)
+
+				Expect(source).To(FlowAs(source, stub))
+			})
+		})
 	})
 
 	Context("when some dynaml nodes cannot be resolved", func() {
