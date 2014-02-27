@@ -486,4 +486,37 @@ properties:
 			Expect(source).To(FlowAs(resolved, stub))
 		})
 	})
+
+	Describe("list splicing", func() {
+		It("merges one list into another", func() {
+			source := parseYAML(`
+---
+properties:
+  something:
+    - a
+    - <<: (( merge ))
+    - b
+`)
+
+			stub := parseYAML(`
+---
+properties:
+  something:
+    - c
+    - d
+`)
+
+			resolved := parseYAML(`
+---
+properties:
+  something:
+    - a
+    - c
+    - d
+    - b
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
+	})
 })

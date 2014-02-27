@@ -89,9 +89,29 @@ func flowMap(root map[string]yaml.Node, env Environment) yaml.Node {
 }
 
 func flowList(root []yaml.Node, env Environment) yaml.Node {
+	spliced := []yaml.Node{}
+
+	for _, val := range root {
+		subMap, ok := val.(map[string]yaml.Node)
+		if ok {
+			if len(subMap) == 1 {
+				inlineNode, ok := subMap["<<"]
+				if ok {
+					inline, ok := flow(inlineNode, env, true).([]yaml.Node)
+					if ok {
+						spliced = append(spliced, inline...)
+						continue
+					}
+				}
+			}
+		}
+
+		spliced = append(spliced, val)
+	}
+
 	newList := []yaml.Node{}
 
-	for idx, val := range root {
+	for idx, val := range spliced {
 		step := stepName(idx, val)
 		newList = append(newList, flow(val, env.WithPath(step), false))
 	}
