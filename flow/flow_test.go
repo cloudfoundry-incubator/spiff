@@ -544,5 +544,44 @@ properties:
 
 			Expect(source).To(FlowAs(resolved, stub))
 		})
+
+		Context("when names match", func() {
+			It("replaces existing entries with matching names", func() {
+				source := parseYAML(`
+---
+properties:
+  something:
+    - name: a
+      value: 1
+    - <<: (( merge ))
+    - name: b
+      value: 2
+`)
+
+				stub := parseYAML(`
+---
+properties:
+  something:
+    - name: a
+      value: 10
+    - name: c
+      value: 30
+`)
+
+				resolved := parseYAML(`
+---
+properties:
+  something:
+    - name: a
+      value: 10
+    - name: c
+      value: 30
+    - name: b
+      value: 2
+`)
+
+				Expect(source).To(FlowAs(resolved, stub))
+			})
+		})
 	})
 })

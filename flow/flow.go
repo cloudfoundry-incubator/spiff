@@ -89,29 +89,11 @@ func flowMap(root map[string]yaml.Node, env Environment) yaml.Node {
 }
 
 func flowList(root []yaml.Node, env Environment) yaml.Node {
-	spliced := []yaml.Node{}
-
-	for _, val := range root {
-		subMap, ok := val.(map[string]yaml.Node)
-		if ok {
-			if len(subMap) == 1 {
-				inlineNode, ok := subMap["<<"]
-				if ok {
-					inline, ok := flow(inlineNode, env, true).([]yaml.Node)
-					if ok {
-						spliced = append(spliced, inline...)
-						continue
-					}
-				}
-			}
-		}
-
-		spliced = append(spliced, val)
-	}
+	merged := processMerges(root, env)
 
 	newList := []yaml.Node{}
 
-	for idx, val := range spliced {
+	for idx, val := range merged {
 		step := stepName(idx, val)
 		newList = append(newList, flow(val, env.WithPath(step), false))
 	}
@@ -140,4 +122,48 @@ func stepName(index int, value yaml.Node) string {
 	}
 
 	return fmt.Sprintf("[%d]", index)
+}
+
+func processMerges(root []yaml.Node, env Environment) []yaml.Node {
+	spliced := []yaml.Node{}
+
+	for _, val := range root {
+		subMap, ok := val.(map[string]yaml.Node)
+		if ok {
+			if len(subMap) == 1 {
+				inlineNode, ok := subMap["<<"]
+				if ok {
+					inline, ok := flow(inlineNode, env, true).([]yaml.Node)
+
+					if ok {
+						inlineNew := newEntries(inline, root)
+						spliced = append(spliced, inlineNew...)
+						continue
+					}
+				}
+			}
+		}
+
+		spliced = append(spliced, val)
+	}
+
+	return spliced
+}
+
+func newEntries(a []yaml.Node, b []yaml.Node) []yaml.Node {
+	added := []yaml.Node{}
+
+	for _, val := range a {
+		name, ok := yaml.FindString(val, "name")
+		if ok {
+			_, found := yaml.Find(b, name)
+			if found {
+				continue
+			}
+		}
+
+		added = append(added, val)
+	}
+
+	return added
 }
