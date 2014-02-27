@@ -435,4 +435,37 @@ jobs:
 			Expect(source).To(FlowAs(resolved))
 		})
 	})
+
+	Describe("map splicing", func() {
+		It("merges one map over another", func() {
+			source := parseYAML(`
+---
+properties:
+  something:
+    foo:
+      <<: (( merge ))
+      key: a
+      val: b
+`)
+
+			stub := parseYAML(`
+---
+properties:
+  something:
+    foo:
+      val: c
+`)
+
+			resolved := parseYAML(`
+---
+properties:
+  something:
+    foo:
+      key: a
+      val: c
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
+	})
 })

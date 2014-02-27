@@ -68,6 +68,18 @@ func flowMap(root map[string]yaml.Node, env Environment) yaml.Node {
 	newMap := make(map[string]yaml.Node)
 
 	for key, val := range root {
+		if key == "<<" {
+			base := flow(val, env)
+			baseMap, ok := base.(map[string]yaml.Node)
+			if ok {
+				for k, v := range baseMap {
+					newMap[k] = v
+				}
+			}
+
+			continue
+		}
+
 		newMap[key] = flow(val, env.WithPath(key))
 	}
 
