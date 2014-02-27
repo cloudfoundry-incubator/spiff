@@ -1,6 +1,6 @@
 launchpad.net/goyaml	47
 github.com/pointlander/peg	e574c0830d386b3124f79d6b460848d7cadb56d4
 github.com/codegangsta/cli	16d10cc127e28110987a7b0bd692bbe53f549925
-github.com/onsi/ginkgo	9019392d862065b9f2c4461623bd0d1abfd5f435
-github.com/onsi/gomega	af00a096625b2a4621cbe96590d2478c906acbd1
-github.com/vito/cmdtest	4a7d54fd9ba82d865504964101bb2b3f04e52a0b
+github.com/onsi/ginkgo	884dab811fc3c75f6c9cc51254601b426049cd98
+github.com/onsi/gomega	930b4522e0d3027320b5d56f8a375796f2e376e5
+github.com/vito/cmdtest	fbd89b77403b5ed2f394946ec8debcc251b96815
