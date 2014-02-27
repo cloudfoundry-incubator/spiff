@@ -232,6 +232,32 @@ buzz:
 			Expect(source).To(FlowAs(resolved))
 		})
 
+		Context("when the reference starts with .", func() {
+			It("starts from the root of the template", func() {
+				source := parseYAML(`
+---
+foo:
+  bar:
+    baz: (( .bar.buzz ))
+    buzz: 42
+bar:
+  buzz: 43
+`)
+
+				resolved := parseYAML(`
+---
+foo:
+  bar:
+    baz: 43
+    buzz: 42
+bar:
+  buzz: 43
+`)
+
+				Expect(source).To(FlowAs(resolved))
+			})
+		})
+
 		Context("when the referred node is dynamic", func() {
 			It("evaluates with their environment", func() {
 				source := parseYAML(`
