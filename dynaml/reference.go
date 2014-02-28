@@ -1,6 +1,8 @@
 package dynaml
 
 import (
+	"strings"
+
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
@@ -32,4 +34,8 @@ func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 	}
 
 	return step, true
+}
+
+func (e ReferenceExpr) String() string {
+	return strings.Join(e.Path, ".")
 }

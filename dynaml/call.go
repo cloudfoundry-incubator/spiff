@@ -1,6 +1,7 @@
 package dynaml
 
 import (
+	"fmt"
 	"net"
 	"strings"
 
@@ -32,6 +33,15 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 	}
 
 	return nil, false
+}
+
+func (e CallExpr) String() string {
+	args := make([]string, len(e.Arguments))
+	for i, e := range e.Arguments {
+		args[i] = fmt.Sprintf("%s", e)
+	}
+
+	return fmt.Sprintf("%s(%s)", e.Name, strings.Join(args, ", "))
 }
 
 func generateStaticIPs(binding Binding, indices []int) (yaml.Node, bool) {

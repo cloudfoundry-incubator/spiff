@@ -9,3 +9,7 @@ type NilExpr struct{}
 func (e NilExpr) Evaluate(Binding) (yaml.Node, bool) {
 	return nil, true
 }
+
+func (e NilExpr) String() string {
+	return "nil"
+}

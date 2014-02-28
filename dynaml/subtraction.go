@@ -1,6 +1,8 @@
 package dynaml
 
 import (
+	"fmt"
+
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
@@ -31,4 +33,8 @@ func (e SubtractionExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 	}
 
 	return aint - bint, true
+}
+
+func (e SubtractionExpr) String() string {
+	return fmt.Sprintf("%s - %s", e.A, e.B)
 }

@@ -15,7 +15,7 @@ func (e UnresolvedNodes) Error() string {
 	message := "unresolved nodes:"
 
 	for _, expr := range e.Nodes {
-		message = fmt.Sprintf("%s\n\t%T%v", message, expr, expr)
+		message = fmt.Sprintf("%s\n\t(( %s ))", message, expr)
 	}
 
 	return message

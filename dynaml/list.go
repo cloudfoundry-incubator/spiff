@@ -1,6 +1,9 @@
 package dynaml
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
@@ -21,4 +24,13 @@ func (e ListExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 	}
 
 	return nodes, true
+}
+
+func (e ListExpr) String() string {
+	vals := make([]string, len(e.Contents))
+	for i, e := range e.Contents {
+		vals[i] = fmt.Sprintf("%s", e)
+	}
+
+	return fmt.Sprintf("[%s]", strings.Join(vals, ", "))
 }

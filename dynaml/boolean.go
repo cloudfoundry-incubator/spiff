@@ -1,6 +1,8 @@
 package dynaml
 
 import (
+	"fmt"
+
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
@@ -10,4 +12,8 @@ type BooleanExpr struct {
 
 func (e BooleanExpr) Evaluate(Binding) (yaml.Node, bool) {
 	return e.Value, true
+}
+
+func (e BooleanExpr) String() string {
+	return fmt.Sprintf("%v", e.Value)
 }

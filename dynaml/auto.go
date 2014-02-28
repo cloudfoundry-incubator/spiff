@@ -45,3 +45,7 @@ func (e AutoExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 
 	return nil, false
 }
+
+func (e AutoExpr) String() string {
+	return "auto"
+}

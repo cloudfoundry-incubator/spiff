@@ -1,6 +1,8 @@
 package dynaml
 
 import (
+	"fmt"
+
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
@@ -33,4 +35,8 @@ func (e ConcatenationExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 	}
 
 	return nil, false
+}
+
+func (e ConcatenationExpr) String() string {
+	return fmt.Sprintf("%s %s", e.A, e.B)
 }

@@ -11,3 +11,7 @@ type MergeExpr struct {
 func (e MergeExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 	return binding.FindInStubs(e.Path)
 }
+
+func (e MergeExpr) String() string {
+	return "merge"
+}

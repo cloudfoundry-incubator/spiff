@@ -1,6 +1,7 @@
 package dynaml
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/cloudfoundry-incubator/spiff/yaml"
@@ -22,4 +23,8 @@ func (e OrExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 	}
 
 	return e.B.Evaluate(binding)
+}
+
+func (e OrExpr) String() string {
+	return fmt.Sprintf("%s || %s", e.A, e.B)
 }
