@@ -23,7 +23,7 @@ func (e ListExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 		nodes = append(nodes, result)
 	}
 
-	return nodes, true
+	return node(nodes), true
 }
 
 func (e ListExpr) String() string {

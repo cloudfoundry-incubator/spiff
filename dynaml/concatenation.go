@@ -22,16 +22,16 @@ func (e ConcatenationExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 		return nil, false
 	}
 
-	astring, aok := a.(string)
-	bstring, bok := b.(string)
+	astring, aok := a.Value().(string)
+	bstring, bok := b.Value().(string)
 	if aok && bok {
-		return astring + bstring, true
+		return node(astring + bstring), true
 	}
 
-	alist, aok := a.([]yaml.Node)
-	blist, bok := b.([]yaml.Node)
+	alist, aok := a.Value().([]yaml.Node)
+	blist, bok := b.Value().([]yaml.Node)
 	if aok && bok {
-		return append(alist, blist...), true
+		return node(append(alist, blist...)), true
 	}
 
 	return nil, false

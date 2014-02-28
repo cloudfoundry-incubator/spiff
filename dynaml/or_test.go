@@ -72,7 +72,7 @@ var _ = Describe("or", func() {
 
 			binding := FakeBinding{
 				FoundReferences: map[string]yaml.Node{
-					"foo": MergeExpr{},
+					"foo": node(MergeExpr{}),
 				},
 			}
 

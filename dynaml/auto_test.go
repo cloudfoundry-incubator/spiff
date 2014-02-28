@@ -12,27 +12,19 @@ var _ = Describe("autos", func() {
 		expr := AutoExpr{[]string{"resource_pools", "some_pool", "size"}}
 
 		It("sums up the instances of the jobs in the pool", func() {
-			jobs := []yaml.Node{
-				map[string]yaml.Node{
-					"name":          "some_job",
-					"resource_pool": "some_pool",
-					"instances":     3,
-				},
-				map[string]yaml.Node{
-					"name":          "some_other_job",
-					"resource_pool": "some_pool",
-					"instances":     5,
-				},
-				map[string]yaml.Node{
-					"name":          "some_other_job",
-					"resource_pool": "some_other_pool",
-					"instances":     5,
-				},
-			}
-
 			binding := FakeBinding{
 				FoundFromRoot: map[string]yaml.Node{
-					"jobs": jobs,
+					"jobs": parseYAML(`
+- name: some_job
+  resource_pool: some_pool
+  instances: 3
+- name: some_other_job
+  resource_pool: some_pool
+  instances: 5
+- name: some_other_job
+  resource_pool: some_other_pool
+  instances: 5
+`),
 				},
 			}
 
@@ -41,27 +33,19 @@ var _ = Describe("autos", func() {
 
 		Context("when one of the jobs has non-numeric instances", func() {
 			It("returns nil", func() {
-				jobs := []yaml.Node{
-					map[string]yaml.Node{
-						"name":          "some_job",
-						"resource_pool": "some_pool",
-						"instances":     3,
-					},
-					map[string]yaml.Node{
-						"name":          "some_other_job",
-						"resource_pool": "some_pool",
-						"instances":     &IntegerExpr{4},
-					},
-					map[string]yaml.Node{
-						"name":          "some_other_job",
-						"resource_pool": "some_other_pool",
-						"instances":     5,
-					},
-				}
-
 				binding := FakeBinding{
 					FoundFromRoot: map[string]yaml.Node{
-						"jobs": jobs,
+						"jobs": parseYAML(`
+- name: some_job
+  resource_pool: some_pool
+  instances: 3
+- name: some_other_job
+  resource_pool: some_pool
+  instances: not-evaluated-yet
+- name: some_other_job
+  resource_pool: some_other_pool
+  instances: 5
+`),
 					},
 				}
 

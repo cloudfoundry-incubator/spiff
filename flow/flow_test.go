@@ -5,6 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/cloudfoundry-incubator/spiff/dynaml"
+	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
 var _ = Describe("Flowing YAML", func() {
@@ -88,10 +89,11 @@ foo: (( auto ))
 
 			_, err := Flow(source)
 			Expect(err).To(Equal(UnresolvedNodes{
-				Nodes: []dynaml.Expression{
-					dynaml.AutoExpr{
-						Path: []string{"foo"},
-					},
+				Nodes: []yaml.Node{
+					yaml.NewNode(
+						dynaml.AutoExpr{Path: []string{"foo"}},
+						"test",
+					),
 				},
 			}))
 		})

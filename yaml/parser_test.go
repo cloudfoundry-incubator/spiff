@@ -8,19 +8,19 @@ import (
 var _ = Describe("Parsing YAML", func() {
 	Describe("maps", func() {
 		It("parses maps as strings mapping to Nodes", func() {
-			parsed, err := Parse([]byte(`foo: "fizz \"buzz\""`))
+			parsed, err := Parse("test", []byte(`foo: "fizz \"buzz\""`))
 			Expect(err).NotTo(HaveOccurred())
-			Expect(parsed).To(Equal(map[string]Node{"foo": `fizz "buzz"`}))
+			Expect(parsed).To(Equal(node(map[string]Node{"foo": node(`fizz "buzz"`)})))
 		})
 
 		It("parses maps with block string values", func() {
-			parsesAs("foo: |\n  sup\n  :3", map[string]Node{"foo": "sup\n:3"})
-			parsesAs("foo: >\n  sup\n  :3", map[string]Node{"foo": "sup :3"})
+			parsesAs("foo: |\n  sup\n  :3", map[string]Node{"foo": node("sup\n:3")})
+			parsesAs("foo: >\n  sup\n  :3", map[string]Node{"foo": node("sup :3")})
 		})
 
 		Context("when the keys are not strings", func() {
 			It("fails", func() {
-				_, err := Parse([]byte("1: foo"))
+				_, err := Parse("test", []byte("1: foo"))
 				Expect(err).To(Equal(NonStringKeyError{Key: 1}))
 			})
 		})
@@ -28,7 +28,7 @@ var _ = Describe("Parsing YAML", func() {
 
 	Describe("lists", func() {
 		It("parses with Node contents", func() {
-			parsesAs("- 1\n- two", []Node{1, "two"})
+			parsesAs("- 1\n- two", []Node{node(1), node("two")})
 		})
 	})
 
@@ -55,7 +55,7 @@ var _ = Describe("Parsing YAML", func() {
 })
 
 func parsesAs(source string, expr interface{}) {
-	parsed, err := Parse([]byte(source))
+	parsed, err := Parse("test", []byte(source))
 	Expect(err).NotTo(HaveOccurred())
-	Expect(parsed).To(Equal(expr))
+	Expect(parsed).To(Equal(node(expr)))
 }

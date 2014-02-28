@@ -27,8 +27,8 @@ var _ = Describe("calls", func() {
 
 			binding := FakeBinding{
 				FoundReferences: map[string]yaml.Node{
-					"name":      "cf1",
-					"instances": 2,
+					"name":      node("cf1"),
+					"instances": node(2),
 				},
 				FoundFromRoot: map[string]yaml.Node{
 					"networks.cf1.subnets": subnets,
@@ -37,7 +37,7 @@ var _ = Describe("calls", func() {
 
 			Expect(expr).To(
 				EvaluateAs(
-					[]yaml.Node{"10.10.16.10", "10.10.16.14"},
+					[]yaml.Node{node("10.10.16.10"), node("10.10.16.14")},
 					binding,
 				),
 			)
@@ -51,8 +51,8 @@ var _ = Describe("calls", func() {
 
 			binding := FakeBinding{
 				FoundReferences: map[string]yaml.Node{
-					"name":      "cf1",
-					"instances": 1,
+					"name":      node("cf1"),
+					"instances": node(1),
 				},
 				FoundFromRoot: map[string]yaml.Node{
 					"networks.cf1.subnets": subnets,
@@ -61,7 +61,7 @@ var _ = Describe("calls", func() {
 
 			Expect(expr).To(
 				EvaluateAs(
-					[]yaml.Node{"10.10.16.10"},
+					[]yaml.Node{node("10.10.16.10")},
 					binding,
 				),
 			)
@@ -76,8 +76,8 @@ var _ = Describe("calls", func() {
 
 				binding := FakeBinding{
 					FoundReferences: map[string]yaml.Node{
-						"name":      "cf1",
-						"instances": MergeExpr{},
+						"name":      node("cf1"),
+						"instances": node(MergeExpr{}),
 					},
 					FoundFromRoot: map[string]yaml.Node{
 						"networks.cf1.subnets": subnets,
@@ -97,8 +97,8 @@ var _ = Describe("calls", func() {
 
 				binding := FakeBinding{
 					FoundReferences: map[string]yaml.Node{
-						"name":      "cf1",
-						"instances": 42,
+						"name":      node("cf1"),
+						"instances": node(42),
 					},
 					FoundFromRoot: map[string]yaml.Node{
 						"networks.cf1.subnets": subnets,
@@ -129,8 +129,8 @@ var _ = Describe("calls", func() {
 
 				binding := FakeBinding{
 					FoundReferences: map[string]yaml.Node{
-						"name":      "cf1",
-						"instances": 3,
+						"name":      node("cf1"),
+						"instances": node(3),
 					},
 					FoundFromRoot: map[string]yaml.Node{
 						"networks.cf1.subnets": subnets,
@@ -139,7 +139,7 @@ var _ = Describe("calls", func() {
 
 				Expect(expr).To(
 					EvaluateAs(
-						[]yaml.Node{"10.10.16.10", "10.10.16.14", "10.10.16.33"},
+						[]yaml.Node{node("10.10.16.10"), node("10.10.16.14"), node("10.10.16.33")},
 						binding,
 					),
 				)

@@ -15,7 +15,7 @@ type OrExpr struct {
 func (e OrExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 	a, ok := e.A.Evaluate(binding)
 	if ok {
-		if reflect.DeepEqual(a, e.A) {
+		if reflect.DeepEqual(a.Value(), e.A) {
 			return nil, false
 		}
 

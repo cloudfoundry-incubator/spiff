@@ -21,9 +21,9 @@ func Compare(a, b yaml.Node) []Diff {
 func compare(a, b yaml.Node, path []string) []Diff {
 	mismatch := Diff{A: a, B: b, Path: path}
 
-	switch av := a.(type) {
+	switch av := a.Value().(type) {
 	case map[string]yaml.Node:
-		switch bv := b.(type) {
+		switch bv := b.Value().(type) {
 		case map[string]yaml.Node:
 			return compareMap(av, bv, path)
 
@@ -41,7 +41,7 @@ func compare(a, b yaml.Node, path []string) []Diff {
 		}
 
 	case []yaml.Node:
-		switch bv := b.(type) {
+		switch bv := b.Value().(type) {
 		case []yaml.Node:
 			return compareList(av, bv, path)
 		default:
@@ -73,7 +73,7 @@ func listToMap(list []yaml.Node) map[string]yaml.Node {
 			return nil
 		}
 
-		asMap, ok := val.(map[string]yaml.Node)
+		asMap, ok := val.Value().(map[string]yaml.Node)
 		if !ok {
 			return nil
 		}
@@ -85,7 +85,7 @@ func listToMap(list []yaml.Node) map[string]yaml.Node {
 			}
 		}
 
-		toMap[name] = newMap
+		toMap[name] = yaml.NewNode(newMap, val.SourceName())
 	}
 
 	return toMap
@@ -152,15 +152,15 @@ func jobMap(jobs []yaml.Node) map[string]yaml.Node {
 	byName := make(map[string]yaml.Node)
 
 	for index, job := range jobs {
-		attrs, ok := job.(map[string]yaml.Node)
-		attrs["index"] = index
+		attrs, ok := job.Value().(map[string]yaml.Node)
+		attrs["index"] = yaml.NewNode(index, job.SourceName())
 
 		name, ok := yaml.FindString(job, "name")
 		if !ok {
 			panic("job without string name")
 		}
 
-		byName[name] = attrs
+		byName[name] = yaml.NewNode(attrs, job.SourceName())
 	}
 
 	return byName

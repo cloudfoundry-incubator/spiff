@@ -15,7 +15,7 @@ func Test(t *testing.T) {
 }
 
 func parseYAML(source string) yaml.Node {
-	parsed, err := yaml.Parse([]byte(source))
+	parsed, err := yaml.Parse("compare test", []byte(source))
 	if err != nil {
 		panic(err)
 	}

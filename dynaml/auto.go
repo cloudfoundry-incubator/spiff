@@ -15,7 +15,7 @@ func (e AutoExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 			return nil, false
 		}
 
-		jobsList, ok := jobs.([]yaml.Node)
+		jobsList, ok := jobs.Value().([]yaml.Node)
 		if !ok {
 			return nil, false
 		}
@@ -40,7 +40,7 @@ func (e AutoExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 			size += instances
 		}
 
-		return size, true
+		return node(size), true
 	}
 
 	return nil, false

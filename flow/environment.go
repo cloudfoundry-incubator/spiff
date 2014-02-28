@@ -14,7 +14,11 @@ type Environment struct {
 }
 
 func (e Environment) FindFromRoot(path []string) (yaml.Node, bool) {
-	return yaml.Find(e.Scope[0], path...)
+	if len(e.Scope) == 0 {
+		return nil, false
+	}
+
+	return yaml.Find(yaml.NewNode(e.Scope[0], "scope"), path...)
 }
 
 func (e Environment) FindReference(path []string) (yaml.Node, bool) {

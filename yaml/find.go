@@ -32,7 +32,7 @@ func FindString(root Node, path ...string) (string, bool) {
 		return "", false
 	}
 
-	val, ok := node.(string)
+	val, ok := node.Value().(string)
 	return val, ok
 }
 
@@ -42,18 +42,18 @@ func FindInt(root Node, path ...string) (int, bool) {
 		return 0, false
 	}
 
-	val, ok := node.(int)
+	val, ok := node.Value().(int)
 	return val, ok
 }
 
 func nextStep(step string, here Node) (Node, bool) {
 	found := false
 
-	switch here.(type) {
+	switch v := here.Value().(type) {
 	case map[string]Node:
-		here, found = here.(map[string]Node)[step]
+		here, found = v[step]
 	case []Node:
-		here, found = stepThroughList(here.([]Node), step)
+		here, found = stepThroughList(v, step)
 	default:
 	}
 
@@ -76,7 +76,7 @@ func stepThroughList(here []Node, step string) (Node, bool) {
 	}
 
 	for _, sub := range here {
-		subMap, ok := sub.(map[string]Node)
+		_, ok := sub.Value().(map[string]Node)
 		if !ok {
 			continue
 		}
@@ -87,9 +87,9 @@ func stepThroughList(here []Node, step string) (Node, bool) {
 		}
 
 		if name == step {
-			return subMap, true
+			return sub, true
 		}
 	}
 
-	return here, false
+	return nil, false
 }

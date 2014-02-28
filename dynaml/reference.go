@@ -18,7 +18,7 @@ func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 
 	for i := 0; i < len(e.Path); i++ {
 		if fromRoot {
-			step, ok = binding.FindFromRoot(e.Path[1:i+1])
+			step, ok = binding.FindFromRoot(e.Path[1 : i+1])
 		} else {
 			step, ok = binding.FindReference(e.Path[:i+1])
 		}
@@ -27,9 +27,9 @@ func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 			return nil, false
 		}
 
-		switch step.(type) {
+		switch step.Value().(type) {
 		case Expression:
-			return e, true
+			return node(e), true
 		}
 	}
 

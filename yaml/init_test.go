@@ -13,10 +13,14 @@ func Test(t *testing.T) {
 }
 
 func parseYAML(source string) Node {
-	parsed, err := Parse([]byte(source))
+	parsed, err := Parse("test", []byte(source))
 	if err != nil {
 		panic(err)
 	}
 
 	return parsed
+}
+
+func node(val interface{}) Node {
+	return NewNode(val, "test")
 }

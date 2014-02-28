@@ -7,8 +7,6 @@ import (
 	"launchpad.net/goyaml"
 )
 
-type Node interface{}
-
 type NonStringKeyError struct {
 	Key interface{}
 }
@@ -17,7 +15,7 @@ func (e NonStringKeyError) Error() string {
 	return fmt.Sprintf("map key must be a string: %#v", e.Key)
 }
 
-func Parse(source []byte) (Node, error) {
+func Parse(sourceName string, source []byte) (Node, error) {
 	var parsed interface{}
 
 	err := goyaml.Unmarshal(source, &parsed)
@@ -25,21 +23,21 @@ func Parse(source []byte) (Node, error) {
 		return nil, err
 	}
 
-	return sanitize(parsed)
+	return sanitize(sourceName, parsed)
 }
 
-func sanitize(root interface{}) (Node, error) {
-	switch root.(type) {
+func sanitize(sourceName string, root interface{}) (Node, error) {
+	switch rootVal := root.(type) {
 	case map[interface{}]interface{}:
 		sanitized := map[string]Node{}
 
-		for key, val := range root.(map[interface{}]interface{}) {
+		for key, val := range rootVal {
 			str, ok := key.(string)
 			if !ok {
 				return nil, NonStringKeyError{key}
 			}
 
-			sub, err := sanitize(val)
+			sub, err := sanitize(sourceName, val)
 			if err != nil {
 				return nil, err
 			}
@@ -47,13 +45,13 @@ func sanitize(root interface{}) (Node, error) {
 			sanitized[str] = sub
 		}
 
-		return Node(sanitized), nil
+		return AnnotatedNode{sanitized, sourceName}, nil
 
 	case []interface{}:
 		sanitized := []Node{}
 
-		for _, val := range root.([]interface{}) {
-			sub, err := sanitize(val)
+		for _, val := range rootVal {
+			sub, err := sanitize(sourceName, val)
 			if err != nil {
 				return nil, err
 			}
@@ -61,25 +59,10 @@ func sanitize(root interface{}) (Node, error) {
 			sanitized = append(sanitized, sub)
 		}
 
-		return Node(sanitized), nil
+		return AnnotatedNode{sanitized, sourceName}, nil
 
-	case string:
-		return Node(root.(string)), nil
-
-	case []byte:
-		return Node(string(root.([]byte))), nil
-
-	case int:
-		return Node(root.(int)), nil
-
-	case float64:
-		return Node(root.(float64)), nil
-
-	case bool:
-		return Node(root.(bool)), nil
-
-	case nil:
-		return Node(nil), nil
+	case string, []byte, int, float64, bool, nil:
+		return AnnotatedNode{rootVal, sourceName}, nil
 	}
 
 	return nil, errors.New(fmt.Sprintf("unknown type during sanitization: %#v\n", root))

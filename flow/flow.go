@@ -33,15 +33,19 @@ func Flow(source yaml.Node, stubs ...yaml.Node) (yaml.Node, error) {
 }
 
 func flow(root yaml.Node, env Environment, shouldOverride bool) yaml.Node {
-	switch root.(type) {
+	if root == nil {
+		return root
+	}
+
+	switch val := root.Value().(type) {
 	case map[string]yaml.Node:
-		return flowMap(root.(map[string]yaml.Node), env)
+		return flowMap(root, env)
 
 	case []yaml.Node:
-		return flowList(root.([]yaml.Node), env)
+		return flowList(root, env)
 
 	case dynaml.Expression:
-		result, ok := root.(dynaml.Expression).Evaluate(env)
+		result, ok := val.Evaluate(env)
 		if !ok {
 			return root
 		}
@@ -56,23 +60,25 @@ func flow(root yaml.Node, env Environment, shouldOverride bool) yaml.Node {
 		}
 	}
 
-	str, ok := root.(string)
+	_, ok := root.Value().(string)
 	if ok {
-		return flowString(str, env)
+		return flowString(root, env)
 	}
 
 	return root
 }
 
-func flowMap(root map[string]yaml.Node, env Environment) yaml.Node {
-	env = env.WithScope(root)
+func flowMap(root yaml.Node, env Environment) yaml.Node {
+	rootMap := root.Value().(map[string]yaml.Node)
+
+	env = env.WithScope(rootMap)
 
 	newMap := make(map[string]yaml.Node)
 
-	for key, val := range root {
+	for key, val := range rootMap {
 		if key == "<<" {
 			base := flow(val, env, true)
-			baseMap, ok := base.(map[string]yaml.Node)
+			baseMap, ok := base.Value().(map[string]yaml.Node)
 			if ok {
 				for k, v := range baseMap {
 					newMap[k] = v
@@ -85,11 +91,13 @@ func flowMap(root map[string]yaml.Node, env Environment) yaml.Node {
 		newMap[key] = flow(val, env.WithPath(key), true)
 	}
 
-	return newMap
+	return yaml.NewNode(newMap, root.SourceName())
 }
 
-func flowList(root []yaml.Node, env Environment) yaml.Node {
-	merged := processMerges(root, env)
+func flowList(root yaml.Node, env Environment) yaml.Node {
+	rootList := root.Value().([]yaml.Node)
+
+	merged := processMerges(rootList, env)
 
 	newList := []yaml.Node{}
 
@@ -98,11 +106,13 @@ func flowList(root []yaml.Node, env Environment) yaml.Node {
 		newList = append(newList, flow(val, env.WithPath(step), false))
 	}
 
-	return newList
+	return yaml.NewNode(newList, root.SourceName())
 }
 
-func flowString(root string, env Environment) yaml.Node {
-	sub := embeddedDynaml.FindStringSubmatch(root)
+func flowString(root yaml.Node, env Environment) yaml.Node {
+	rootString := root.Value().(string)
+
+	sub := embeddedDynaml.FindStringSubmatch(rootString)
 	if sub == nil {
 		return root
 	}
@@ -112,7 +122,7 @@ func flowString(root string, env Environment) yaml.Node {
 		return root
 	}
 
-	return expr
+	return yaml.NewNode(expr, root.SourceName())
 }
 
 func stepName(index int, value yaml.Node) string {
@@ -128,12 +138,16 @@ func processMerges(root []yaml.Node, env Environment) []yaml.Node {
 	spliced := []yaml.Node{}
 
 	for _, val := range root {
-		subMap, ok := val.(map[string]yaml.Node)
+		if val == nil {
+			continue
+		}
+
+		subMap, ok := val.Value().(map[string]yaml.Node)
 		if ok {
 			if len(subMap) == 1 {
 				inlineNode, ok := subMap["<<"]
 				if ok {
-					inline, ok := flow(inlineNode, env, true).([]yaml.Node)
+					inline, ok := flow(inlineNode, env, true).Value().([]yaml.Node)
 
 					if ok {
 						inlineNew := newEntries(inline, root)
@@ -156,7 +170,7 @@ func newEntries(a []yaml.Node, b []yaml.Node) []yaml.Node {
 	for _, val := range a {
 		name, ok := yaml.FindString(val, "name")
 		if ok {
-			_, found := yaml.Find(b, name)
+			_, found := yaml.Find(yaml.NewNode(b, "some map"), name) // TODO
 			if found {
 				continue
 			}

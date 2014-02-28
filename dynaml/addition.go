@@ -22,17 +22,17 @@ func (e AdditionExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 		return nil, false
 	}
 
-	aint, ok := a.(int)
+	aint, ok := a.Value().(int)
 	if !ok {
 		return nil, false
 	}
 
-	bint, ok := b.(int)
+	bint, ok := b.Value().(int)
 	if !ok {
 		return nil, false
 	}
 
-	return aint + bint, true
+	return node(aint + bint), true
 }
 
 func (e AdditionExpr) String() string {

@@ -3,8 +3,6 @@ package compare
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
 var _ = Describe("Diffing YAML", func() {
@@ -21,7 +19,13 @@ foo: 2
 `)
 
 			It("reports one difference with the key as the path", func() {
-				Expect(Compare(a, b)).To(Equal([]Diff{Diff{A: 1, B: 2, Path: []string{"foo"}}}))
+				Expect(Compare(a, b)).To(Equal([]Diff{
+					{
+						A:    parseYAML("1"),
+						B:    parseYAML("2"),
+						Path: []string{"foo"},
+					},
+				}))
 			})
 		})
 
@@ -40,7 +44,11 @@ foo:
 
 			It("reports one difference for the nested difference, not the wholistic one", func() {
 				Expect(Compare(a, b)).To(Equal([]Diff{
-					Diff{A: 1, B: 2, Path: []string{"foo", "bar"}},
+					{
+						A:    parseYAML("1"),
+						B:    parseYAML("2"),
+						Path: []string{"foo", "bar"},
+					},
 				}))
 			})
 		})
@@ -59,7 +67,11 @@ foo: 2
 
 			It("reports one difference with the different nodes", func() {
 				Expect(Compare(a, b)).To(Equal([]Diff{
-					Diff{A: parseYAML("bar: 1"), B: 2, Path: []string{"foo"}},
+					{
+						A:    parseYAML("bar: 1"),
+						B:    parseYAML("2"),
+						Path: []string{"foo"},
+					},
 				}))
 			})
 		})
@@ -76,8 +88,8 @@ foo: 1
 
 			It("reports one difference", func() {
 				Expect(Compare(a, b)).To(Equal([]Diff{
-					Diff{
-						A:    1,
+					{
+						A:    parseYAML("1"),
 						B:    nil,
 						Path: []string{"foo"},
 					},
@@ -99,7 +111,7 @@ foo: 1
 				Expect(Compare(a, b)).To(Equal([]Diff{
 					Diff{
 						A:    nil,
-						B:    1,
+						B:    parseYAML("1"),
 						Path: []string{"foo"},
 					},
 				}))
@@ -121,7 +133,7 @@ bar: 2
 
 				Expect(diff).To(ContainElement(
 					Diff{
-						A:    1,
+						A:    parseYAML("1"),
 						B:    nil,
 						Path: []string{"foo"},
 					},
@@ -130,7 +142,7 @@ bar: 2
 				Expect(diff).To(ContainElement(
 					Diff{
 						A:    nil,
-						B:    2,
+						B:    parseYAML("2"),
 						Path: []string{"bar"},
 					},
 				))
@@ -165,7 +177,11 @@ foo:
 
 				It("reports no differences", func() {
 					Expect(Compare(a, b)).To(Equal([]Diff{
-						Diff{1, 2, []string{"foo", "fizz"}},
+						{
+							A:    parseYAML("1"),
+							B:    parseYAML("2"),
+							Path: []string{"foo", "fizz"},
+						},
 					}))
 				})
 			})
@@ -186,7 +202,11 @@ foo:
 
 			It("reports one difference with the index in the path", func() {
 				Expect(Compare(a, b)).To(Equal([]Diff{
-					Diff{A: 1, B: 2, Path: []string{"[0]"}},
+					{
+						A:    parseYAML("1"),
+						B:    parseYAML("2"),
+						Path: []string{"[0]"},
+					},
 				}))
 			})
 		})
@@ -205,7 +225,11 @@ foo:
 
 			It("reports one difference with the index in the path", func() {
 				Expect(Compare(a, b)).To(Equal([]Diff{
-					Diff{A: []yaml.Node{"hello", "world"}, B: 42, Path: []string{"[0]"}},
+					{
+						A:    parseYAML("[hello, world]"),
+						B:    parseYAML("42"),
+						Path: []string{"[0]"},
+					},
 				}))
 			})
 		})
@@ -236,16 +260,16 @@ jobs:
 
 				Expect(diff).To(ContainElement(
 					Diff{
-						A:    0,
-						B:    1,
+						A:    parseYAML("0"),
+						B:    parseYAML("1"),
 						Path: []string{"jobs", "a", "index"},
 					},
 				))
 
 				Expect(diff).To(ContainElement(
 					Diff{
-						A:    1,
-						B:    0,
+						A:    parseYAML("1"),
+						B:    parseYAML("0"),
 						Path: []string{"jobs", "b", "index"},
 					},
 				))
@@ -327,17 +351,17 @@ foo:
 			It("reports each difference", func() {
 				Expect(Compare(a, b)).To(Equal([]Diff{
 					Diff{
-						A:    2,
+						A:    parseYAML("2"),
 						B:    nil,
 						Path: []string{"foo", "[0]", "baz", "[1]"},
 					},
 					Diff{
-						A:    3,
+						A:    parseYAML("3"),
 						B:    nil,
 						Path: []string{"foo", "[0]", "baz", "[2]"},
 					},
 					Diff{
-						A:    4,
+						A:    parseYAML("4"),
 						B:    nil,
 						Path: []string{"foo", "[0]", "baz", "[3]"},
 					},
@@ -361,7 +385,7 @@ foo:
 				Expect(Compare(a, b)).To(Equal([]Diff{
 					Diff{
 						A:    nil,
-						B:    2,
+						B:    parseYAML("2"),
 						Path: []string{"[1]"},
 					},
 				}))

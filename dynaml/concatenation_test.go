@@ -40,7 +40,7 @@ var _ = Describe("concatenation", func() {
 					ListExpr{[]Expression{StringExpr{"two"}}},
 				}
 
-				Expect(expr).To(EvaluateAs([]yaml.Node{"one", "two"}, FakeBinding{}))
+				Expect(expr).To(EvaluateAs([]yaml.Node{node("one"), node("two")}, FakeBinding{}))
 			})
 		})
 

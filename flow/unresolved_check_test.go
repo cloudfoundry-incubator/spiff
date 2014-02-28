@@ -5,24 +5,31 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/cloudfoundry-incubator/spiff/dynaml"
+	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
 var _ = Describe("Reporting unresolved nodes", func() {
 	It("formats a message listing the nodes", func() {
 		err := UnresolvedNodes{
-			Nodes: []dynaml.Expression{
-				dynaml.AutoExpr{
-					Path: []string{"foo", "bar"},
-				},
-				dynaml.MergeExpr{
-					Path: []string{"fizz"},
-				},
+			Nodes: []yaml.Node{
+				yaml.NewNode(
+					dynaml.AutoExpr{
+						Path: []string{"foo", "bar"},
+					},
+					"some-file.yml",
+				),
+				yaml.NewNode(
+					dynaml.MergeExpr{
+						Path: []string{"fizz"},
+					},
+					"some-other-file.yml",
+				),
 			},
 		}
 
 		Expect(err.Error()).To(Equal(
 			`unresolved nodes:
-	dynaml.AutoExpr{[foo bar]}
-	dynaml.MergeExpr{[fizz]}`))
+	(( auto )) in some-file.yml
+	(( merge )) in some-other-file.yml`))
 	})
 })

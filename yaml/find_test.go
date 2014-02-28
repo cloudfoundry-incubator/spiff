@@ -16,7 +16,7 @@ foo:
 	It("returns the node found by the path from the root", func() {
 		val, found := Find(tree, "foo", "bar", "baz")
 		Expect(found).To(BeTrue())
-		Expect(val).To(Equal("found"))
+		Expect(val).To(Equal(node("found")))
 	})
 
 	Describe("indexing a list", func() {
@@ -31,7 +31,7 @@ foo:
 		It("accepts [x] for following through lists", func() {
 			val, found := Find(tree, "foo", "bar", "[1]", "fizz")
 			Expect(found).To(BeTrue())
-			Expect(val).To(Equal("right"))
+			Expect(val).To(Equal(node("right")))
 		})
 	})
 

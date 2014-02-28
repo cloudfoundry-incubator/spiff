@@ -2,7 +2,6 @@ package flow
 
 import (
 	"fmt"
-	"reflect"
 	"strings"
 
 	"launchpad.net/goyaml"
@@ -24,12 +23,12 @@ func (matcher *FlowAsMatcher) Match(source interface{}) (success bool, message s
 		return false, "", fmt.Errorf("Refusing to compare <nil> to <nil>.")
 	}
 
-	actual, err := Flow(source, matcher.Stubs...)
+	actual, err := Flow(source.(yaml.Node), matcher.Stubs...)
 	if err != nil {
 		return false, "", err
 	}
 
-	if reflect.DeepEqual(actual, matcher.Expected) {
+	if actual.EquivalentToNode(matcher.Expected) {
 		return true, formatMessage(actual, "not to flow as", matcher.Expected), nil
 	} else {
 		return false, formatMessage(actual, "to flow as", matcher.Expected), nil

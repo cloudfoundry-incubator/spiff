@@ -21,7 +21,7 @@ func (matcher *CascadeAsMatcher) Match(source interface{}) (success bool, messag
 		return false, "", fmt.Errorf("Refusing to compare <nil> to <nil>.")
 	}
 
-	actual, err := Cascade(source, matcher.Stubs...)
+	actual, err := Cascade(source.(yaml.Node), matcher.Stubs...)
 	if err != nil {
 		return false, "", err
 	}

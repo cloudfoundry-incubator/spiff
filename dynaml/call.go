@@ -23,7 +23,7 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 				return nil, false
 			}
 
-			indices[i], ok = index.(int)
+			indices[i], ok = index.Value().(int)
 			if !ok {
 				return nil, false
 			}
@@ -70,14 +70,14 @@ func generateStaticIPs(binding Binding, indices []int) (yaml.Node, bool) {
 			return nil, false
 		}
 
-		ips = append(ips, ipPool[i].String())
+		ips = append(ips, node(ipPool[i].String()))
 	}
 
 	if len(ips) < instanceCount {
 		return nil, false
 	}
 
-	return ips[:instanceCount], true
+	return node(ips[:instanceCount]), true
 }
 
 func findInstanceCount(binding Binding) (int, bool) {
@@ -86,7 +86,7 @@ func findInstanceCount(binding Binding) (int, bool) {
 		return 0, false
 	}
 
-	instances, ok := nearestInstances.(int)
+	instances, ok := nearestInstances.Value().(int)
 	return instances, ok
 }
 
@@ -96,7 +96,7 @@ func findStaticIPRanges(binding Binding) ([]string, bool) {
 		return nil, false
 	}
 
-	networkName, ok := nearestNetworkName.(string)
+	networkName, ok := nearestNetworkName.Value().(string)
 	if !ok {
 		return nil, false
 	}
@@ -109,7 +109,7 @@ func findStaticIPRanges(binding Binding) ([]string, bool) {
 		return nil, false
 	}
 
-	subnetsList, ok := subnets.([]yaml.Node)
+	subnetsList, ok := subnets.Value().([]yaml.Node)
 	if !ok {
 		return nil, false
 	}
@@ -117,7 +117,7 @@ func findStaticIPRanges(binding Binding) ([]string, bool) {
 	allRanges := []string{}
 
 	for _, subnet := range subnetsList {
-		subnetMap, ok := subnet.(map[string]yaml.Node)
+		subnetMap, ok := subnet.Value().(map[string]yaml.Node)
 		if !ok {
 			return nil, false
 		}
@@ -128,7 +128,7 @@ func findStaticIPRanges(binding Binding) ([]string, bool) {
 			return nil, false
 		}
 
-		staticList, ok := static.([]yaml.Node)
+		staticList, ok := static.Value().([]yaml.Node)
 		if !ok {
 			return nil, false
 		}
@@ -136,7 +136,7 @@ func findStaticIPRanges(binding Binding) ([]string, bool) {
 		ranges := make([]string, len(staticList))
 
 		for i, r := range staticList {
-			ipsString, ok := r.(string)
+			ipsString, ok := r.Value().(string)
 			if !ok {
 				return nil, false
 			}

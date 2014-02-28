@@ -11,7 +11,7 @@ type StringExpr struct {
 }
 
 func (e StringExpr) Evaluate(Binding) (yaml.Node, bool) {
-	return e.Value, true
+	return node(e.Value), true
 }
 
 func (e StringExpr) String() string {

@@ -60,7 +60,7 @@ func merge(templateFilePath string, stubFilePaths []string) {
 		log.Fatalln("error reading template:", err)
 	}
 
-	templateYAML, err := yaml.Parse(templateFile)
+	templateYAML, err := yaml.Parse(templateFilePath, templateFile)
 	if err != nil {
 		log.Fatalln("error parsing template:", err)
 	}
@@ -73,7 +73,7 @@ func merge(templateFilePath string, stubFilePaths []string) {
 			log.Fatalln("error reading stub:", err)
 		}
 
-		stubYAML, err := yaml.Parse(stubFile)
+		stubYAML, err := yaml.Parse(stubFilePath, stubFile)
 		if err != nil {
 			log.Fatalln("error parsing stub:", err)
 		}
@@ -100,7 +100,7 @@ func diff(aFilePath, bFilePath string) {
 		log.Fatalln("error reading a:", err)
 	}
 
-	aYAML, err := yaml.Parse(aFile)
+	aYAML, err := yaml.Parse(aFilePath, aFile)
 	if err != nil {
 		log.Fatalln("error parsing a:", err)
 	}
@@ -110,7 +110,7 @@ func diff(aFilePath, bFilePath string) {
 		log.Fatalln("error reading b:", err)
 	}
 
-	bYAML, err := yaml.Parse(bFile)
+	bYAML, err := yaml.Parse(bFilePath, bFile)
 	if err != nil {
 		log.Fatalln("error parsing b:", err)
 	}
