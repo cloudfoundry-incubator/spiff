@@ -21,17 +21,17 @@ func Compare(a, b yaml.Node) []Diff {
 func compare(a, b yaml.Node, path []string) []Diff {
 	mismatch := Diff{A: a, B: b, Path: path}
 
-	switch a.(type) {
+	switch av := a.(type) {
 	case map[string]yaml.Node:
-		switch b.(type) {
+		switch bv := b.(type) {
 		case map[string]yaml.Node:
-			return compareMap(a.(map[string]yaml.Node), b.(map[string]yaml.Node), path)
+			return compareMap(av, bv, path)
 
 		case []yaml.Node:
-			toMap := listToMap(b.([]yaml.Node))
+			toMap := listToMap(bv)
 
 			if toMap != nil {
-				return compareMap(a.(map[string]yaml.Node), toMap, path)
+				return compareMap(av, toMap, path)
 			} else {
 				return []Diff{mismatch}
 			}
@@ -41,9 +41,9 @@ func compare(a, b yaml.Node, path []string) []Diff {
 		}
 
 	case []yaml.Node:
-		switch b.(type) {
+		switch bv := b.(type) {
 		case []yaml.Node:
-			return compareList(a.([]yaml.Node), b.([]yaml.Node), path)
+			return compareList(av, bv, path)
 		default:
 			return []Diff{mismatch}
 		}
