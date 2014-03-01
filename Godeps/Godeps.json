@@ -1,0 +1,31 @@
+{
+	"ImportPath": "github.com/cloudfoundry-incubator/spiff",
+	"GoVersion": "go1.2",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/codegangsta/cli",
+			"Comment": "1.0.0-39-g8f0575f",
+			"Rev": "8f0575f520013467eb175a5dd30158ed816eeda9"
+		},
+		{
+			"ImportPath": "github.com/onsi/ginkgo",
+			"Rev": "42b7767e8b7e033b9da8b9ff317634bce888f5e1"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega",
+			"Rev": "930b4522e0d3027320b5d56f8a375796f2e376e5"
+		},
+		{
+			"ImportPath": "github.com/vito/cmdtest",
+			"Rev": "5073503e50f68b9c14d073ab261164965bffa872"
+		},
+		{
+			"ImportPath": "launchpad.net/goyaml",
+			"Comment": "50",
+			"Rev": "gustavo@niemeyer.net-20131114120802-abe042syx64z2m7s"
+		}
+	]
+}
