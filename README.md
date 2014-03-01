@@ -28,7 +28,7 @@ godep go test -v ./...
 
 # usage
 
-## `spiff merge template.yml [template2.ymll ...]`
+### `spiff merge template.yml [template2.ymll ...]`
 
 Merge a bunch of template files into one manifest, printing it out.
 
@@ -41,7 +41,7 @@ Example:
 spiff merge cf-release/templates/cf-deployment.yml my-cloud-stub.yml
 ```
 
-## `spiff diff manifest.yml other-manifest.yml`
+### `spiff diff manifest.yml other-manifest.yml`
 
 Show structural differences between two deployment manifests.
 
