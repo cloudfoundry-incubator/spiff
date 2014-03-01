@@ -5,7 +5,8 @@ go:
   - tip
 
 install:
-  - go get -v github.com/vito/gocart
+  - go get -v github.com/kr/godep
   - export PATH=$HOME/gopath/bin:$PATH
-  - gocart install
-  - go test -i ./...
+  - godep go test -i ./...
+
+script: godep go test -v ./...

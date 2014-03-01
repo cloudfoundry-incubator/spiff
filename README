@@ -7,44 +7,20 @@
 
        A declarative templating system for BOSH deployment manifests.
 
-= pre-reqs
-
-  # you must have bzr installed
-  $ which bzr
-  /usr/local/bin/bzr
-  
-  # if you do not have it, get it with something like
-  $ brew install bzr
-
 
 = installation
 
-  # set up $GOPATH if not already
-  export GOPATH=~/go
-  export PATH=~/go/bin:$PATH
+  Download a release from GitHub, or install with HomeBrew on OS X:
 
-  # install
-  go get -v github.com/cloudfoundry-incubator/spiff
-
-  # to update a previously installed version of spiff
-  go get -u github.com/cloudfoundry-incubator/spiff
-
-  # run
+  brew tap xoebus/homebrew-cloudfoundry
+  brew install spiff
   spiff
 
 
 = development
 
-  # install dependencies
-  go get github.com/xoebus/gocart/gocart
-  gocart install
-
-  # run tests
-  go test -v ./...
-
-  # or, with ginkgo:
-  go install github.com/onsi/ginkgo/ginkgo
-  ginkgo -r
+  go get github.com/kr/godep
+  godep go test -v ./...
 
 
 = spiff merge template.yml [template2.yml template3.yml ...] > manifest.yml
@@ -202,18 +178,18 @@ The following is a complete list of dynaml expressions:
 
   (( a || b )):
     Uses a, or b if a cannot be resolved.
-    
+
     e.g.:
-    
+
       foo:
         bar:
           - name: some
           - name: complicated
           - name: structure
-     
+
       mything:
         complicated_structure: (( merge || foo.bar ))
-    
+
     This will try to merge in (( mything.complicated_structure )), or, if it
     cannot be merged in, use the default specified in (( foo.bar )).
 
