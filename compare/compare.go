@@ -56,7 +56,7 @@ func compare(a, b yaml.Node, path []string) []Diff {
 			return []Diff{mismatch}
 		}
 
-		if a != b {
+		if av != b.Value() {
 			return []Diff{Diff{A: a, B: b, Path: path}}
 		}
 	}

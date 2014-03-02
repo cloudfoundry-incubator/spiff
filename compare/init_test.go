@@ -15,7 +15,11 @@ func Test(t *testing.T) {
 }
 
 func parseYAML(source string) yaml.Node {
-	parsed, err := yaml.Parse("compare test", []byte(source))
+	return parseYAMLFrom(source, "compare test")
+}
+
+func parseYAMLFrom(source string, name string) yaml.Node {
+	parsed, err := yaml.Parse(name, []byte(source))
 	if err != nil {
 		panic(err)
 	}

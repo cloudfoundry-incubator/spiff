@@ -6,6 +6,14 @@ import (
 )
 
 var _ = Describe("Diffing YAML", func() {
+	Describe("trivially equal", func() {
+		It("reports no differences", func() {
+			Expect(
+				Compare(parseYAMLFrom("1", "a"), parseYAMLFrom("1", "b")),
+			).To(BeEmpty())
+		})
+	})
+
 	Describe("maps", func() {
 		Context("when there is a toplevel difference in value", func() {
 			a := parseYAML(`
