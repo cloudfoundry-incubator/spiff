@@ -8,27 +8,47 @@ import (
 )
 
 func ExitWith(status int) *ExitWithMatcher {
-	return &ExitWithMatcher{status}
+	return &ExitWithMatcher{
+		Status: status,
+	}
 }
 
 type ExitWithMatcher struct {
 	Status int
+
+	actualStatus int
+	waitError    error
 }
 
-func (m *ExitWithMatcher) Match(out interface{}) (bool, string, error) {
+func (m *ExitWithMatcher) Match(out interface{}) (bool, error) {
 	session, ok := out.(*cmdtest.Session)
 	if !ok {
-		return false, "", fmt.Errorf("Cannot expect exit status from %#v.", out)
+		return false, fmt.Errorf("Cannot expect exit status from %#v.", out)
 	}
 
 	status, err := session.Wait(10 * time.Second)
 	if err != nil {
-		return false, err.Error(), nil
+		m.waitError = err
+		return false, err
 	}
 
-	if status == m.Status {
-		return true, fmt.Sprintf("Expected to not exit with %#v", m.Status), nil
-	} else {
-		return false, fmt.Sprintf("Exited with status %d, expected %d", status, m.Status), nil
+	m.actualStatus = status
+
+	return status == m.Status, nil
+}
+
+func (m *ExitWithMatcher) FailureMessage(actual interface{}) string {
+	if m.waitError != nil {
+		return m.waitError.Error()
 	}
+
+	return fmt.Sprintf("Exited with status %d, expected %d", m.actualStatus, m.Status)
+}
+
+func (m *ExitWithMatcher) NegatedFailureMessage(actual interface{}) string {
+	if m.waitError != nil {
+		return m.waitError.Error()
+	}
+
+	return fmt.Sprintf("Expected to not exit with %#v", m.Status)
 }

@@ -2,40 +2,44 @@ package matchers
 
 import (
 	"fmt"
+	"github.com/onsi/gomega/format"
 	"reflect"
 )
 
 type BeClosedMatcher struct {
 }
 
-func (matcher *BeClosedMatcher) Match(actual interface{}) (success bool, message string, err error) {
+func (matcher *BeClosedMatcher) Match(actual interface{}) (success bool, err error) {
 	if !isChan(actual) {
-		return false, "", fmt.Errorf("BeClosed matcher expects a channel.  Got: %s", formatObject(actual))
+		return false, fmt.Errorf("BeClosed matcher expects a channel.  Got:\n%s", format.Object(actual, 1))
 	}
 
 	channelType := reflect.TypeOf(actual)
 	channelValue := reflect.ValueOf(actual)
 
-	var closed bool
-
 	if channelType.ChanDir() == reflect.SendDir {
-		return false, "", fmt.Errorf("BeClosed matcher cannot determine if a send-only channel is closed or open.  Got: %s", formatObject(actual))
-	} else {
-		winnerIndex, _, open := reflect.Select([]reflect.SelectCase{
-			reflect.SelectCase{Dir: reflect.SelectRecv, Chan: channelValue},
-			reflect.SelectCase{Dir: reflect.SelectDefault},
-		})
-
-		if winnerIndex == 0 {
-			closed = !open
-		} else if winnerIndex == 1 {
-			closed = false
-		}
+		return false, fmt.Errorf("BeClosed matcher cannot determine if a send-only channel is closed or open.  Got:\n%s", format.Object(actual, 1))
 	}
 
-	if closed {
-		return true, formatMessage(actual, "to be open"), nil
-	} else {
-		return false, formatMessage(actual, "to be closed"), nil
+	winnerIndex, _, open := reflect.Select([]reflect.SelectCase{
+		reflect.SelectCase{Dir: reflect.SelectRecv, Chan: channelValue},
+		reflect.SelectCase{Dir: reflect.SelectDefault},
+	})
+
+	var closed bool
+	if winnerIndex == 0 {
+		closed = !open
+	} else if winnerIndex == 1 {
+		closed = false
 	}
+
+	return closed, nil
+}
+
+func (matcher *BeClosedMatcher) FailureMessage(actual interface{}) (message string) {
+	return format.Message(actual, "to be closed")
+}
+
+func (matcher *BeClosedMatcher) NegatedFailureMessage(actual interface{}) (message string) {
+	return format.Message(actual, "to be open")
 }

@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -58,7 +59,9 @@ func StartWrapped(cmd *exec.Cmd, outWrapper OutputWrapper, errWrapper OutputWrap
 
 	go func() {
 		cmd.Wait()
+
 		exited <- cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus()
+		close(exited)
 
 		stdoutIn.Close()
 		stderrIn.Close()
@@ -101,7 +104,7 @@ func (s Session) Wait(timeout time.Duration) (int, error) {
 	case status := <-s.exited:
 		return status, nil
 	case <-time.After(timeout):
-		return -1, fmt.Errorf("command did not exit")
+		return -1, fmt.Errorf("command did not exit: %s", strings.Join(s.Cmd.Args, " "))
 	}
 }
 

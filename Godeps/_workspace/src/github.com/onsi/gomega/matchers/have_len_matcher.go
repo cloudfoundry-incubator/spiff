@@ -2,21 +2,26 @@ package matchers
 
 import (
 	"fmt"
+	"github.com/onsi/gomega/format"
 )
 
 type HaveLenMatcher struct {
 	Count int
 }
 
-func (matcher *HaveLenMatcher) Match(actual interface{}) (success bool, message string, err error) {
+func (matcher *HaveLenMatcher) Match(actual interface{}) (success bool, err error) {
 	length, ok := lengthOf(actual)
-	if ok {
-		if length == matcher.Count {
-			return true, fmt.Sprintf("Expected%s\n (length: %d) not to have length %d", formatObject(actual), length, matcher.Count), nil
-		} else {
-			return false, fmt.Sprintf("Expected%s\n (length: %d) to have length %d", formatObject(actual), length, matcher.Count), nil
-		}
-	} else {
-		return false, "", fmt.Errorf("HaveLen matcher expects a string/array/map/channel/slice.  Got:%s", formatObject(actual))
+	if !ok {
+		return false, fmt.Errorf("HaveLen matcher expects a string/array/map/channel/slice.  Got:\n%s", format.Object(actual, 1))
 	}
+
+	return length == matcher.Count, nil
+}
+
+func (matcher *HaveLenMatcher) FailureMessage(actual interface{}) (message string) {
+	return fmt.Sprintf("Expected\n%s\nto have length %d", format.Object(actual, 1), matcher.Count)
+}
+
+func (matcher *HaveLenMatcher) NegatedFailureMessage(actual interface{}) (message string) {
+	return fmt.Sprintf("Expected\n%s\nnot to have length %d", format.Object(actual, 1), matcher.Count)
 }

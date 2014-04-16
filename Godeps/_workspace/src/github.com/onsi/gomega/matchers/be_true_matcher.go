@@ -2,18 +2,24 @@ package matchers
 
 import (
 	"fmt"
+	"github.com/onsi/gomega/format"
 )
 
 type BeTrueMatcher struct {
 }
 
-func (matcher *BeTrueMatcher) Match(actual interface{}) (success bool, message string, err error) {
+func (matcher *BeTrueMatcher) Match(actual interface{}) (success bool, err error) {
 	if !isBool(actual) {
-		return false, "", fmt.Errorf("Expected a boolean, got%s", formatObject(actual))
+		return false, fmt.Errorf("Expected a boolean.  Got:\n%s", format.Object(actual, 1))
 	}
-	if actual == true {
-		return true, formatMessage(actual, "not to be true"), nil
-	} else {
-		return false, formatMessage(actual, "to be true"), nil
-	}
+
+	return actual.(bool), nil
+}
+
+func (matcher *BeTrueMatcher) FailureMessage(actual interface{}) (message string) {
+	return format.Message(actual, "to be true")
+}
+
+func (matcher *BeTrueMatcher) NegatedFailureMessage(actual interface{}) (message string) {
+	return format.Message(actual, "not to be true")
 }

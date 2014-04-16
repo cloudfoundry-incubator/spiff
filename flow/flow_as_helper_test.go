@@ -10,28 +10,29 @@ import (
 )
 
 func FlowAs(expected yaml.Node, stubs ...yaml.Node) *FlowAsMatcher {
-	return &FlowAsMatcher{expected, stubs}
+	return &FlowAsMatcher{Expected: expected, Stubs: stubs}
 }
 
 type FlowAsMatcher struct {
 	Expected yaml.Node
 	Stubs    []yaml.Node
+	actual   yaml.Node
 }
 
-func (matcher *FlowAsMatcher) Match(source interface{}) (success bool, message string, err error) {
+func (matcher *FlowAsMatcher) Match(source interface{}) (success bool, err error) {
 	if source == nil && matcher.Expected == nil {
-		return false, "", fmt.Errorf("Refusing to compare <nil> to <nil>.")
+		return false, fmt.Errorf("Refusing to compare <nil> to <nil>.")
 	}
 
 	actual, err := Flow(source.(yaml.Node), matcher.Stubs...)
 	if err != nil {
-		return false, "", err
+		return false, err
 	}
 
 	if actual.EquivalentToNode(matcher.Expected) {
-		return true, formatMessage(actual, "not to flow as", matcher.Expected), nil
+		return true, nil
 	} else {
-		return false, formatMessage(actual, "to flow as", matcher.Expected), nil
+		return false, nil
 	}
 
 	return
@@ -48,4 +49,12 @@ func formatYAML(yaml yaml.Node) string {
 	}
 
 	return fmt.Sprintf("\n\t%s", strings.Replace(string(formatted), "\n", "\n\t", -1))
+}
+
+func (matcher *FlowAsMatcher) FailureMessage(actual interface{}) (message string) {
+	return formatMessage(matcher.actual, "to flow as", matcher.Expected)
+}
+
+func (matcher *FlowAsMatcher) NegatedFailureMessage(actual interface{}) (message string) {
+	return formatMessage(matcher.actual, "not to flow as", matcher.Expected)
 }

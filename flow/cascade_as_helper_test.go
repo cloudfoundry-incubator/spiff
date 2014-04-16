@@ -8,29 +8,38 @@ import (
 )
 
 func CascadeAs(expected yaml.Node, stubs ...yaml.Node) *CascadeAsMatcher {
-	return &CascadeAsMatcher{expected, stubs}
+	return &CascadeAsMatcher{Expected: expected, Stubs: stubs}
 }
 
 type CascadeAsMatcher struct {
 	Expected yaml.Node
 	Stubs    []yaml.Node
+	actual   yaml.Node
 }
 
-func (matcher *CascadeAsMatcher) Match(source interface{}) (success bool, message string, err error) {
+func (matcher *CascadeAsMatcher) Match(source interface{}) (success bool, err error) {
 	if source == nil && matcher.Expected == nil {
-		return false, "", fmt.Errorf("Refusing to compare <nil> to <nil>.")
+		return false, fmt.Errorf("Refusing to compare <nil> to <nil>.")
 	}
 
-	actual, err := Cascade(source.(yaml.Node), matcher.Stubs...)
+	matcher.actual, err = Cascade(source.(yaml.Node), matcher.Stubs...)
 	if err != nil {
-		return false, "", err
+		return false, err
 	}
 
-	if reflect.DeepEqual(actual, matcher.Expected) {
-		return true, formatMessage(actual, "not to flow as", matcher.Expected), nil
+	if reflect.DeepEqual(matcher.actual, matcher.Expected) {
+		return true, nil
 	} else {
-		return false, formatMessage(actual, "to flow as", matcher.Expected), nil
+		return false, nil
 	}
 
 	return
+}
+
+func (matcher *CascadeAsMatcher) FailureMessage(actual interface{}) (message string) {
+	return formatMessage(matcher.actual, "to flow as", matcher.Expected)
+}
+
+func (matcher *CascadeAsMatcher) NegatedFailureMessage(actual interface{}) (message string) {
+	return formatMessage(matcher.actual, "not to flow as", matcher.Expected)
 }

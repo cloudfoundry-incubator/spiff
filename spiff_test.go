@@ -13,7 +13,7 @@ import (
 )
 
 var _ = Describe("Running spiff", func() {
-	spiff, err := cmdtest.Build(".")
+	spiff, err := cmdtest.Build("github.com/cloudfoundry-incubator/spiff")
 	if err != nil {
 		panic(err)
 	}

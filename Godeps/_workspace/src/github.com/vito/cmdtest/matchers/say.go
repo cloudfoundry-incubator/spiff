@@ -7,23 +7,36 @@ import (
 )
 
 func Say(pattern string) *SayMatcher {
-	return &SayMatcher{pattern}
+	return &SayMatcher{
+		Pattern: pattern,
+	}
 }
 
 type SayMatcher struct {
 	Pattern string
+
+	expectError error
 }
 
-func (m *SayMatcher) Match(out interface{}) (bool, string, error) {
+func (m *SayMatcher) Match(out interface{}) (bool, error) {
 	session, ok := out.(*cmdtest.Session)
 	if !ok {
-		return false, "", fmt.Errorf("Cannot expect output from %#v.", out)
+		return false, fmt.Errorf("Cannot expect output from %#v.", out)
 	}
 
 	err := session.ExpectOutput(m.Pattern)
 	if err != nil {
-		return false, err.Error(), nil
+		m.expectError = err
+		return false, nil
 	}
 
-	return true, fmt.Sprintf("Expected to not see %#v\n", m.Pattern), nil
+	return true, nil
+}
+
+func (m *SayMatcher) FailureMessage(actual interface{}) string {
+	return m.expectError.Error()
+}
+
+func (m *SayMatcher) NegatedFailureMessage(actual interface{}) string {
+	return fmt.Sprintf("Expected to not see %#v\n", m.Pattern)
 }

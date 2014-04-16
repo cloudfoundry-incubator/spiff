@@ -12,9 +12,8 @@ var _ = Describe("MatchJSONMatcher", func() {
 			Ω("{}").Should(MatchJSON("{}"))
 			Ω(`{"a":1}`).Should(MatchJSON(`{"a":1}`))
 			Ω(`{
-                "a":1
-            }`).Should(MatchJSON(`{"a":1}`))
-
+			             "a":1
+			         }`).Should(MatchJSON(`{"a":1}`))
 			Ω(`{"a":1, "b":2}`).Should(MatchJSON(`{"b":2, "a":1}`))
 			Ω(`{"a":1}`).ShouldNot(MatchJSON(`{"b":2, "a":1}`))
 		})
@@ -28,33 +27,33 @@ var _ = Describe("MatchJSONMatcher", func() {
 
 	Context("when either side is not valid JSON", func() {
 		It("should error", func() {
-			success, _, err := (&MatchJSONMatcher{JSONToMatch: `oops`}).Match(`{}`)
+			success, err := (&MatchJSONMatcher{JSONToMatch: `oops`}).Match(`{}`)
 			Ω(success).Should(BeFalse())
-			Ω(err).Should(HaveOccured())
+			Ω(err).Should(HaveOccurred())
 
-			success, _, err = (&MatchJSONMatcher{JSONToMatch: `{}`}).Match(`oops`)
+			success, err = (&MatchJSONMatcher{JSONToMatch: `{}`}).Match(`oops`)
 			Ω(success).Should(BeFalse())
-			Ω(err).Should(HaveOccured())
+			Ω(err).Should(HaveOccurred())
 		})
 	})
 
 	Context("when either side is neither a string nor a stringer", func() {
 		It("should error", func() {
-			success, _, err := (&MatchJSONMatcher{JSONToMatch: "{}"}).Match(2)
+			success, err := (&MatchJSONMatcher{JSONToMatch: "{}"}).Match(2)
 			Ω(success).Should(BeFalse())
-			Ω(err).Should(HaveOccured())
+			Ω(err).Should(HaveOccurred())
 
-			success, _, err = (&MatchJSONMatcher{JSONToMatch: 2}).Match("{}")
+			success, err = (&MatchJSONMatcher{JSONToMatch: 2}).Match("{}")
 			Ω(success).Should(BeFalse())
-			Ω(err).Should(HaveOccured())
+			Ω(err).Should(HaveOccurred())
 
-			success, _, err = (&MatchJSONMatcher{JSONToMatch: nil}).Match("{}")
+			success, err = (&MatchJSONMatcher{JSONToMatch: nil}).Match("{}")
 			Ω(success).Should(BeFalse())
-			Ω(err).Should(HaveOccured())
+			Ω(err).Should(HaveOccurred())
 
-			success, _, err = (&MatchJSONMatcher{JSONToMatch: 2}).Match(nil)
+			success, err = (&MatchJSONMatcher{JSONToMatch: 2}).Match(nil)
 			Ω(success).Should(BeFalse())
-			Ω(err).Should(HaveOccured())
+			Ω(err).Should(HaveOccurred())
 		})
 	})
 })
