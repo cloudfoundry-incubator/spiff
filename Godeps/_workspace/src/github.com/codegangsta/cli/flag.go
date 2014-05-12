@@ -7,6 +7,9 @@ import (
 	"strings"
 )
 
+// This flag enables bash-completion for all commands and subcommands
+var BashCompletionFlag = BoolFlag{"generate-bash-completion", ""}
+
 // Flag is a common interface related to parsing flags in cli.
 // For more advanced flag parsing techniques, it is recomended that
 // this interface be implemented.
@@ -56,7 +59,9 @@ type StringSliceFlag struct {
 }
 
 func (f StringSliceFlag) String() string {
-	return fmt.Sprintf("%s%s %v\t`%v` %s", prefixFor(f.Name), f.Name, f.Value, "-"+f.Name+" option -"+f.Name+" option", f.Usage)
+	firstName := strings.Trim(strings.Split(f.Name, ",")[0], " ")
+	pref := prefixFor(firstName)
+	return fmt.Sprintf("%s '%v'\t%v", prefixedNames(f.Name), pref+firstName+" option "+pref+firstName+" option", f.Usage)
 }
 
 func (f StringSliceFlag) Apply(set *flag.FlagSet) {
@@ -157,7 +162,16 @@ type StringFlag struct {
 }
 
 func (f StringFlag) String() string {
-	return fmt.Sprintf("%s '%v'\t%v", prefixedNames(f.Name), f.Value, f.Usage)
+	var fmtString string
+	fmtString = "%s %v\t%v"
+
+	if len(f.Value) > 0 {
+		fmtString = "%s '%v'\t%v"
+	} else {
+		fmtString = "%s %v\t%v"
+	}
+
+	return fmt.Sprintf(fmtString, prefixedNames(f.Name), f.Value, f.Usage)
 }
 
 func (f StringFlag) Apply(set *flag.FlagSet) {

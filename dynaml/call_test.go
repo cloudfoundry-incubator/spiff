@@ -28,7 +28,7 @@ var _ = Describe("calls", func() {
 			binding := FakeBinding{
 				FoundReferences: map[string]yaml.Node{
 					"name":      node("cf1"),
-					"instances": node(2),
+					"instances": node(int64(2)),
 				},
 				FoundFromRoot: map[string]yaml.Node{
 					"networks.cf1.subnets": subnets,
@@ -52,7 +52,7 @@ var _ = Describe("calls", func() {
 			binding := FakeBinding{
 				FoundReferences: map[string]yaml.Node{
 					"name":      node("cf1"),
-					"instances": node(1),
+					"instances": node(int64(1)),
 				},
 				FoundFromRoot: map[string]yaml.Node{
 					"networks.cf1.subnets": subnets,
@@ -130,7 +130,7 @@ var _ = Describe("calls", func() {
 				binding := FakeBinding{
 					FoundReferences: map[string]yaml.Node{
 						"name":      node("cf1"),
-						"instances": node(3),
+						"instances": node(int64(3)),
 					},
 					FoundFromRoot: map[string]yaml.Node{
 						"networks.cf1.subnets": subnets,

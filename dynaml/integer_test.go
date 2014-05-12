@@ -7,6 +7,6 @@ import (
 
 var _ = Describe("integers", func() {
 	It("evaluates to an int", func() {
-		Expect(IntegerExpr{42}).To(EvaluateAs(42, FakeBinding{}))
+		Expect(IntegerExpr{42}).To(EvaluateAs(int64(42), FakeBinding{}))
 	})
 })

@@ -26,7 +26,7 @@ var _ = Describe("or", func() {
 				IntegerExpr{2},
 			}
 
-			Expect(expr).To(EvaluateAs(2, FakeBinding{}))
+			Expect(expr).To(EvaluateAs(int64(2), FakeBinding{}))
 		})
 	})
 
@@ -37,7 +37,7 @@ var _ = Describe("or", func() {
 				FailingExpr{},
 			}
 
-			Expect(expr).To(EvaluateAs(1, FakeBinding{}))
+			Expect(expr).To(EvaluateAs(int64(1), FakeBinding{}))
 		})
 	})
 

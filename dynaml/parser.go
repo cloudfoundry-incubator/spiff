@@ -34,7 +34,7 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 		case RuleReference:
 			tokens.Push(ReferenceExpr{strings.Split(contents, ".")})
 		case RuleInteger:
-			val, err := strconv.Atoi(contents)
+			val, err := strconv.ParseInt(contents, 10, 64)
 			if err != nil {
 				panic(err)
 			}

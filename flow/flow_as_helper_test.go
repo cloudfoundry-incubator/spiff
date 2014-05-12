@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"launchpad.net/goyaml"
-
+	"github.com/cloudfoundry-incubator/candiedyaml"
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
@@ -43,7 +42,7 @@ func formatMessage(actual yaml.Node, message string, expected yaml.Node) string 
 }
 
 func formatYAML(yaml yaml.Node) string {
-	formatted, err := goyaml.Marshal(yaml)
+	formatted, err := candiedyaml.Marshal(yaml)
 	if err != nil {
 		return fmt.Sprintf("\n\t<%T> %#v", yaml, yaml)
 	}

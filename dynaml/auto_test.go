@@ -28,7 +28,7 @@ var _ = Describe("autos", func() {
 				},
 			}
 
-			Expect(expr).To(EvaluateAs(8, binding))
+			Expect(expr).To(EvaluateAs(int64(8), binding))
 		})
 
 		Context("when one of the jobs has non-numeric instances", func() {

@@ -22,12 +22,12 @@ func (e AdditionExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 		return nil, false
 	}
 
-	aint, ok := a.Value().(int)
+	aint, ok := a.Value().(int64)
 	if !ok {
 		return nil, false
 	}
 
-	bint, ok := b.Value().(int)
+	bint, ok := b.Value().(int64)
 	if !ok {
 		return nil, false
 	}

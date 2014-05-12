@@ -5,11 +5,24 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
+var spiff string
+
 func Test(t *testing.T) {
+	BeforeSuite(func() {
+		var err error
+		spiff, err = gexec.Build("github.com/cloudfoundry-incubator/spiff")
+		Ω(err).ShouldNot(HaveOccurred())
+	})
+
+	AfterSuite(func() {
+		gexec.CleanupBuildArtifacts()
+	})
+
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Executable")
 }

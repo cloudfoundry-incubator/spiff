@@ -36,13 +36,13 @@ func FindString(root Node, path ...string) (string, bool) {
 	return val, ok
 }
 
-func FindInt(root Node, path ...string) (int, bool) {
+func FindInt(root Node, path ...string) (int64, bool) {
 	node, ok := Find(root, path...)
 	if !ok {
 		return 0, false
 	}
 
-	val, ok := node.Value().(int)
+	val, ok := node.Value().(int64)
 	return val, ok
 }
 

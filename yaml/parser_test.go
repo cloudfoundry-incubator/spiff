@@ -21,21 +21,21 @@ var _ = Describe("Parsing YAML", func() {
 		Context("when the keys are not strings", func() {
 			It("fails", func() {
 				_, err := Parse("test", []byte("1: foo"))
-				Expect(err).To(Equal(NonStringKeyError{Key: 1}))
+				Expect(err).To(Equal(NonStringKeyError{Key: int64(1)}))
 			})
 		})
 	})
 
 	Describe("lists", func() {
 		It("parses with Node contents", func() {
-			parsesAs("- 1\n- two", []Node{node(1), node("two")})
+			parsesAs("- 1\n- two", []Node{node(int64(1)), node("two")})
 		})
 	})
 
 	Describe("integers", func() {
 		It("parses as ints", func() {
-			parsesAs("1", 1)
-			parsesAs("-1", -1)
+			parsesAs("1", int64(1))
+			parsesAs("-1", int64(-1))
 		})
 	})
 

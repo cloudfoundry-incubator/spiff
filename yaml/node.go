@@ -3,11 +3,11 @@ package yaml
 import (
 	"reflect"
 
-	"launchpad.net/goyaml"
+	"github.com/cloudfoundry-incubator/candiedyaml"
 )
 
 type Node interface {
-	goyaml.Getter
+	candiedyaml.Marshaler
 
 	Value() interface{}
 	SourceName() string
@@ -31,7 +31,7 @@ func (n AnnotatedNode) SourceName() string {
 	return n.sourceName
 }
 
-func (n AnnotatedNode) GetYAML() (string, interface{}) {
+func (n AnnotatedNode) MarshalYAML() (string, interface{}) {
 	return "", n.Value()
 }
 
@@ -41,7 +41,7 @@ func (n AnnotatedNode) EquivalentToNode(o Node) bool {
 	}
 
 	at := reflect.TypeOf(n.Value())
-	bt := reflect.TypeOf(n.Value())
+	bt := reflect.TypeOf(o.Value())
 
 	if at != bt {
 		return false

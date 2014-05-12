@@ -60,7 +60,7 @@ func findUnresolvedNodes(root yaml.Node, context ...string) (nodes []UnresolvedN
 
 	case dynaml.Expression:
 		nodes = append(nodes, UnresolvedNode{
-			Node: root,
+			Node:    root,
 			Context: context,
 		})
 	}

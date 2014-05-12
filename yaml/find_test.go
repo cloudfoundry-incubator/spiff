@@ -83,7 +83,7 @@ bar: a string
 			It("returns the string and true", func() {
 				found, ok := FindInt(tree, "foo")
 				Expect(ok).To(BeTrue())
-				Expect(found).To(Equal(42))
+				Expect(found).To(Equal(int64(42)))
 			})
 		})
 
