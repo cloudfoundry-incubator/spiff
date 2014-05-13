@@ -90,14 +90,15 @@ func (e *Encoder) emit() {
 
 func (e *Encoder) marshal(tag string, v reflect.Value, allowAddr bool) {
 	vt := v.Type()
+
 	if vt.Implements(marshalerType) {
 		e.emitMarshaler(tag, v)
 		return
 	}
 
-	if v.Kind() != reflect.Ptr && allowAddr {
-		if reflect.PtrTo(vt).Implements(marshalerType) && v.CanAddr() {
-			e.emitMarshaler(tag, v.Addr())
+	if vt.Kind() != reflect.Ptr && allowAddr {
+		if reflect.PtrTo(vt).Implements(marshalerType) {
+			e.emitAddrMarshaler(tag, v)
 			return
 		}
 	}
@@ -321,7 +322,37 @@ func (e *Encoder) emitMarshaler(tag string, v reflect.Value) {
 	}
 
 	m := v.Interface().(Marshaler)
+	if m == nil {
+		e.emitNil()
+		return
+	}
 	t, val := m.MarshalYAML()
+	if val == nil {
+		e.emitNil()
+		return
+	}
+
+	e.marshal(t, reflect.ValueOf(val), false)
+}
+
+func (e *Encoder) emitAddrMarshaler(tag string, v reflect.Value) {
+	if !v.CanAddr() {
+		e.marshal(tag, v, false)
+		return
+	}
+
+	va := v.Addr()
+	if va.IsNil() {
+		e.emitNil()
+		return
+	}
+
+	m := v.Interface().(Marshaler)
+	t, val := m.MarshalYAML()
+	if val == nil {
+		e.emitNil()
+		return
+	}
 
 	e.marshal(t, reflect.ValueOf(val), false)
 }
