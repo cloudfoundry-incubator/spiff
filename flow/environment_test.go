@@ -24,7 +24,7 @@ foo:
 				It("returns the found node", func() {
 					val, found := environment.FindReference([]string{"foo", "bar"})
 					Expect(found).To(BeTrue())
-					Expect(val.Value()).To(Equal(int64(42)))
+					Expect(val.Value()).To(BeNumerically("==", 42))
 				})
 			})
 
@@ -43,7 +43,7 @@ foos:
 				It("treats the name as the key", func() {
 					val, found := environment.FindReference([]string{"foos", "bar", "baz"})
 					Expect(found).To(BeTrue())
-					Expect(val.Value()).To(Equal(int64(42)))
+					Expect(val.Value()).To(BeNumerically("==", 42))
 				})
 			})
 
@@ -76,7 +76,7 @@ foo:
 			It("finds the root and the path", func() {
 				val, found := environment.FindReference([]string{"fizz", "buzz"})
 				Expect(found).To(BeTrue())
-				Expect(val.Value()).To(Equal(int64(42)))
+				Expect(val.Value()).To(BeNumerically("==", 42))
 			})
 		})
 
@@ -103,7 +103,7 @@ foo:
 			It("finds the nearest occurrence", func() {
 				val, found := environment.FindReference([]string{"fizz", "buzz"})
 				Expect(found).To(BeTrue())
-				Expect(val.Value()).To(Equal(int64(123)))
+				Expect(val.Value()).To(BeNumerically("==", 123))
 			})
 		})
 
@@ -186,7 +186,7 @@ c: 4
 			It("uses the value from the first stub", func() {
 				val, found := environment.FindInStubs([]string{"a"})
 				Expect(found).To(BeTrue())
-				Expect(val.Value()).To(Equal(int64(1)))
+				Expect(val.Value()).To(BeNumerically("==", 1))
 			})
 		})
 
@@ -194,7 +194,7 @@ c: 4
 			It("uses the value from the second stub", func() {
 				val, found := environment.FindInStubs([]string{"b"})
 				Expect(found).To(BeTrue())
-				Expect(val.Value()).To(Equal(int64(2)))
+				Expect(val.Value()).To(BeNumerically("==", 2))
 			})
 		})
 
@@ -202,7 +202,7 @@ c: 4
 			It("returns the value from the first stub", func() {
 				val, found := environment.FindInStubs([]string{"c"})
 				Expect(found).To(BeTrue())
-				Expect(val.Value()).To(Equal(int64(3)))
+				Expect(val.Value()).To(BeNumerically("==", 3))
 			})
 		})
 

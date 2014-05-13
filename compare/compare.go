@@ -153,7 +153,7 @@ func jobMap(jobs []yaml.Node) map[string]yaml.Node {
 
 	for index, job := range jobs {
 		attrs, ok := job.Value().(map[string]yaml.Node)
-		attrs["index"] = yaml.NewNode(int64(index), job.SourceName())
+		attrs["index"] = yaml.NewNode(index, job.SourceName())
 
 		name, ok := yaml.FindString(job, "name")
 		if !ok {

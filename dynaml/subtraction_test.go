@@ -12,7 +12,7 @@ var _ = Describe("subtraction", func() {
 			IntegerExpr{3},
 		}
 
-		Expect(expr).To(EvaluateAs(int64(4), FakeBinding{}))
+		Expect(expr).To(EvaluateAs(4, FakeBinding{}))
 	})
 
 	Context("when the left-hand side is not an integer", func() {

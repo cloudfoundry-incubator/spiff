@@ -20,7 +20,7 @@ func (e AutoExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 			return nil, false
 		}
 
-		size := int64(0)
+		var size int64
 
 		for _, job := range jobsList {
 			poolName, ok := yaml.FindString(job, "resource_pool")

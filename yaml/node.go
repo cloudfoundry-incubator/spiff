@@ -20,7 +20,15 @@ type AnnotatedNode struct {
 }
 
 func NewNode(value interface{}, sourcePath string) Node {
-	return AnnotatedNode{value, sourcePath}
+	return AnnotatedNode{massageType(value), sourcePath}
+}
+
+func massageType(value interface{}) interface{} {
+	switch value.(type) {
+	case int, int8, int16, int32:
+		value = reflect.ValueOf(value).Int()
+	}
+	return value
 }
 
 func (n AnnotatedNode) Value() interface{} {
