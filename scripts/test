@@ -1,7 +1,10 @@
 #!/bin/bash
 # vim: set ft=sh
 
-set -e -x
+set -e -x -u
+
+#uses the local version of cover, if it is already checked out
+go get code.google.com/p/go.tools/cmd/cover
 
 export GOPATH=$PWD/Godeps/_workspace:$GOPATH
 
@@ -10,8 +13,6 @@ FIRST_GOPATH=`echo $GOPATH | cut -d':' -f1`
 mkdir -p $FIRST_GOPATH/bin
 export PATH=$FIRST_GOPATH/bin:$PATH
 
-go get github.com/dustin/goveralls
-go get code.google.com/p/go.tools/cmd/cover
 go install github.com/onsi/ginkgo/ginkgo
 
 ginkgo -cover -r -failOnPending -randomizeAllSpecs -race "$@"
