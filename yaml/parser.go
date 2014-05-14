@@ -3,8 +3,9 @@ package yaml
 import (
 	"errors"
 	"fmt"
+	"reflect"
 
-	"launchpad.net/goyaml"
+	"github.com/cloudfoundry-incubator/candiedyaml"
 )
 
 type NonStringKeyError struct {
@@ -18,7 +19,7 @@ func (e NonStringKeyError) Error() string {
 func Parse(sourceName string, source []byte) (Node, error) {
 	var parsed interface{}
 
-	err := goyaml.Unmarshal(source, &parsed)
+	err := candiedyaml.Unmarshal(source, &parsed)
 	if err != nil {
 		return nil, err
 	}
@@ -61,9 +62,9 @@ func sanitize(sourceName string, root interface{}) (Node, error) {
 
 		return AnnotatedNode{sanitized, sourceName}, nil
 
-	case string, []byte, int, float64, bool, nil:
+	case string, []byte, int64, float64, bool, nil:
 		return AnnotatedNode{rootVal, sourceName}, nil
 	}
 
-	return nil, errors.New(fmt.Sprintf("unknown type during sanitization: %#v\n", root))
+	return nil, errors.New(fmt.Sprintf("unknown type (%s) during sanitization: %#v\n", reflect.TypeOf(root).String(), root))
 }

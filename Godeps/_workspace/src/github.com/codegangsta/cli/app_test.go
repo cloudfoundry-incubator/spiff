@@ -24,6 +24,39 @@ func ExampleApp() {
 	// Hello Jeremy
 }
 
+func ExampleAppSubcommand() {
+	// set args for examples sake
+	os.Args = []string{"say", "hi", "english", "--name", "Jeremy"}
+	app := cli.NewApp()
+	app.Name = "say"
+	app.Commands = []cli.Command{
+		{
+			Name:        "hello",
+			ShortName:   "hi",
+			Usage:       "use it to see a description",
+			Description: "This is how we describe hello the function",
+			Subcommands: []cli.Command{
+				{
+					Name:        "english",
+					ShortName:   "en",
+					Usage:       "sends a greeting in english",
+					Description: "greets someone in english",
+					Flags: []cli.Flag{
+						cli.StringFlag{"name", "Bob", "Name of the person to greet"},
+					},
+					Action: func(c *cli.Context) {
+						fmt.Println("Hello,", c.String("name"))
+					},
+				},
+			},
+		},
+	}
+
+	app.Run(os.Args)
+	// Output:
+	// Hello, Jeremy
+}
+
 func ExampleAppHelp() {
 	// set args for examples sake
 	os.Args = []string{"greet", "h", "describeit"}
@@ -35,9 +68,9 @@ func ExampleAppHelp() {
 	}
 	app.Commands = []cli.Command{
 		{
-			Name: "describeit",
-			ShortName: "d",
-			Usage: "use it to see a description",
+			Name:        "describeit",
+			ShortName:   "d",
+			Usage:       "use it to see a description",
 			Description: "This is how we describe describeit the function",
 			Action: func(c *cli.Context) {
 				fmt.Printf("i like to describe things")
@@ -56,6 +89,41 @@ func ExampleAppHelp() {
 	//    This is how we describe describeit the function
 	//
 	// OPTIONS:
+}
+
+func ExampleAppBashComplete() {
+	// set args for examples sake
+	os.Args = []string{"greet", "--generate-bash-completion"}
+
+	app := cli.NewApp()
+	app.Name = "greet"
+	app.EnableBashCompletion = true
+	app.Commands = []cli.Command{
+		{
+			Name:        "describeit",
+			ShortName:   "d",
+			Usage:       "use it to see a description",
+			Description: "This is how we describe describeit the function",
+			Action: func(c *cli.Context) {
+				fmt.Printf("i like to describe things")
+			},
+		}, {
+			Name:        "next",
+			Usage:       "next example",
+			Description: "more stuff to see when generating bash completion",
+			Action: func(c *cli.Context) {
+				fmt.Printf("the next example")
+			},
+		},
+	}
+
+	app.Run(os.Args)
+	// Output:
+	// describeit
+	// d
+	// next
+	// help
+	// h
 }
 
 func TestApp_Run(t *testing.T) {
@@ -277,4 +345,27 @@ func TestAppHelpPrinter(t *testing.T) {
 	if wasCalled == false {
 		t.Errorf("Help printer expected to be called, but was not")
 	}
+}
+
+func TestAppCommandNotFound(t *testing.T) {
+	beforeRun, subcommandRun := false, false
+	app := cli.NewApp()
+
+	app.CommandNotFound = func(c *cli.Context, command string) {
+		beforeRun = true
+	}
+
+	app.Commands = []cli.Command{
+		cli.Command{
+			Name: "bar",
+			Action: func(c *cli.Context) {
+				subcommandRun = true
+			},
+		},
+	}
+
+	app.Run([]string{"command", "foo"})
+
+	expect(t, beforeRun, true)
+	expect(t, subcommandRun, false)
 }

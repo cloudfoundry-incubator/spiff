@@ -140,8 +140,12 @@ var _ = Describe("Spec Collection", func() {
 
 	Describe("reporting on specs", func() {
 		var proceed chan bool
+		var ready chan bool
+		var finished chan bool
 		BeforeEach(func() {
+			ready = make(chan bool)
 			proceed = make(chan bool)
+			finished = make(chan bool)
 			skippedSpec := newSpec("SKIP", noneFlag, false)
 			skippedSpec.Skip()
 
@@ -152,16 +156,19 @@ var _ = Describe("Spec Collection", func() {
 				skippedSpec,
 				newSpec("PENDING", pendingFlag, false),
 				newSpecWithBody("RUN", func() {
+					close(ready)
 					<-proceed
 				}),
 			)
-			go runner.Run()
+			go func() {
+				runner.Run()
+				close(finished)
+			}()
 		})
 
 		It("should report about pending/skipped specs", func() {
-			Eventually(func() interface{} {
-				return reporter1.SpecWillRunSummaries
-			}).Should(HaveLen(3))
+			<-ready
+			Ω(reporter1.SpecWillRunSummaries).Should(HaveLen(3))
 
 			Ω(reporter1.SpecWillRunSummaries[0].ComponentTexts[0]).Should(Equal("SKIP"))
 			Ω(reporter1.SpecWillRunSummaries[1].ComponentTexts[0]).Should(Equal("PENDING"))
@@ -172,10 +179,9 @@ var _ = Describe("Spec Collection", func() {
 			Ω(reporter1.SpecSummaries).Should(HaveLen(2))
 
 			close(proceed)
+			<-finished
 
-			Eventually(func() interface{} {
-				return reporter1.SpecSummaries
-			}).Should(HaveLen(3))
+			Ω(reporter1.SpecSummaries).Should(HaveLen(3))
 			Ω(reporter1.SpecSummaries[2].ComponentTexts[0]).Should(Equal("RUN"))
 		})
 	})
@@ -240,6 +246,10 @@ var _ = Describe("Spec Collection", func() {
 				Ω(reporter1.EndSummary.SuiteSucceeded).Should(BeTrue())
 				Ω(reporter1.EndSummary.NumberOfFailedSpecs).Should(Equal(0))
 			})
+
+			It("should not dump the writer", func() {
+				Ω(writer.EventStream).ShouldNot(ContainElement("DUMP"))
+			})
 		})
 
 		Context("when the BeforeSuite fails", func() {
@@ -279,6 +289,10 @@ var _ = Describe("Spec Collection", func() {
 				Ω(reporter1.EndSummary.SuiteSucceeded).Should(BeFalse())
 				Ω(reporter1.EndSummary.NumberOfFailedSpecs).Should(Equal(2))
 				Ω(reporter1.EndSummary.NumberOfSpecsThatWillBeRun).Should(Equal(2))
+			})
+
+			It("should dump the writer", func() {
+				Ω(writer.EventStream).Should(ContainElement("DUMP"))
 			})
 		})
 
@@ -341,6 +355,10 @@ var _ = Describe("Spec Collection", func() {
 				Ω(success).Should(BeFalse())
 				Ω(reporter1.EndSummary.SuiteSucceeded).Should(BeFalse())
 				Ω(reporter1.EndSummary.NumberOfFailedSpecs).Should(Equal(0))
+			})
+
+			It("should dump the writer", func() {
+				Ω(writer.EventStream).Should(ContainElement("DUMP"))
 			})
 		})
 	})

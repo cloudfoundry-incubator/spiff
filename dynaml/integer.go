@@ -7,7 +7,7 @@ import (
 )
 
 type IntegerExpr struct {
-	Value int
+	Value int64
 }
 
 func (e IntegerExpr) Evaluate(Binding) (yaml.Node, bool) {
@@ -15,5 +15,5 @@ func (e IntegerExpr) Evaluate(Binding) (yaml.Node, bool) {
 }
 
 func (e IntegerExpr) String() string {
-	return strconv.Itoa(e.Value)
+	return strconv.FormatInt(e.Value, 10)
 }

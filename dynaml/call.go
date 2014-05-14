@@ -23,10 +23,11 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 				return nil, false
 			}
 
-			indices[i], ok = index.Value().(int)
+			index64, ok := index.Value().(int64)
 			if !ok {
 				return nil, false
 			}
+			indices[i] = int(index64)
 		}
 
 		return generateStaticIPs(binding, indices)
@@ -86,8 +87,8 @@ func findInstanceCount(binding Binding) (int, bool) {
 		return 0, false
 	}
 
-	instances, ok := nearestInstances.Value().(int)
-	return instances, ok
+	instances, ok := nearestInstances.Value().(int64)
+	return int(instances), ok
 }
 
 func findStaticIPRanges(binding Binding) ([]string, bool) {

@@ -5,8 +5,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Parsing YAML", func() {
-	Describe("maps", func() {
+var _ = Describe("YAML Parser", func() {
+
+	Context("value is a map", func() {
 		It("parses maps as strings mapping to Nodes", func() {
 			parsed, err := Parse("test", []byte(`foo: "fizz \"buzz\""`))
 			Expect(err).NotTo(HaveOccurred())
@@ -18,38 +19,49 @@ var _ = Describe("Parsing YAML", func() {
 			parsesAs("foo: >\n  sup\n  :3", map[string]Node{"foo": node("sup :3")})
 		})
 
-		Context("when the keys are not strings", func() {
+		Context("keys are not strings", func() {
 			It("fails", func() {
 				_, err := Parse("test", []byte("1: foo"))
-				Expect(err).To(Equal(NonStringKeyError{Key: 1}))
+				Expect(err).To(BeAssignableToTypeOf(NonStringKeyError{}))
 			})
 		})
 	})
 
-	Describe("lists", func() {
+	Context("value is a list", func() {
 		It("parses with Node contents", func() {
 			parsesAs("- 1\n- two", []Node{node(1), node("two")})
 		})
 	})
 
-	Describe("integers", func() {
+	Context("value is an integer", func() {
 		It("parses as ints", func() {
 			parsesAs("1", 1)
 			parsesAs("-1", -1)
 		})
 	})
 
-	Describe("floats", func() {
+	Context("value is a float", func() {
 		It("parses as float64s", func() {
 			parsesAs("1.0", 1.0)
 			parsesAs("-1.0", -1.0)
 		})
 	})
 
-	Describe("booleans", func() {
+	Context("value is a boolean", func() {
 		It("parses as bools", func() {
 			parsesAs("true", true)
 			parsesAs("false", false)
+		})
+	})
+
+	Context("value type is unsupported (datetime)", func() {
+		It("fails", func() {
+			sourceName := "test"
+			source := []byte("2002-12-14")
+
+			_, err := Parse(sourceName, source)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("unknown type"))
 		})
 	})
 })

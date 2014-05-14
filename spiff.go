@@ -9,8 +9,7 @@ import (
 
 	"github.com/codegangsta/cli"
 
-	"launchpad.net/goyaml"
-
+	"github.com/cloudfoundry-incubator/candiedyaml"
 	"github.com/cloudfoundry-incubator/spiff/compare"
 	"github.com/cloudfoundry-incubator/spiff/flow"
 	"github.com/cloudfoundry-incubator/spiff/yaml"
@@ -20,7 +19,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "spiff"
 	app.Usage = "BOSH deployment manifest toolkit"
-	app.Version = "1.0.0"
+	app.Version = "1.0.1"
 
 	app.Commands = []cli.Command{
 		{
@@ -86,7 +85,7 @@ func merge(templateFilePath string, stubFilePaths []string) {
 		log.Fatalln("error generating manifest:", err)
 	}
 
-	yaml, err := goyaml.Marshal(flowed)
+	yaml, err := candiedyaml.Marshal(flowed)
 	if err != nil {
 		log.Fatalln("error marshalling manifest:", err)
 	}
@@ -126,7 +125,7 @@ func diff(aFilePath, bFilePath string) {
 		fmt.Println("Difference in", strings.Join(diff.Path, "."))
 
 		if diff.A != nil {
-			ayaml, err := goyaml.Marshal(diff.A)
+			ayaml, err := candiedyaml.Marshal(diff.A)
 			if err != nil {
 				panic(err)
 			}
@@ -135,7 +134,7 @@ func diff(aFilePath, bFilePath string) {
 		}
 
 		if diff.B != nil {
-			byaml, err := goyaml.Marshal(diff.B)
+			byaml, err := candiedyaml.Marshal(diff.B)
 			if err != nil {
 				panic(err)
 			}
