@@ -1,26 +1,27 @@
 {
 	"ImportPath": "github.com/cloudfoundry-incubator/spiff",
-	"GoVersion": "go1.2.1",
+	"GoVersion": "go1.2.2",
 	"Packages": [
 		"./..."
 	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/cloudfoundry-incubator/candiedyaml",
-			"Rev": "dfcb028513f33935d16a9c278a9b38c39dae6343"
+			"Rev": "50e233a7fb31a32b174c1263c7b786eba1fa79d4"
 		},
 		{
 			"ImportPath": "github.com/codegangsta/cli",
-			"Comment": "1.0.0-65-g820deef",
-			"Rev": "820deefc9031d101f085ef773425fc6ca7a5363e"
+			"Comment": "1.0.0-72-gbb91895",
+			"Rev": "bb9189510af1f49580c073c9e59e8bf288f0df27"
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",
-			"Rev": "51ddbbc2ace9f9ad4cf06ba63442ea2ef2019837"
+			"Comment": "v1.0.0-8-g291d5d8",
+			"Rev": "291d5d88535787731a9a43acfa0fa00d41aafaa8"
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
-			"Rev": "f5533d435ebfcf4fa0463202dc0e966b983618b8"
+			"Rev": "05c2b322d514282430789eb9ff8efee6c904cc77"
 		}
 	]
 }
