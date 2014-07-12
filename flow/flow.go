@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"sort"
 
 	"github.com/cloudfoundry-incubator/spiff/dynaml"
 	"github.com/cloudfoundry-incubator/spiff/yaml"
@@ -75,7 +76,13 @@ func flowMap(root yaml.Node, env Environment) yaml.Node {
 
 	newMap := make(map[string]yaml.Node)
 
-	for key, val := range rootMap {
+	sortedKeys := getSortedKeys(rootMap)
+
+	// iteration order matters for the "<<" operator, it must be the first key in the map that is handled
+	for i := range sortedKeys {
+		key := sortedKeys[i]
+		val := rootMap[key]
+
 		if key == "<<" {
 			base := flow(val, env, true)
 			baseMap, ok := base.Value().(map[string]yaml.Node)
@@ -180,4 +187,15 @@ func newEntries(a []yaml.Node, b []yaml.Node) []yaml.Node {
 	}
 
 	return added
+}
+
+func getSortedKeys(unsortedMap map[string]yaml.Node) []string {
+	keys := make([]string, len(unsortedMap))
+	i := 0
+	for k, _ := range unsortedMap {
+		keys[i] = k
+		i++
+	}
+	sort.Strings(keys)
+	return keys
 }

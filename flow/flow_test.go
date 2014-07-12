@@ -495,6 +495,9 @@ properties:
       <<: (( merge ))
       key: a
       val: b
+      some:
+        s: stuff
+        d: blah
 `)
 
 			stub := parseYAML(`
@@ -503,6 +506,8 @@ properties:
   something:
     foo:
       val: c
+      some:
+        go: home
 `)
 
 			resolved := parseYAML(`
@@ -512,6 +517,9 @@ properties:
     foo:
       key: a
       val: c
+      some:
+        s: stuff
+        d: blah
 `)
 
 			Expect(source).To(FlowAs(resolved, stub))
