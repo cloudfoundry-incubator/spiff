@@ -23,12 +23,12 @@ func (matcher *FlowAsMatcher) Match(source interface{}) (success bool, err error
 		return false, fmt.Errorf("Refusing to compare <nil> to <nil>.")
 	}
 
-	actual, err := Flow(source.(yaml.Node), matcher.Stubs...)
+	matcher.actual, err = Flow(source.(yaml.Node), matcher.Stubs...)
 	if err != nil {
 		return false, err
 	}
 
-	if actual.EquivalentToNode(matcher.Expected) {
+	if matcher.actual.EquivalentToNode(matcher.Expected) {
 		return true, nil
 	} else {
 		return false, nil
