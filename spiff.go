@@ -39,13 +39,19 @@ func main() {
 			Name:      "diff",
 			ShortName: "d",
 			Usage:     "structurally compare two YAML files",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "separator",
+					Usage: "separator to print between diffs",
+				},
+			},
 			Action: func(c *cli.Context) {
 				if len(c.Args()) < 2 {
 					cli.ShowCommandHelp(c, "diff")
 					os.Exit(1)
 				}
 
-				diff(c.Args()[0], c.Args()[1])
+				diff(c.Args()[0], c.Args()[1], c.String("separator"))
 			},
 		},
 	}
@@ -93,7 +99,7 @@ func merge(templateFilePath string, stubFilePaths []string) {
 	fmt.Println(string(yaml))
 }
 
-func diff(aFilePath, bFilePath string) {
+func diff(aFilePath, bFilePath string, separator string) {
 	aFile, err := ioutil.ReadFile(aFilePath)
 	if err != nil {
 		log.Fatalln("error reading a:", err)
@@ -141,5 +147,7 @@ func diff(aFilePath, bFilePath string) {
 
 			fmt.Printf("  %s has:\n    \x1b[32m%s\x1b[0m\n", bFilePath, strings.Replace(string(byaml), "\n", "\n    ", -1))
 		}
+
+		fmt.Printf(separator)
 	}
 }
