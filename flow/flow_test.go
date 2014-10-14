@@ -450,7 +450,6 @@ jobs:
   instances: 2
   networks:
   - name: some_network
-    static_ips: (( static_ips(0, 4) ))
 `)
 
 			resolved := parseYAML(`
@@ -476,9 +475,6 @@ jobs:
   instances: 2
   networks:
   - name: some_network
-    static_ips:
-    - 10.10.16.10
-    - 10.10.16.14
 `)
 
 			Expect(source).To(FlowAs(resolved))
