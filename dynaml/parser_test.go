@@ -41,12 +41,6 @@ var _ = Describe("parsing", func() {
 		})
 	})
 
-	Describe("auto", func() {
-		It("parses as a auto node with the given path", func() {
-			parsesAs("auto", AutoExpr{[]string{"foo", "bar"}}, "foo", "bar")
-		})
-	})
-
 	Describe("references", func() {
 		It("parses as a reference node", func() {
 			parsesAs("foo.bar-baz.fizz_buzz", ReferenceExpr{[]string{"foo", "bar-baz", "fizz_buzz"}})

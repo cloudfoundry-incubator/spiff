@@ -3,9 +3,6 @@ package flow
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"github.com/shutej/spiff/dynaml"
-	"github.com/shutej/spiff/yaml"
 )
 
 var _ = Describe("Flowing YAML", func() {
@@ -77,28 +74,6 @@ fizz: buzz
 
 				Expect(source).To(FlowAs(source, stub))
 			})
-		})
-	})
-
-	Context("when some dynaml nodes cannot be resolved", func() {
-		It("returns an error", func() {
-			source := parseYAML(`
----
-foo: (( auto ))
-`)
-
-			_, err := Flow(source)
-			Expect(err).To(Equal(UnresolvedNodes{
-				Nodes: []UnresolvedNode{
-					{
-						Node: yaml.NewNode(
-							dynaml.AutoExpr{Path: []string{"foo"}},
-							"test",
-						),
-						Context: []string{"foo"},
-					},
-				},
-			}))
 		})
 	})
 
@@ -389,7 +364,7 @@ properties:
 ---
 resource_pools:
   some_pool:
-    size: (( auto ))
+    size: 0
 
 jobs:
 - name: some_job
@@ -407,7 +382,7 @@ jobs:
 ---
 resource_pools:
   some_pool:
-    size: 5
+    size: 0
 
 jobs:
 - name: some_job

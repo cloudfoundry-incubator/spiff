@@ -14,13 +14,6 @@ var _ = Describe("Reporting unresolved nodes", func() {
 			Nodes: []UnresolvedNode{
 				{
 					Node: yaml.NewNode(
-						dynaml.AutoExpr{},
-						"some-file.yml",
-					),
-					Context: []string{"foo", "bar"},
-				},
-				{
-					Node: yaml.NewNode(
 						dynaml.MergeExpr{},
 						"some-other-file.yml",
 					),
@@ -31,7 +24,6 @@ var _ = Describe("Reporting unresolved nodes", func() {
 
 		Expect(err.Error()).To(Equal(
 			`unresolved nodes:
-	(( auto ))	in some-file.yml	foo.bar
 	(( merge ))	in some-other-file.yml	fizz.[2].buzz`))
 	})
 })

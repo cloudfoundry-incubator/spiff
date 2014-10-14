@@ -155,35 +155,6 @@ uri: (( "https://" domain ))
 
 In this example `uri` will resolve to the value `"https://example.com"`.
 
-## `(( auto ))`
-
-Context-sensitive automatic value calculation.
-
-In a resource pool's 'size' attribute, this means calculate based on the total
-instances of all jobs that declare themselves to be in the current resource
-pool.
-
-e.g.:
-
-```
-resource_pools:
-  - name: mypool
-    size: (( auto ))
-
-jobs:
-  - name: myjob
-    resource_pool: mypool
-    instances: 2
-  - name: myotherjob
-    resource_pool: mypool
-    instances: 3
-  - name: yetanotherjob
-    resource_pool: otherpool
-    instances: 3
-```
-
-In this case the resource pool size will resolve to '5'.
-
 ## `(( merge ))`
 
 Bring the current path in from the stub files that are being merged in.

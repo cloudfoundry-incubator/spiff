@@ -16,7 +16,7 @@ Concatenation <- Level0 [ \t\n\r]+ Level1
 Addition <- Level0 req_ws '+' req_ws Level1
 Subtraction <- Level0 req_ws '-' req_ws Level1
 
-Level0 <- Grouped / Call / Boolean / Nil / String / Integer / List / Merge / Auto / Reference
+Level0 <- Grouped / Call / Boolean / Nil / String / Integer / List / Merge / Reference
 
 Grouped <- '(' Expression ')'
 
@@ -38,8 +38,6 @@ List <- '[' Contents? ']'
 Contents <- Expression (Comma ws Expression)*
 
 Merge <- 'merge'
-
-Auto <- 'auto'
 
 Reference <- '.'? [a-zA-Z0-9_] [a-zA-Z0-9_\-]* ('.' [a-zA-Z0-9_] [a-zA-Z0-9_\-]* / '.' '[' [0-9]+ ']')*
 
