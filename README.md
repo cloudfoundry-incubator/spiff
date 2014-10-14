@@ -222,22 +222,3 @@ mything:
 
 This will try to merge in `mything.complicated_structure`, or, if it cannot be
 merged in, use the default specified in `foo.bar`.
-
-## `(( static_ips(0, 1, 3) ))`
-
-Generate a list of static IPs for a job.
-
-e.g.:
-
-```
-jobs:
-  - name: myjob
-    instances: 2
-    networks:
-    - name: mynetwork
-      static_ips: (( static_ips(0, 3, 4) ))
-```
-
-This will create 3 IPs from `mynetwork`s subnet, and return two entries, as
-there are only two instances. The two entries will be the 0th and 3rd offsets
-from the static IP ranges defined by the network.
