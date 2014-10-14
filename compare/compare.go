@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/shutej/spiff/yaml"
 )
 
 type Diff struct {

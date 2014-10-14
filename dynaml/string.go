@@ -3,7 +3,7 @@ package dynaml
 import (
 	"fmt"
 
-	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/shutej/spiff/yaml"
 )
 
 type StringExpr struct {

@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 
-	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/shutej/spiff/yaml"
 )
 
 var spiff string
@@ -15,7 +15,7 @@ var spiff string
 func Test(t *testing.T) {
 	BeforeSuite(func() {
 		var err error
-		spiff, err = gexec.Build("github.com/cloudfoundry-incubator/spiff")
+		spiff, err = gexec.Build("github.com/shutej/spiff")
 		Ω(err).ShouldNot(HaveOccurred())
 	})
 

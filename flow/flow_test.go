@@ -4,8 +4,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry-incubator/spiff/dynaml"
-	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/shutej/spiff/dynaml"
+	"github.com/shutej/spiff/yaml"
 )
 
 var _ = Describe("Flowing YAML", func() {

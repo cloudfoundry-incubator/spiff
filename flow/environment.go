@@ -1,7 +1,7 @@
 package flow
 
 import (
-	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/shutej/spiff/yaml"
 )
 
 type Scope []map[string]yaml.Node

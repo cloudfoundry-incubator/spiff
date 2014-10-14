@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/shutej/spiff/yaml"
 )
 
 func CascadeAs(expected yaml.Node, stubs ...yaml.Node) *CascadeAsMatcher {

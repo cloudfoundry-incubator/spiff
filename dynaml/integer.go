@@ -3,7 +3,7 @@ package dynaml
 import (
 	"strconv"
 
-	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/shutej/spiff/yaml"
 )
 
 type IntegerExpr struct {
