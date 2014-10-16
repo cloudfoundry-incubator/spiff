@@ -39,25 +39,41 @@ func (self *Phases) Next() {
 
 type Visitor func(yaml.Node) error
 
-// VisitFlow will iterate through phases, waiting until each phase reaches
-// stability before calling visitor with the resulting nodes.
+func (self *Phases) doPhase(source yaml.Node, stubs []yaml.Node) yaml.Node {
+	result := source
+
+	for {
+		environment := Environment{
+			Phases: self,
+			Stubs:  stubs,
+		}
+		next := flow(result, environment, true)
+
+		if reflect.DeepEqual(result, next) {
+			break
+		}
+
+		result = next
+	}
+
+	return result
+}
+
+func checkUnresolved(result yaml.Node) error {
+	unresolved := findUnresolvedNodes(result)
+	if len(unresolved) > 0 {
+		return UnresolvedNodes{unresolved}
+	}
+
+	return nil
+}
+
+// VisitFlow is like flow except that it runs in phases.
 func (self *Phases) VisitFlow(visitor Visitor, source yaml.Node, stubs ...yaml.Node) error {
 	result := source
 
 	for !self.Done() {
-		for {
-			environment := Environment{
-				Phases: self,
-				Stubs:  stubs,
-			}
-			next := flow(result, environment, true)
-
-			if reflect.DeepEqual(result, next) {
-				break
-			}
-
-			result = next
-		}
+		result = self.doPhase(result, stubs)
 
 		if err := visitor(result); err != nil {
 			return err
@@ -67,10 +83,25 @@ func (self *Phases) VisitFlow(visitor Visitor, source yaml.Node, stubs ...yaml.N
 	}
 
 	// This performs a final check to ensure that all data was resolved.
-	unresolved := findUnresolvedNodes(result)
-	if len(unresolved) > 0 {
-		return UnresolvedNodes{unresolved}
+	return checkUnresolved(result)
+}
+
+// VisitCascade is like Cascade except that it runs in phases.
+func (self *Phases) VisitCascade(visitor Visitor, template yaml.Node, templates ...yaml.Node) error {
+	for !self.Done() {
+		for i := len(templates) - 1; i >= 0; i-- {
+			templates[i] = self.doPhase(templates[i], templates[i+1:])
+		}
+
+		template = self.doPhase(template, templates)
+
+		if err := visitor(template); err != nil {
+			return err
+		}
+
+		self.Next()
 	}
 
-	return nil
+	// This performs a final check to ensure that all data was resolved.
+	return checkUnresolved(template)
 }
