@@ -7,8 +7,9 @@ import (
 type Scope []map[string]yaml.Node
 
 type Environment struct {
-	Scope Scope
-	Path  []string
+	Phases *Phases
+	Scope  Scope
+	Path   []string
 
 	Stubs []yaml.Node
 }
