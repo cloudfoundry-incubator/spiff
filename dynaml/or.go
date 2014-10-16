@@ -12,6 +12,10 @@ type OrExpr struct {
 	B Expression
 }
 
+func (e OrExpr) RequiresPhases() StringSet {
+	return StringSet(nil)
+}
+
 func (e OrExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 	a, ok := e.A.Evaluate(binding)
 	if ok {

@@ -12,6 +12,12 @@ type FakeBinding struct {
 	FoundInStubs    map[string]yaml.Node
 }
 
+func (c FakeBinding) ProvidesPhases(phases StringSet) bool {
+	// TODO(shutej): Test that phase delays work.  For now just assume all phases
+	// have happened...
+	return true
+}
+
 func (c FakeBinding) FindFromRoot(path []string) (yaml.Node, bool) {
 	val, found := c.FoundFromRoot[strings.Join(path, ".")]
 	return val, found

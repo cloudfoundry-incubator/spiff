@@ -10,6 +10,10 @@ type IntegerExpr struct {
 	Value int64
 }
 
+func (e IntegerExpr) RequiresPhases() StringSet {
+	return StringSet(nil)
+}
+
 func (e IntegerExpr) Evaluate(Binding) (yaml.Node, bool) {
 	return node(e.Value), true
 }

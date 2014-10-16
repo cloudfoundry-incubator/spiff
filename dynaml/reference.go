@@ -10,6 +10,10 @@ type ReferenceExpr struct {
 	Path []string
 }
 
+func (e ReferenceExpr) RequiresPhases() StringSet {
+	return StringSet(nil)
+}
+
 func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 	var step yaml.Node
 	var ok bool

@@ -11,6 +11,10 @@ type ListExpr struct {
 	Contents []Expression
 }
 
+func (e ListExpr) RequiresPhases() StringSet {
+	return StringSet(nil)
+}
+
 func (e ListExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 	nodes := []yaml.Node{}
 

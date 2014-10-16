@@ -11,6 +11,10 @@ type ConcatenationExpr struct {
 	B Expression
 }
 
+func (e ConcatenationExpr) RequiresPhases() StringSet {
+	return StringSet(nil)
+}
+
 func (e ConcatenationExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 	a, ok := e.A.Evaluate(binding)
 	if !ok {

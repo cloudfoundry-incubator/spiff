@@ -11,6 +11,10 @@ type AdditionExpr struct {
 	B Expression
 }
 
+func (e AdditionExpr) RequiresPhases() StringSet {
+	return StringSet(nil)
+}
+
 func (e AdditionExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 	a, ok := e.A.Evaluate(binding)
 	if !ok {

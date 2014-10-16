@@ -10,6 +10,10 @@ type BooleanExpr struct {
 	Value bool
 }
 
+func (e BooleanExpr) RequiresPhases() StringSet {
+	return StringSet(nil)
+}
+
 func (e BooleanExpr) Evaluate(Binding) (yaml.Node, bool) {
 	return node(e.Value), true
 }

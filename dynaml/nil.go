@@ -6,6 +6,10 @@ import (
 
 type NilExpr struct{}
 
+func (e NilExpr) RequiresPhases() StringSet {
+	return StringSet(nil)
+}
+
 func (e NilExpr) Evaluate(Binding) (yaml.Node, bool) {
 	return node(nil), true
 }

@@ -1,6 +1,7 @@
 package flow
 
 import (
+	"github.com/shutej/spiff/dynaml"
 	"github.com/shutej/spiff/yaml"
 )
 
@@ -12,6 +13,10 @@ type Environment struct {
 	Path   []string
 
 	Stubs []yaml.Node
+}
+
+func (e Environment) ProvidesPhases(phases dynaml.StringSet) bool {
+	return e.Phases.HasAll(phases)
 }
 
 func (e Environment) FindFromRoot(path []string) (yaml.Node, bool) {

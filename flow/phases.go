@@ -3,37 +3,37 @@ package flow
 import (
 	"reflect"
 
+	"github.com/shutej/spiff/dynaml"
 	"github.com/shutej/spiff/yaml"
 )
 
 type Phases struct {
 	order []string
-	done  map[string]bool
+	done  dynaml.StringSet
 }
 
 func NewPhases(order ...string) *Phases {
 	return &Phases{
 		order: order,
-		done:  map[string]bool{},
+		done:  dynaml.StringSet{},
 	}
 }
 
 func (self *Phases) Done() bool {
-	return len(self.order) == len(self.done)
+	return len(self.order) == self.done.Len()
 }
 
-func (self *Phases) Query(phase string) bool {
-	done, ok := self.done[phase]
-	return ok && done
+func (self *Phases) HasAll(phases dynaml.StringSet) bool {
+	return phases.Difference(self.done).Len() == 0
 }
 
 func (self *Phases) Current() string {
-	return self.order[len(self.done)]
+	return self.order[self.done.Len()]
 }
 
 func (self *Phases) Next() {
 	if !self.Done() {
-		self.done[self.Current()] = true
+		self.done.Add(self.Current())
 	}
 }
 

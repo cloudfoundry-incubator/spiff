@@ -12,6 +12,10 @@ type CallExpr struct {
 	Arguments []Expression
 }
 
+func (e CallExpr) RequiresPhases() StringSet {
+	return StringSet(nil)
+}
+
 func (e CallExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 	// TODO(j): Evaluate built-in functions here.
 	return nil, false

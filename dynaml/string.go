@@ -10,6 +10,10 @@ type StringExpr struct {
 	Value string
 }
 
+func (e StringExpr) RequiresPhases() StringSet {
+	return StringSet(nil)
+}
+
 func (e StringExpr) Evaluate(Binding) (yaml.Node, bool) {
 	return node(e.Value), true
 }

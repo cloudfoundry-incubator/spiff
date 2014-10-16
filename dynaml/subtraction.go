@@ -11,6 +11,10 @@ type SubtractionExpr struct {
 	B Expression
 }
 
+func (e SubtractionExpr) RequiresPhases() StringSet {
+	return StringSet(nil)
+}
+
 func (e SubtractionExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 	a, ok := e.A.Evaluate(binding)
 	if !ok {
