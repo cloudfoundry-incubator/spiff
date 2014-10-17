@@ -12,7 +12,11 @@ type ListExpr struct {
 }
 
 func (e ListExpr) RequiresPhases() StringSet {
-	return StringSet(nil)
+	retval := StringSet{}
+	for _, c := range e.Contents {
+		retval.Update(c.RequiresPhases())
+	}
+	return retval
 }
 
 func (e ListExpr) Evaluate(binding Binding) (yaml.Node, bool) {

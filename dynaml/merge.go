@@ -13,6 +13,7 @@ func (e MergeExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 }
 
 func (e MergeExpr) RequiresPhases() StringSet {
+	// XXX(j): This requires thinking through.
 	return StringSet(nil)
 }
 

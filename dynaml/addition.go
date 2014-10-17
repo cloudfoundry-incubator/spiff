@@ -12,7 +12,7 @@ type AdditionExpr struct {
 }
 
 func (e AdditionExpr) RequiresPhases() StringSet {
-	return StringSet(nil)
+	return e.A.RequiresPhases().Union(e.B.RequiresPhases())
 }
 
 func (e AdditionExpr) Evaluate(binding Binding) (yaml.Node, bool) {

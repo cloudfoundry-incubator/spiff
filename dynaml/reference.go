@@ -11,6 +11,7 @@ type ReferenceExpr struct {
 }
 
 func (e ReferenceExpr) RequiresPhases() StringSet {
+	// XXX(j): This requires thinking through.
 	return StringSet(nil)
 }
 
