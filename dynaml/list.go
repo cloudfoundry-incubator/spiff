@@ -11,10 +11,10 @@ type ListExpr struct {
 	Contents []Expression
 }
 
-func (e ListExpr) RequiresPhases() StringSet {
+func (e ListExpr) RequiresPhases(binding Binding) StringSet {
 	retval := StringSet{}
 	for _, c := range e.Contents {
-		retval.Update(c.RequiresPhases())
+		retval.Update(c.RequiresPhases(binding))
 	}
 	return retval
 }

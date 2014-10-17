@@ -10,7 +10,7 @@ type IntegerExpr struct {
 	Value int64
 }
 
-func (e IntegerExpr) RequiresPhases() StringSet {
+func (e IntegerExpr) RequiresPhases(_ Binding) StringSet {
 	return StringSet(nil)
 }
 

@@ -10,7 +10,7 @@ type BooleanExpr struct {
 	Value bool
 }
 
-func (e BooleanExpr) RequiresPhases() StringSet {
+func (e BooleanExpr) RequiresPhases(_ Binding) StringSet {
 	return StringSet(nil)
 }
 

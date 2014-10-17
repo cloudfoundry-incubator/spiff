@@ -6,7 +6,7 @@ import (
 
 type NilExpr struct{}
 
-func (e NilExpr) RequiresPhases() StringSet {
+func (e NilExpr) RequiresPhases(_ Binding) StringSet {
 	return StringSet(nil)
 }
 

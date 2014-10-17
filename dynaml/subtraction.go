@@ -11,8 +11,8 @@ type SubtractionExpr struct {
 	B Expression
 }
 
-func (e SubtractionExpr) RequiresPhases() StringSet {
-	return e.A.RequiresPhases().Union(e.B.RequiresPhases())
+func (e SubtractionExpr) RequiresPhases(binding Binding) StringSet {
+	return e.A.RequiresPhases(binding).Union(e.B.RequiresPhases(binding))
 }
 
 func (e SubtractionExpr) Evaluate(binding Binding) (yaml.Node, bool) {

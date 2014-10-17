@@ -18,6 +18,10 @@ func (c FakeBinding) ProvidesPhases(phases StringSet) bool {
 	return true
 }
 
+func (_ FakeBinding) Builtin(name string) (Builtin, bool) {
+	return Builtin{}, false
+}
+
 func (c FakeBinding) FindFromRoot(path []string) (yaml.Node, bool) {
 	val, found := c.FoundFromRoot[strings.Join(path, ".")]
 	return val, found

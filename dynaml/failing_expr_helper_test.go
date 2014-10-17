@@ -6,7 +6,7 @@ import (
 
 type FailingExpr struct{}
 
-func (e FailingExpr) RequiresPhases() StringSet {
+func (e FailingExpr) RequiresPhases(_ Binding) StringSet {
 	return StringSet(nil)
 }
 

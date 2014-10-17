@@ -10,7 +10,7 @@ type ReferenceExpr struct {
 	Path []string
 }
 
-func (e ReferenceExpr) RequiresPhases() StringSet {
+func (e ReferenceExpr) RequiresPhases(_ Binding) StringSet {
 	// XXX(j): This requires thinking through.
 	return StringSet(nil)
 }

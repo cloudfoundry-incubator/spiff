@@ -10,7 +10,7 @@ type StringExpr struct {
 	Value string
 }
 
-func (e StringExpr) RequiresPhases() StringSet {
+func (e StringExpr) RequiresPhases(binding Binding) StringSet {
 	return StringSet(nil)
 }
 

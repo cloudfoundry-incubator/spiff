@@ -12,8 +12,17 @@ type CallExpr struct {
 	Arguments []Expression
 }
 
-func (e CallExpr) RequiresPhases() StringSet {
-	return StringSet(nil)
+func (e CallExpr) RequiresPhases(binding Binding) StringSet {
+	retval := StringSet{}
+	for _, a := range e.Arguments {
+		retval.Update(a.RequiresPhases(binding))
+	}
+
+	builtin, ok := binding.Builtin(e.Name)
+	if ok {
+		retval.Update(builtin.RequiredPhases)
+	}
+	return retval
 }
 
 func (e CallExpr) Evaluate(binding Binding) (yaml.Node, bool) {

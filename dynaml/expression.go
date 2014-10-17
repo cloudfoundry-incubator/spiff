@@ -5,13 +5,16 @@ import (
 )
 
 type Binding interface {
+	ProvidesPhases(StringSet) bool
+	Builtin(name string) (Builtin, bool)
+
 	FindFromRoot([]string) (yaml.Node, bool)
 	FindReference([]string) (yaml.Node, bool)
 	FindInStubs([]string) (yaml.Node, bool)
-	ProvidesPhases(StringSet) bool
 }
 
 type Expression interface {
-	RequiresPhases() StringSet
+	RequiresPhases(Binding) StringSet
+
 	Evaluate(Binding) (yaml.Node, bool)
 }

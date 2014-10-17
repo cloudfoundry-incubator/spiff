@@ -12,8 +12,8 @@ type OrExpr struct {
 	B Expression
 }
 
-func (e OrExpr) RequiresPhases() StringSet {
-	return e.A.RequiresPhases().Union(e.B.RequiresPhases())
+func (e OrExpr) RequiresPhases(binding Binding) StringSet {
+	return e.A.RequiresPhases(binding).Union(e.B.RequiresPhases(binding))
 }
 
 func (e OrExpr) Evaluate(binding Binding) (yaml.Node, bool) {

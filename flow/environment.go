@@ -8,11 +8,17 @@ import (
 type Scope []map[string]yaml.Node
 
 type Environment struct {
+	dynaml.Builtins
 	Phases *Phases
 	Scope  Scope
 	Path   []string
 
 	Stubs []yaml.Node
+}
+
+func (e Environment) Builtin(name string) (dynaml.Builtin, bool) {
+	b, ok := e.Builtins[name]
+	return b, ok
 }
 
 func (e Environment) ProvidesPhases(phases dynaml.StringSet) bool {

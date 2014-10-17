@@ -11,8 +11,8 @@ type ConcatenationExpr struct {
 	B Expression
 }
 
-func (e ConcatenationExpr) RequiresPhases() StringSet {
-	return e.A.RequiresPhases().Union(e.B.RequiresPhases())
+func (e ConcatenationExpr) RequiresPhases(binding Binding) StringSet {
+	return e.A.RequiresPhases(binding).Union(e.B.RequiresPhases(binding))
 }
 
 func (e ConcatenationExpr) Evaluate(binding Binding) (yaml.Node, bool) {

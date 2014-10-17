@@ -11,8 +11,8 @@ type AdditionExpr struct {
 	B Expression
 }
 
-func (e AdditionExpr) RequiresPhases() StringSet {
-	return e.A.RequiresPhases().Union(e.B.RequiresPhases())
+func (e AdditionExpr) RequiresPhases(binding Binding) StringSet {
+	return e.A.RequiresPhases(binding).Union(e.B.RequiresPhases(binding))
 }
 
 func (e AdditionExpr) Evaluate(binding Binding) (yaml.Node, bool) {
