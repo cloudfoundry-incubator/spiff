@@ -1,7 +1,9 @@
 package dynaml
 
+import "reflect"
+
 type Builtin struct {
-	Function       interface{}
+	Function       reflect.Value
 	RequiredPhases StringSet
 }
 
@@ -11,7 +13,7 @@ func (self Builtins) AddBuiltin(name string, function interface{}, requiredPhase
 	ss := StringSet{}
 	ss.UpdateSlice(requiredPhases)
 	self[name] = Builtin{
-		Function:       function,
+		Function:       reflect.ValueOf(function),
 		RequiredPhases: ss,
 	}
 }
