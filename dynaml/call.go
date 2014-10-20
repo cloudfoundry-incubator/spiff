@@ -35,12 +35,16 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 		}
 
 		args := make([]reflect.Value, 0, t.NumIn())
-		for _, arg := range e.Arguments {
+		for i, arg := range e.Arguments {
 			index, ok := arg.Evaluate(binding)
 			if !ok {
 				return nil, false
 			}
-			args = append(args, reflect.ValueOf(index.Value()))
+			v := reflect.ValueOf(index.Value())
+			if !v.Type().AssignableTo(t.In(i)) {
+				return nil, false
+			}
+			args = append(args, v)
 		}
 
 		retval := builtin.Function.Call(args)
