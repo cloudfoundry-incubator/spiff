@@ -8,15 +8,14 @@ import (
 
 type FakeBinding struct {
 	Builtins        Builtins
+	ProvidedPhases  StringSet
 	FoundFromRoot   map[string]yaml.Node
 	FoundReferences map[string]yaml.Node
 	FoundInStubs    map[string]yaml.Node
 }
 
 func (c FakeBinding) ProvidesPhases(phases StringSet) bool {
-	// TODO(shutej): Test that phase delays work.  For now just assume all phases
-	// have happened...
-	return true
+	return phases.Difference(c.ProvidedPhases).Len() == 0
 }
 
 func (c FakeBinding) Builtin(name string) (Builtin, bool) {

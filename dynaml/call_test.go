@@ -21,4 +21,16 @@ var _ = Describe("Builtin call", func() {
 	It("catches type mismatches", func() {
 		Expect(CallExpr{Name: "phase0_int_id", Arguments: []Expression{StringExpr{"foo"}}}).To(FailToEvaluate(FakeBinding{}))
 	})
+
+	It("does not evaluate functions require a phase to elapse", func() {
+		expr := CallExpr{Name: "phase1_int_id", Arguments: []Expression{IntegerExpr{25}}}
+		Expect(expr).To(DelayEvaluate(FakeBinding{}))
+	})
+
+	It("does evaluate functions after their phase has elapsed", func() {
+		expr := CallExpr{Name: "phase1_int_id", Arguments: []Expression{IntegerExpr{25}}}
+		binding := FakeBinding{}
+		binding.ProvidedPhases.Add("phase1")
+		Expect(expr).To(EvaluateAs(25, binding))
+	})
 })

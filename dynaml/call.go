@@ -2,6 +2,7 @@ package dynaml
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 	"strings"
 
@@ -26,7 +27,17 @@ func (e CallExpr) RequiresPhases(binding Binding) StringSet {
 	return retval
 }
 
+func (e CallExpr) guard(binding Binding) bool {
+	return binding.ProvidesPhases(e.RequiresPhases(binding))
+}
+
 func (e CallExpr) Evaluate(binding Binding) (yaml.Node, bool) {
+	// This acts as the identity function.
+	if !e.guard(binding) {
+		log.Printf("guard bailing")
+		return node(e), true
+	}
+
 	builtin, ok := binding.Builtin(e.Name)
 	if ok {
 		t := builtin.Function.Type()
@@ -53,6 +64,7 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 		}
 		return node(retval[0].Interface()), true
 	}
+
 	return nil, false
 }
 
