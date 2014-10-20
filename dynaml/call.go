@@ -40,7 +40,7 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 			if !ok {
 				return nil, false
 			}
-			args = append(args, reflect.ValueOf(index))
+			args = append(args, reflect.ValueOf(index.Value()))
 		}
 
 		retval := builtin.Function.Call(args)
