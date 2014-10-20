@@ -2,7 +2,6 @@ package dynaml
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 
@@ -34,7 +33,6 @@ func (e CallExpr) guard(binding Binding) bool {
 func (e CallExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 	// This acts as the identity function.
 	if !e.guard(binding) {
-		log.Printf("guard bailing")
 		return node(e), true
 	}
 
