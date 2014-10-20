@@ -29,7 +29,9 @@ var _ = Describe("Builtin call", func() {
 
 	It("does evaluate functions after their phase has elapsed", func() {
 		expr := CallExpr{Name: "phase1_int_id", Arguments: []Expression{IntegerExpr{25}}}
-		binding := FakeBinding{}
+		binding := FakeBinding{
+			ProvidedPhases: StringSet{},
+		}
 		binding.ProvidedPhases.Add("phase1")
 		Expect(expr).To(EvaluateAs(25, binding))
 	})
