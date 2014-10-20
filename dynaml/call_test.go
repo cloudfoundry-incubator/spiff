@@ -22,7 +22,7 @@ var _ = Describe("Builtin call", func() {
 		Expect(CallExpr{Name: "phase0_int_id", Arguments: []Expression{StringExpr{"foo"}}}).To(FailToEvaluate(FakeBinding{}))
 	})
 
-	It("does not evaluate functions require a phase to elapse", func() {
+	It("does not evaluate functions before their phase has elapsed", func() {
 		expr := CallExpr{Name: "phase1_int_id", Arguments: []Expression{IntegerExpr{25}}}
 		Expect(expr).To(DelayEvaluate(FakeBinding{}))
 	})
