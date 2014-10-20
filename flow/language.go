@@ -7,31 +7,32 @@ import (
 	"github.com/shutej/spiff/yaml"
 )
 
-type Phases struct {
+type Language struct {
+	dynaml.Builtins
 	order []string
 	done  dynaml.StringSet
 }
 
-func NewPhases(order ...string) *Phases {
-	return &Phases{
+func NewLanguage(order ...string) *Language {
+	return &Language{
 		order: order,
 		done:  dynaml.StringSet{},
 	}
 }
 
-func (self *Phases) Done() bool {
+func (self *Language) Done() bool {
 	return len(self.order) == self.done.Len()
 }
 
-func (self *Phases) HasAll(phases dynaml.StringSet) bool {
+func (self *Language) HasAll(phases dynaml.StringSet) bool {
 	return phases.Difference(self.done).Len() == 0
 }
 
-func (self *Phases) Current() string {
+func (self *Language) Current() string {
 	return self.order[self.done.Len()]
 }
 
-func (self *Phases) Next() {
+func (self *Language) Next() {
 	if !self.Done() {
 		self.done.Add(self.Current())
 	}
@@ -39,13 +40,13 @@ func (self *Phases) Next() {
 
 type Visitor func(yaml.Node) error
 
-func (self *Phases) doPhase(source yaml.Node, stubs []yaml.Node) yaml.Node {
+func (self *Language) doPhase(source yaml.Node, stubs []yaml.Node) yaml.Node {
 	result := source
 
 	for {
 		environment := Environment{
-			Phases: self,
-			Stubs:  stubs,
+			Language: self,
+			Stubs:    stubs,
 		}
 		next := flow(result, environment, true)
 
@@ -69,7 +70,7 @@ func checkUnresolved(result yaml.Node) error {
 }
 
 // VisitFlow is like flow except that it runs in phases.
-func (self *Phases) VisitFlow(visitor Visitor, source yaml.Node, stubs ...yaml.Node) error {
+func (self *Language) VisitFlow(visitor Visitor, source yaml.Node, stubs ...yaml.Node) error {
 	result := source
 
 	for !self.Done() {
@@ -87,7 +88,7 @@ func (self *Phases) VisitFlow(visitor Visitor, source yaml.Node, stubs ...yaml.N
 }
 
 // VisitCascade is like Cascade except that it runs in phases.
-func (self *Phases) VisitCascade(visitor Visitor, template yaml.Node, templates ...yaml.Node) error {
+func (self *Language) VisitCascade(visitor Visitor, template yaml.Node, templates ...yaml.Node) error {
 	for !self.Done() {
 		for i := len(templates) - 1; i >= 0; i-- {
 			templates[i] = self.doPhase(templates[i], templates[i+1:])

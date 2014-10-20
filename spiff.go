@@ -4,41 +4,25 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/shutej/spiff/flow"
 	"github.com/shutej/spiff/yaml"
 )
 
-func Merge(templateFilePath string, stubFilePaths []string) (yaml.Node, error) {
-	templateFile, err := ioutil.ReadFile(templateFilePath)
-	if err != nil {
-		return nil, fmt.Errorf("error reading template: %s", err.Error())
-	}
+func ParseAll(paths []string) ([]yaml.Node, error) {
+	nodes := []yaml.Node{}
 
-	templateYAML, err := yaml.Parse(templateFilePath, templateFile)
-	if err != nil {
-		return nil, fmt.Errorf("error parsing template: %s", err.Error())
-	}
-
-	stubs := []yaml.Node{}
-
-	for _, stubFilePath := range stubFilePaths {
-		stubFile, err := ioutil.ReadFile(stubFilePath)
+	for _, path := range paths {
+		file, err := ioutil.ReadFile(path)
 		if err != nil {
-			return nil, fmt.Errorf("error reading stub: %s", err.Error())
+			return nil, fmt.Errorf("error reading path %q: %s", path, err.Error())
 		}
 
-		stubYAML, err := yaml.Parse(stubFilePath, stubFile)
+		node, err := yaml.Parse(path, file)
 		if err != nil {
 			return nil, fmt.Errorf("error parsing stub: %s", err.Error())
 		}
 
-		stubs = append(stubs, stubYAML)
+		nodes = append(nodes, node)
 	}
 
-	flowed, err := flow.Cascade(templateYAML, stubs...)
-	if err != nil {
-		return nil, fmt.Errorf("error generating manifest: %s", err.Error())
-	}
-
-	return flowed, nil
+	return nodes, nil
 }
