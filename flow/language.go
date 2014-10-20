@@ -15,8 +15,9 @@ type Language struct {
 
 func NewLanguage(order ...string) *Language {
 	return &Language{
-		order: order,
-		done:  dynaml.StringSet{},
+		Builtins: dynaml.Builtins{},
+		order:    order,
+		done:     dynaml.StringSet{},
 	}
 }
 
