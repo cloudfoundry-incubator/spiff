@@ -155,35 +155,6 @@ uri: (( "https://" domain ))
 
 In this example `uri` will resolve to the value `"https://example.com"`.
 
-## `(( auto ))`
-
-Context-sensitive automatic value calculation.
-
-In a resource pool's 'size' attribute, this means calculate based on the total
-instances of all jobs that declare themselves to be in the current resource
-pool.
-
-e.g.:
-
-```
-resource_pools:
-  - name: mypool
-    size: (( auto ))
-
-jobs:
-  - name: myjob
-    resource_pool: mypool
-    instances: 2
-  - name: myotherjob
-    resource_pool: mypool
-    instances: 3
-  - name: yetanotherjob
-    resource_pool: otherpool
-    instances: 3
-```
-
-In this case the resource pool size will resolve to '5'.
-
 ## `(( merge ))`
 
 Bring the current path in from the stub files that are being merged in.
@@ -222,22 +193,3 @@ mything:
 
 This will try to merge in `mything.complicated_structure`, or, if it cannot be
 merged in, use the default specified in `foo.bar`.
-
-## `(( static_ips(0, 1, 3) ))`
-
-Generate a list of static IPs for a job.
-
-e.g.:
-
-```
-jobs:
-  - name: myjob
-    instances: 2
-    networks:
-    - name: mynetwork
-      static_ips: (( static_ips(0, 3, 4) ))
-```
-
-This will create 3 IPs from `mynetwork`s subnet, and return two entries, as
-there are only two instances. The two entries will be the 0th and 3rd offsets
-from the static IP ranges defined by the network.

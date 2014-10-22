@@ -1,16 +1,27 @@
 package flow
 
 import (
-	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/shutej/spiff/dynaml"
+	"github.com/shutej/spiff/yaml"
 )
 
 type Scope []map[string]yaml.Node
 
 type Environment struct {
-	Scope Scope
-	Path  []string
+	Language *Language
+	Scope    Scope
+	Path     []string
 
 	Stubs []yaml.Node
+}
+
+func (e Environment) Builtin(name string) (dynaml.Builtin, bool) {
+	b, ok := e.Language.Builtins[name]
+	return b, ok
+}
+
+func (e Environment) ProvidesPhases(phases dynaml.StringSet) bool {
+	return e.Language.HasAll(phases)
 }
 
 func (e Environment) FindFromRoot(path []string) (yaml.Node, bool) {

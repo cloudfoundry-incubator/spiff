@@ -3,11 +3,16 @@ package dynaml
 import (
 	"strings"
 
-	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/shutej/spiff/yaml"
 )
 
 type ReferenceExpr struct {
 	Path []string
+}
+
+func (e ReferenceExpr) RequiresPhases(_ Binding) StringSet {
+	// XXX(j): This requires thinking through.
+	return StringSet(nil)
 }
 
 func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, bool) {

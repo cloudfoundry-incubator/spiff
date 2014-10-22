@@ -3,11 +3,15 @@ package dynaml
 import (
 	"fmt"
 
-	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/shutej/spiff/yaml"
 )
 
 type BooleanExpr struct {
 	Value bool
+}
+
+func (e BooleanExpr) RequiresPhases(_ Binding) StringSet {
+	return StringSet(nil)
 }
 
 func (e BooleanExpr) Evaluate(Binding) (yaml.Node, bool) {

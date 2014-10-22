@@ -1,11 +1,16 @@
 package dynaml
 
 import (
-	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/shutej/spiff/yaml"
 )
 
 type MergeExpr struct {
 	Path []string
+}
+
+func (e MergeExpr) RequiresPhases(_ Binding) StringSet {
+	// XXX(j): This requires thinking through.
+	return StringSet(nil)
 }
 
 func (e MergeExpr) Evaluate(binding Binding) (yaml.Node, bool) {

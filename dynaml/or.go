@@ -4,12 +4,16 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/shutej/spiff/yaml"
 )
 
 type OrExpr struct {
 	A Expression
 	B Expression
+}
+
+func (e OrExpr) RequiresPhases(binding Binding) StringSet {
+	return e.A.RequiresPhases(binding).Union(e.B.RequiresPhases(binding))
 }
 
 func (e OrExpr) Evaluate(binding Binding) (yaml.Node, bool) {

@@ -3,147 +3,36 @@ package dynaml
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
-var _ = Describe("calls", func() {
-	Describe("static_ips(ips...)", func() {
-		expr := CallExpr{
-			Name: "static_ips",
-			Arguments: []Expression{
-				IntegerExpr{0},
-				IntegerExpr{4},
-			},
+var _ = Describe("Builtin call", func() {
+	It("handles bad names correctly", func() {
+		Expect(CallExpr{Name: "function_does_not_exist", Arguments: []Expression{}}).To(FailToEvaluate(FakeBinding{}))
+	})
+
+	It("evaluates simple integer expressions correctly", func() {
+		Expect(CallExpr{Name: "phase0_int_id", Arguments: []Expression{IntegerExpr{25}}}).To(EvaluateAs(25, FakeBinding{}))
+	})
+
+	It("evaluates simple string expressions correctly", func() {
+		Expect(CallExpr{Name: "phase0_string_id", Arguments: []Expression{StringExpr{"foo"}}}).To(EvaluateAs("foo", FakeBinding{}))
+	})
+
+	It("catches type mismatches", func() {
+		Expect(CallExpr{Name: "phase0_int_id", Arguments: []Expression{StringExpr{"foo"}}}).To(FailToEvaluate(FakeBinding{}))
+	})
+
+	It("does not evaluate functions before their phase has elapsed", func() {
+		expr := CallExpr{Name: "phase1_int_id", Arguments: []Expression{IntegerExpr{25}}}
+		Expect(expr).To(DelayEvaluate(FakeBinding{}))
+	})
+
+	It("does evaluate functions after their phase has elapsed", func() {
+		expr := CallExpr{Name: "phase1_int_id", Arguments: []Expression{IntegerExpr{25}}}
+		binding := FakeBinding{
+			ProvidedPhases: StringSet{},
 		}
-
-		It("returns a set of ips from the given network's subnets", func() {
-			subnets := parseYAML(`
-- static:
-    - 10.10.16.10
-- static:
-    - 10.10.16.11 - 10.10.16.254
-`)
-
-			binding := FakeBinding{
-				FoundReferences: map[string]yaml.Node{
-					"name":      node("cf1"),
-					"instances": node(2),
-				},
-				FoundFromRoot: map[string]yaml.Node{
-					"networks.cf1.subnets": subnets,
-				},
-			}
-
-			Expect(expr).To(
-				EvaluateAs(
-					[]yaml.Node{node("10.10.16.10"), node("10.10.16.14")},
-					binding,
-				),
-			)
-		})
-
-		It("limits the IPs to the number of instances", func() {
-			subnets := parseYAML(`
-- static:
-    - 10.10.16.10 - 10.10.16.254
-`)
-
-			binding := FakeBinding{
-				FoundReferences: map[string]yaml.Node{
-					"name":      node("cf1"),
-					"instances": node(1),
-				},
-				FoundFromRoot: map[string]yaml.Node{
-					"networks.cf1.subnets": subnets,
-				},
-			}
-
-			Expect(expr).To(
-				EvaluateAs(
-					[]yaml.Node{node("10.10.16.10")},
-					binding,
-				),
-			)
-		})
-
-		Context("when the instance count is dynamic", func() {
-			It("fails", func() {
-				subnets := parseYAML(`
-- static:
-    - 10.10.16.10 - 10.10.16.254
-`)
-
-				binding := FakeBinding{
-					FoundReferences: map[string]yaml.Node{
-						"name":      node("cf1"),
-						"instances": node(MergeExpr{}),
-					},
-					FoundFromRoot: map[string]yaml.Node{
-						"networks.cf1.subnets": subnets,
-					},
-				}
-
-				Expect(expr).To(FailToEvaluate(binding))
-			})
-		})
-
-		Context("when there are not enough IPs for the number of instances", func() {
-			It("fails", func() {
-				subnets := parseYAML(`
-- static:
-    - 10.10.16.10 - 10.10.16.32
-`)
-
-				binding := FakeBinding{
-					FoundReferences: map[string]yaml.Node{
-						"name":      node("cf1"),
-						"instances": node(42),
-					},
-					FoundFromRoot: map[string]yaml.Node{
-						"networks.cf1.subnets": subnets,
-					},
-				}
-
-				Expect(expr).To(FailToEvaluate(binding))
-			})
-		})
-
-		Context("when there are singular static IPs listed", func() {
-			It("includes them in the pool", func() {
-				subnets := parseYAML(`
-- static:
-    - 10.10.16.10 - 10.10.16.32
-    - 10.10.16.33
-    - 10.10.16.34
-`)
-
-				expr := CallExpr{
-					Name: "static_ips",
-					Arguments: []Expression{
-						IntegerExpr{0},
-						IntegerExpr{4},
-						IntegerExpr{23},
-					},
-				}
-
-				binding := FakeBinding{
-					FoundReferences: map[string]yaml.Node{
-						"name":      node("cf1"),
-						"instances": node(3),
-					},
-					FoundFromRoot: map[string]yaml.Node{
-						"networks.cf1.subnets": subnets,
-					},
-				}
-
-				Expect(expr).To(
-					EvaluateAs(
-						[]yaml.Node{node("10.10.16.10"), node("10.10.16.14"), node("10.10.16.33")},
-						binding,
-					),
-				)
-			})
-		})
+		binding.ProvidedPhases.Add("phase1")
+		Expect(expr).To(EvaluateAs(25, binding))
 	})
 })

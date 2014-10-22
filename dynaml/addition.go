@@ -3,12 +3,16 @@ package dynaml
 import (
 	"fmt"
 
-	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/shutej/spiff/yaml"
 )
 
 type AdditionExpr struct {
 	A Expression
 	B Expression
+}
+
+func (e AdditionExpr) RequiresPhases(binding Binding) StringSet {
+	return e.A.RequiresPhases(binding).Union(e.B.RequiresPhases(binding))
 }
 
 func (e AdditionExpr) Evaluate(binding Binding) (yaml.Node, bool) {

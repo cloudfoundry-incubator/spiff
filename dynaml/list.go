@@ -4,11 +4,19 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/shutej/spiff/yaml"
 )
 
 type ListExpr struct {
 	Contents []Expression
+}
+
+func (e ListExpr) RequiresPhases(binding Binding) StringSet {
+	retval := StringSet{}
+	for _, c := range e.Contents {
+		retval.Update(c.RequiresPhases(binding))
+	}
+	return retval
 }
 
 func (e ListExpr) Evaluate(binding Binding) (yaml.Node, bool) {

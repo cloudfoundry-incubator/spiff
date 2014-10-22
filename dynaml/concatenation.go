@@ -3,12 +3,16 @@ package dynaml
 import (
 	"fmt"
 
-	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/shutej/spiff/yaml"
 )
 
 type ConcatenationExpr struct {
 	A Expression
 	B Expression
+}
+
+func (e ConcatenationExpr) RequiresPhases(binding Binding) StringSet {
+	return e.A.RequiresPhases(binding).Union(e.B.RequiresPhases(binding))
 }
 
 func (e ConcatenationExpr) Evaluate(binding Binding) (yaml.Node, bool) {

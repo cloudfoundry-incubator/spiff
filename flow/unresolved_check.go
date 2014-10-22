@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cloudfoundry-incubator/spiff/dynaml"
-	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/shutej/spiff/dynaml"
+	"github.com/shutej/spiff/yaml"
 )
 
 type UnresolvedNodes struct {

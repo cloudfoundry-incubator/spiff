@@ -3,11 +3,15 @@ package dynaml
 import (
 	"strconv"
 
-	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/shutej/spiff/yaml"
 )
 
 type IntegerExpr struct {
 	Value int64
+}
+
+func (e IntegerExpr) RequiresPhases(_ Binding) StringSet {
+	return StringSet(nil)
 }
 
 func (e IntegerExpr) Evaluate(Binding) (yaml.Node, bool) {

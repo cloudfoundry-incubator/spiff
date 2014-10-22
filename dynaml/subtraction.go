@@ -3,12 +3,16 @@ package dynaml
 import (
 	"fmt"
 
-	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/shutej/spiff/yaml"
 )
 
 type SubtractionExpr struct {
 	A Expression
 	B Expression
+}
+
+func (e SubtractionExpr) RequiresPhases(binding Binding) StringSet {
+	return e.A.RequiresPhases(binding).Union(e.B.RequiresPhases(binding))
 }
 
 func (e SubtractionExpr) Evaluate(binding Binding) (yaml.Node, bool) {
