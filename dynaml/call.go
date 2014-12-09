@@ -1,6 +1,7 @@
 package dynaml
 
 import (
+	"bytes"
 	"fmt"
 	"net"
 	"strings"
@@ -170,6 +171,7 @@ func staticIPPool(ranges []string) ([]net.IP, bool) {
 			end = net.ParseIP(strings.Trim(segments[1], " "))
 		}
 
+		start, end = sortIpRangeBoundaries(start, end)
 		ipPool = append(ipPool, ipRange(start, end)...)
 	}
 
@@ -198,4 +200,15 @@ func inc(ip net.IP) {
 			break
 		}
 	}
+}
+
+func sortIpRangeBoundaries(a, b net.IP) (net.IP, net.IP) {
+	cmp := bytes.Compare(a, b)
+	if cmp > 0 {
+		return b, a
+	} else if cmp < 0 {
+		return a, b
+	}
+
+	return a, b
 }
