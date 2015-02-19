@@ -4,7 +4,7 @@
 set -e -x -u
 
 #uses the local version of cover, if it is already checked out
-go get code.google.com/p/go.tools/cmd/cover
+go get golang.org/x/tools/cmd/cover
 
 export GOPATH=$PWD/Godeps/_workspace:$GOPATH
 
