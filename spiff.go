@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/codegangsta/cli"
@@ -62,12 +63,12 @@ func main() {
 func merge(templateFilePath string, stubFilePaths []string) {
 	templateFile, err := ioutil.ReadFile(templateFilePath)
 	if err != nil {
-		log.Fatalln("error reading template:", err)
+		log.Fatalln(fmt.Sprintf("error reading template [%s]:", path.Clean(templateFilePath)), err)
 	}
 
 	templateYAML, err := yaml.Parse(templateFilePath, templateFile)
 	if err != nil {
-		log.Fatalln("error parsing template:", err)
+		log.Fatalln(fmt.Sprintf("error parsing template [%s]:", path.Clean(templateFilePath)), err)
 	}
 
 	stubs := []yaml.Node{}
@@ -75,12 +76,12 @@ func merge(templateFilePath string, stubFilePaths []string) {
 	for _, stubFilePath := range stubFilePaths {
 		stubFile, err := ioutil.ReadFile(stubFilePath)
 		if err != nil {
-			log.Fatalln("error reading stub:", err)
+			log.Fatalln(fmt.Sprintf("error reading stub [%s]:", path.Clean(stubFilePath)), err)
 		}
 
 		stubYAML, err := yaml.Parse(stubFilePath, stubFile)
 		if err != nil {
-			log.Fatalln("error parsing stub:", err)
+			log.Fatalln(fmt.Sprintf("error parsing stub [%s]:", path.Clean(stubFilePath)), err)
 		}
 
 		stubs = append(stubs, stubYAML)
@@ -102,22 +103,22 @@ func merge(templateFilePath string, stubFilePaths []string) {
 func diff(aFilePath, bFilePath string, separator string) {
 	aFile, err := ioutil.ReadFile(aFilePath)
 	if err != nil {
-		log.Fatalln("error reading a:", err)
+		log.Fatalln(fmt.Sprintf("error reading a [%s]:", path.Clean(aFilePath)), err)
 	}
 
 	aYAML, err := yaml.Parse(aFilePath, aFile)
 	if err != nil {
-		log.Fatalln("error parsing a:", err)
+		log.Fatalln(fmt.Sprintf("error parsing a [%s]:", path.Clean(aFilePath)), err)
 	}
 
 	bFile, err := ioutil.ReadFile(bFilePath)
 	if err != nil {
-		log.Fatalln("error reading b:", err)
+		log.Fatalln(fmt.Sprintf("error reading b [%s]:", path.Clean(bFilePath)), err)
 	}
 
 	bYAML, err := yaml.Parse(bFilePath, bFile)
 	if err != nil {
-		log.Fatalln("error parsing b:", err)
+		log.Fatalln(fmt.Sprintf("error parsing b [%s]:", path.Clean(bFilePath)), err)
 	}
 
 	diffs := compare.Compare(aYAML, bYAML)
