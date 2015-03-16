@@ -249,3 +249,121 @@ jobs:
 This will create 3 IPs from `mynetwork`s subnet, and return two entries, as
 there are only two instances. The two entries will be the 0th and 3rd offsets
 from the static IP ranges defined by the network.
+
+For example, given the file bye.yml:
+
+```
+networks: (( merge ))
+
+jobs:
+  - name: myjob
+    instances: 3
+    networks:
+    - name: cf1
+      static_ips: (( static_ips(0,3,60) ))
+```
+
+and file hi.yml:
+
+```
+networks:
+- name: cf1
+  subnets:
+  - cloud_properties:
+      security_groups:
+      - cf-0-vpc-c461c7a1
+      subnet: subnet-e845bab1
+    dns:
+    - 10.60.3.2
+    gateway: 10.60.3.1
+    name: default_unused
+    range: 10.60.3.0/24
+    reserved:
+    - 10.60.3.2 - 10.60.3.9
+    static:
+    - 10.60.3.10 - 10.60.3.70
+  type: manual
+```
+
+```
+spiff merge bye.yml hi.yml
+```
+
+returns
+
+
+```
+jobs:
+- instances: 3
+  name: myjob
+  networks:
+  - name: cf1
+    static_ips:
+    - 10.60.3.10
+    - 10.60.3.13
+    - 10.60.3.70
+networks:
+- name: cf1
+  subnets:
+  - cloud_properties:
+      security_groups:
+      - cf-0-vpc-c461c7a1
+      subnet: subnet-e845bab1
+    dns:
+    - 10.60.3.2
+    gateway: 10.60.3.1
+    name: default_unused
+    range: 10.60.3.0/24
+    reserved:
+    - 10.60.3.2 - 10.60.3.9
+    static:
+    - 10.60.3.10 - 10.60.3.70
+  type: manual
+```
+.
+
+If bye.yml was instead
+```
+networks: (( merge ))
+
+jobs:
+  - name: myjob
+    instances: 2
+    networks:
+    - name: cf1
+      static_ips: (( static_ips(0,3,60) ))
+```
+
+```
+spiff merge bye.yml hi.yml
+```
+
+instead returns
+
+```
+jobs:
+- instances: 2
+  name: myjob
+  networks:
+  - name: cf1
+    static_ips:
+    - 10.60.3.10
+    - 10.60.3.13
+networks:
+- name: cf1
+  subnets:
+  - cloud_properties:
+      security_groups:
+      - cf-0-vpc-c461c7a1
+      subnet: subnet-e845bab1
+    dns:
+    - 10.60.3.2
+    gateway: 10.60.3.1
+    name: default_unused
+    range: 10.60.3.0/24
+    reserved:
+    - 10.60.3.2 - 10.60.3.9
+    static:
+    - 10.60.3.10 - 10.60.3.70
+  type: manual
+```
