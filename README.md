@@ -105,6 +105,14 @@ foo: 3
 bar: 3
 ```
 
+The following will not resolve because the key name is the same as the value to be merged in:
+```
+foo: 1
+
+hi:
+  foo: (( foo ))
+```
+
 ## `(( foo.bar.[1].baz ))`
 
 Look for the nearest 'foo' key, and from there follow through to .bar.baz.
