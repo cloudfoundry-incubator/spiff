@@ -15,6 +15,7 @@ limitations under the License.
 package candiedyaml
 
 import (
+	"fmt"
 	"io"
 )
 
@@ -89,6 +90,10 @@ type YAML_mark_t struct {
 
 	/** The position column. */
 	column int
+}
+
+func (m YAML_mark_t) String() string {
+	return fmt.Sprintf("line %d, column %d", m.line, m.column)
 }
 
 /** @} */
@@ -359,6 +364,8 @@ const (
 	yaml_DEFAULT_SEQUENCE_TAG = yaml_SEQ_TAG
 	/** The default mapping tag is @c !!map. */
 	yaml_DEFAULT_MAPPING_TAG = yaml_MAP_TAG
+
+	yaml_BINARY_TAG = "tag:yaml.org,2002:binary"
 )
 
 /** Node types. */
