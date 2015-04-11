@@ -1,2 +1,3 @@
 tags
 *.coverprofile
+pipeline.*.yml
