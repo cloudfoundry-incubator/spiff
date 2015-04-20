@@ -16,6 +16,7 @@ type UnresolvedNode struct {
 	yaml.Node
 
 	Context []string
+	Path    []string
 }
 
 func (e UnresolvedNodes) Error() string {
@@ -23,11 +24,12 @@ func (e UnresolvedNodes) Error() string {
 
 	for _, node := range e.Nodes {
 		message = fmt.Sprintf(
-			"%s\n\t(( %s ))\tin %s\t%s",
+			"%s\n\t(( %s ))\tin %s\t%s\t(%s)",
 			message,
 			node.Value(),
 			node.SourceName(),
 			strings.Join(node.Context, "."),
+			strings.Join(node.Path, "."),
 		)
 	}
 
@@ -59,9 +61,18 @@ func findUnresolvedNodes(root yaml.Node, context ...string) (nodes []UnresolvedN
 		}
 
 	case dynaml.Expression:
+		var path []string
+		switch val := root.Value().(type) {
+		case dynaml.AutoExpr:
+			path = val.Path
+		case dynaml.MergeExpr:
+			path = val.Path
+		}
+
 		nodes = append(nodes, UnresolvedNode{
 			Node:    root,
 			Context: context,
+			Path:    path,
 		})
 	}
 

@@ -18,6 +18,7 @@ var _ = Describe("Reporting unresolved nodes", func() {
 						"some-file.yml",
 					),
 					Context: []string{"foo", "bar"},
+					Path:    []string{"foo", "bar"},
 				},
 				{
 					Node: yaml.NewNode(
@@ -25,13 +26,14 @@ var _ = Describe("Reporting unresolved nodes", func() {
 						"some-other-file.yml",
 					),
 					Context: []string{"fizz", "[2]", "buzz"},
+					Path:    []string{"fizz", "fizzbuzz", "buzz"},
 				},
 			},
 		}
 
 		Expect(err.Error()).To(Equal(
 			`unresolved nodes:
-	(( auto ))	in some-file.yml	foo.bar
-	(( merge ))	in some-other-file.yml	fizz.[2].buzz`))
+	(( auto ))	in some-file.yml	foo.bar	(foo.bar)
+	(( merge ))	in some-other-file.yml	fizz.[2].buzz	(fizz.fizzbuzz.buzz)`))
 	})
 })
