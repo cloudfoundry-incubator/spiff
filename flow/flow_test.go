@@ -96,6 +96,7 @@ foo: (( auto ))
 							"test",
 						),
 						Context: []string{"foo"},
+						Path:    []string{"foo"},
 					},
 				},
 			}))
