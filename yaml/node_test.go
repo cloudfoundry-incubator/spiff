@@ -48,7 +48,6 @@ var _ = Describe("Node", func() {
 	})
 
 	Describe("EquivalentToNode", func() {
-
 		Context("Node value is an string", func() {
 			var (
 				subjectValue = "hello world"
@@ -209,7 +208,5 @@ var _ = Describe("Node", func() {
 				Expect(subject.EquivalentToNode(object)).To(BeFalse())
 			})
 		})
-
 	})
-
 })
