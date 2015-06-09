@@ -21,14 +21,38 @@ var _ = Describe("concatenation", func() {
 		})
 
 		Context("and the right-hand side is NOT a string", func() {
-			It("fails", func() {
-				expr := ConcatenationExpr{
-					StringExpr{"two"},
-					IntegerExpr{42},
-				}
+			Context("and the right-hand side is an integer", func() {
+				It("concatenates both as strings", func() {
+					expr := ConcatenationExpr{
+						StringExpr{"two"},
+						IntegerExpr{42},
+					}
 
-				Expect(expr).To(FailToEvaluate(FakeBinding{}))
+					Expect(expr).To(EvaluateAs("two42", FakeBinding{}))
+				})
 			})
+
+			Context("and the right-hand side is not an integer", func() {
+				It("fails", func() {
+					expr := ConcatenationExpr{
+						StringExpr{"two"},
+						ListExpr{[]Expression{StringExpr{"one"}}},
+					}
+
+					Expect(expr).To(FailToEvaluate(FakeBinding{}))
+				})
+			})
+		})
+	})
+
+	Context("when the left-hand side is a int", func() {
+		It("fails to concatenate with a string", func() {
+			expr := ConcatenationExpr{
+				IntegerExpr{42},
+				StringExpr{"one"},
+			}
+
+			Expect(expr).To(FailToEvaluate(FakeBinding{}))
 		})
 	})
 
