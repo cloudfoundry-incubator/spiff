@@ -9,6 +9,24 @@
 
 A declarative YAML templating system tuned for BOSH deployment manifests.
 
+Contents:
+- [installation](#installation)
+- [running tests](#running-tests)
+- [usage](#usage)
+- [dynaml templating language](#dynaml-templating-language)
+	- [(( foo ))](#-foo-)
+	- [(( foo.bar.[1].baz ))](#-foobar1baz-)
+	- [(( "foo" ))](#-foo--1)
+	- [(( "foo" bar ))](#-foo-bar-)
+	- [(( auto ))](#-auto-)
+	- [(( merge ))](#-merge-)
+	- [ <<: (( foo )) ](#--foo-)
+		- [merging maps](#merging-maps)
+		- [merging lists](#merging-lists)
+	- [(( a || b ))](#-a--b-)
+	- [(( static_ips(0, 1, 3) ))](#-static_ips0-1-3-)
+
+
 # installation
 
 Download a release from GitHub, or install with HomeBrew on OS X:
@@ -32,8 +50,7 @@ godep go test -v ./...
 
 Merge a bunch of template files into one manifest, printing it out.
 
-See 'dynaml templating language' for details of the template file, or
-`example.yml` for a complicated example.
+See 'dynaml templating language' for details of the template file, or examples/ subdir for more complicated examples.
 
 Example:
 
@@ -83,7 +100,7 @@ template and bring it in.
 
 e.g.:
 
-```
+```yaml
 fizz:
   buzz:
     foo: 1
@@ -95,7 +112,7 @@ bar: (( foo ))
 
 This example will resolve to:
 
-```
+```yaml
 fizz:
   buzz:
     foo: 1
@@ -106,7 +123,7 @@ bar: 3
 ```
 
 The following will not resolve because the key name is the same as the value to be merged in:
-```
+```yaml
 foo: 1
 
 hi:
@@ -131,7 +148,7 @@ reference node will just eventually resolve once the dependent node resolves.
 
 e.g.:
 
-```
+```yaml
 properties:
   foo: (( something.from.the.stub ))
   something: (( merge ))
@@ -140,7 +157,7 @@ properties:
 This will resolve as long as 'something' is resolveable, and as long as it
 brings in something like this:
 
-```
+```yaml
 from:
   the:
     stub: foo
@@ -156,7 +173,7 @@ Concatenation (where bar is another dynaml expr).
 
 e.g.
 
-```
+```yaml
 domain: example.com
 uri: (( "https://" domain ))
 ```
@@ -173,7 +190,7 @@ pool.
 
 e.g.:
 
-```
+```yaml
 resource_pools:
   - name: mypool
     size: (( auto ))
@@ -198,7 +215,7 @@ Bring the current path in from the stub files that are being merged in.
 
 e.g.:
 
-```
+```yaml
 foo:
   bar:
     baz: (( merge ))
@@ -211,13 +228,70 @@ If the corresponding value is not defined, it will return nil. This then has the
 same semantics as reference expressions; a nil merge is an unresolved template.
 See `||`.
 
+### `<<: (( foo ))`
+
+#### Merging maps
+
+```yaml
+foo:
+  a: 1
+  b: 2
+```
+
+```yaml
+bar:
+  <<: (( foo )) # any dynaml expression
+  b: 3
+```
+
+yields:
+
+```yaml
+foo:
+  a: 1
+  b: 2
+
+bar:
+  a: 1
+  b: 3
+```
+
+#### Merging lists
+
+```yaml
+bar:
+  - 1
+  - 2
+
+foo:
+  - 3
+  - <<: (( bar ))
+  - 4
+```
+
+yields:
+
+```yaml
+bar:
+  - 1
+  - 2
+
+foo:
+  - 3
+  - 1
+  - 2
+  - 4
+```
+
+A common use-case for this is merging jobs into an existing list of jobs.
+
 ## `(( a || b ))`
 
 Uses a, or b if a cannot be resolved.
 
 e.g.:
 
-```
+```yaml
 foo:
   bar:
     - name: some
@@ -237,7 +311,7 @@ Generate a list of static IPs for a job.
 
 e.g.:
 
-```
+```yaml
 jobs:
   - name: myjob
     instances: 2
@@ -252,7 +326,7 @@ from the static IP ranges defined by the network.
 
 For example, given the file bye.yml:
 
-```
+```yaml
 networks: (( merge ))
 
 jobs:
@@ -265,7 +339,7 @@ jobs:
 
 and file hi.yml:
 
-```
+```yaml
 networks:
 - name: cf1
   subnets:
@@ -292,7 +366,7 @@ spiff merge bye.yml hi.yml
 returns
 
 
-```
+```yaml
 jobs:
 - instances: 3
   name: myjob
@@ -323,7 +397,8 @@ networks:
 .
 
 If bye.yml was instead
-```
+
+```yaml
 networks: (( merge ))
 
 jobs:
@@ -340,7 +415,7 @@ spiff merge bye.yml hi.yml
 
 instead returns
 
-```
+```yaml
 jobs:
 - instances: 2
   name: myjob
