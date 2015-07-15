@@ -29,13 +29,7 @@ Contents:
 
 # installation
 
-Download a release from GitHub, or install with HomeBrew on OS X:
-
-```sh
-brew tap xoebus/homebrew-cloudfoundry
-brew install spiff
-spiff
-```
+Download a release from GitHub!
 
 # running tests
 
