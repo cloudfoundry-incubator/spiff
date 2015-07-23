@@ -7,6 +7,12 @@
 
 ```
 
+---
+
+**NOTE**: *Active development on spiff is currently paused, including Pull Requests.  Very severe issues will be addressed, and we will still be actively responding to requests for help via Issues.*
+
+---
+
 A declarative YAML templating system tuned for BOSH deployment manifests.
 
 Contents:
