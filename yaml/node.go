@@ -39,8 +39,8 @@ func (n AnnotatedNode) SourceName() string {
 	return n.sourceName
 }
 
-func (n AnnotatedNode) MarshalYAML() (string, interface{}) {
-	return "", n.Value()
+func (n AnnotatedNode) MarshalYAML() (string, interface{}, error) {
+	return "", n.Value(), nil
 }
 
 func (n AnnotatedNode) EquivalentToNode(o Node) bool {

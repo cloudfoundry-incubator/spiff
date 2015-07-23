@@ -41,7 +41,8 @@ var _ = Describe("Node", func() {
 			subjectSourceName := "source/path"
 			subject := NewNode(subjectValue, subjectSourceName)
 
-			tag, value := subject.MarshalYAML()
+			tag, value, err := subject.MarshalYAML()
+			Expect(err).NotTo(HaveOccurred())
 			Expect(tag).To(Equal(""))
 			Expect(value).To(Equal(subjectValue))
 		})
