@@ -13,13 +13,13 @@
 
 ---
 
-A declarative YAML templating system tuned for BOSH deployment manifests.
+spiff is a command line tool and declarative YAML templating system, specially designed for generating BOSH deployment manifests.
 
 Contents:
-- [installation](#installation)
-- [running tests](#running-tests)
-- [usage](#usage)
-- [dynaml templating language](#dynaml-templating-language)
+- [Installation](#installation)
+- [Running Tests](#running-tests)
+- [Usage](#usage)
+- [dynaml Templating Tanguage](#dynaml-templating-language)
 	- [(( foo ))](#-foo-)
 	- [(( foo.bar.[1].baz ))](#-foobar1baz-)
 	- [(( "foo" ))](#-foo--1)
@@ -33,18 +33,18 @@ Contents:
 	- [(( static_ips(0, 1, 3) ))](#-static_ips0-1-3-)
 
 
-# installation
+# Installation
 
-Download a release from GitHub!
+Official release executable binaries can be downloaded via [Github releases](releases) for Darwin and Linux machines (and virtual machines).
 
-# running tests
+# Running Tests
 
 ```
 go get github.com/kr/godep
 godep go test -v ./...
 ```
 
-# usage
+# Usage
 
 ### `spiff merge template.yml [template2.ymll ...]`
 
@@ -78,7 +78,7 @@ $ bosh deploy
 ```
 
 
-# dynaml templating language
+# dynaml Templating Language
 
 Spiff uses a declarative, logic-free templating language called 'dynaml'
 (dynamic yaml).
