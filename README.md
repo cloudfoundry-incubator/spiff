@@ -17,7 +17,6 @@ spiff is a command line tool and declarative YAML templating system, specially d
 
 Contents:
 - [Installation](#installation)
-- [Running Tests](#running-tests)
 - [Usage](#usage)
 - [dynaml Templating Tanguage](#dynaml-templating-language)
 	- [(( foo ))](#-foo-)
@@ -37,12 +36,7 @@ Contents:
 
 Official release executable binaries can be downloaded via [Github releases](releases) for Darwin and Linux machines (and virtual machines).
 
-# Running Tests
-
-```
-go get github.com/kr/godep
-godep go test -v ./...
-```
+Some of spiff's dependencies have changed since the last official release, and spiff will not be updated to keep up with these dependencies.  Working dependencies are vendored in the `Godeps` directory (more information on the `godep` tool is available [here](https://github.com/tools/godep)).  As such, trying to `go get` spiff will likely fail; the only supported way to use spiff is to use an official binary release.
 
 # Usage
 
