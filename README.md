@@ -25,7 +25,9 @@ Contents:
 	- [(( "foo" bar ))](#-foo-bar-)
 	- [(( auto ))](#-auto-)
 	- [(( merge ))](#-merge-)
-	- [ <<: (( foo )) ](#--foo-)
+		- [<<: (( merge ))](#--merge-)
+			- [merging maps](#merging-maps)
+			- [merging lists](#merging-lists)
 	- [(( a || b ))](#-a--b-)
 	- [(( static_ips(0, 1, 3) ))](#-static_ips0-1-3-)
 
@@ -220,30 +222,59 @@ If the corresponding value is not defined, it will return nil. This then has the
 same semantics as reference expressions; a nil merge is an unresolved template.
 See `||`.
 
-## `<<: (( foo ))`
+### `<<: (( merge ))`
 
-Use this for merging maps.
+#### Merging maps
 
+**values.yml**
 ```yaml
 foo:
   a: 1
   b: 2
-
-bar:
-  <<: (( foo )) # any dynaml expression
-  b: 3
 ```
 
-yields:
+**template.yml**
+```yaml
+foo:
+  <<: (( merge ))
+  b: 3
+  c: 4
+```
+
+`spiff merge template.yml values.yml` yields:
 
 ```yaml
 foo:
   a: 1
   b: 2
+  c: 4
+```
 
-bar:
-  a: 1
-  b: 3
+#### Merging lists
+
+**values.yml**
+```yaml
+foo:
+  - 1
+  - 2
+```
+
+**template.yml**
+```yaml
+foo:
+  - 3
+  - <<: (( merge ))
+  - 4
+```
+
+`spiff merge template.yml values.yml` yields:
+
+```yaml
+foo:
+  - 3
+  - 1
+  - 2
+  - 4
 ```
 
 ## `(( a || b ))`
