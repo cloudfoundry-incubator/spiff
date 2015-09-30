@@ -26,8 +26,6 @@ Contents:
 	- [(( auto ))](#-auto-)
 	- [(( merge ))](#-merge-)
 	- [ <<: (( foo )) ](#--foo-)
-		- [merging maps](#merging-maps)
-		- [merging lists](#merging-lists)
 	- [(( a || b ))](#-a--b-)
 	- [(( static_ips(0, 1, 3) ))](#-static_ips0-1-3-)
 
@@ -222,17 +220,15 @@ If the corresponding value is not defined, it will return nil. This then has the
 same semantics as reference expressions; a nil merge is an unresolved template.
 See `||`.
 
-### `<<: (( foo ))`
+## `<<: (( foo ))`
 
-#### Merging maps
+Use this for merging maps.
 
 ```yaml
 foo:
   a: 1
   b: 2
-```
 
-```yaml
 bar:
   <<: (( foo )) # any dynaml expression
   b: 3
@@ -249,35 +245,6 @@ bar:
   a: 1
   b: 3
 ```
-
-#### Merging lists
-
-```yaml
-bar:
-  - 1
-  - 2
-
-foo:
-  - 3
-  - <<: (( bar ))
-  - 4
-```
-
-yields:
-
-```yaml
-bar:
-  - 1
-  - 2
-
-foo:
-  - 3
-  - 1
-  - 2
-  - 4
-```
-
-A common use-case for this is merging jobs into an existing list of jobs.
 
 ## `(( a || b ))`
 
