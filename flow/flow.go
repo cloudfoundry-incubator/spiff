@@ -27,7 +27,6 @@ func Flow(source yaml.Node, stubs ...yaml.Node) (yaml.Node, error) {
 
 		result = next
 	}
-
 	debug.Debug("@@@ Done\n")
 	unresolved := findUnresolvedNodes(result)
 	if len(unresolved) > 0 {
@@ -50,11 +49,13 @@ func flow(root yaml.Node, env Environment, shouldOverride bool) yaml.Node {
 		return flowList(root, env)
 
 	case dynaml.Expression:
+		debug.Debug("??? eval %+v\n", val)
 		result, ok := val.Evaluate(env)
 		if !ok {
+			debug.Debug("??? ---> KEEP\n")
 			return root
 		}
-
+		debug.Debug("??? ---> %+v\n", result)
 		return result
 	}
 
@@ -113,16 +114,21 @@ func flowMap(root yaml.Node, env Environment) yaml.Node {
 func flowList(root yaml.Node, env Environment) yaml.Node {
 	rootList := root.Value().([]yaml.Node)
 
-	merged := processMerges(rootList, env)
+	merged, processed := processMerges(root, rootList, env)
+	
+	if processed {
 
-	newList := []yaml.Node{}
+		newList := []yaml.Node{}
 
-	for idx, val := range merged {
-		step := stepName(idx, val)
-		newList = append(newList, flow(val, env.WithPath(step), false))
+		for idx, val := range merged {
+			step := stepName(idx, val)
+			newList = append(newList, flow(val, env.WithPath(step), false))
+		}
+
+		return yaml.NewNode(newList, root.SourceName())
+	} else {
+		return yaml.NewNode(merged, root.SourceName())
 	}
-
-	return yaml.NewNode(newList, root.SourceName())
 }
 
 func flowString(root yaml.Node, env Environment) yaml.Node {
@@ -150,35 +156,42 @@ func stepName(index int, value yaml.Node) string {
 	return fmt.Sprintf("[%d]", index)
 }
 
-func processMerges(root []yaml.Node, env Environment) []yaml.Node {
+func processMerges(orig yaml.Node, root []yaml.Node, env Environment) ([]yaml.Node, bool) {
 	spliced := []yaml.Node{}
-
+	processed := true
+	
 	for _, val := range root {
 		if val == nil {
 			continue
 		}
 
-		subMap, ok := val.Value().(map[string]yaml.Node)
+		inlineNode, ok := yaml.UnresolvedMerge(val)
 		if ok {
-			if len(subMap) == 1 {
-				inlineNode, ok := subMap["<<"]
-				if ok {
-					inline, ok := flow(inlineNode, env, true).Value().([]yaml.Node)
+			debug.Debug("*** %+v\n",inlineNode.Value())
+			result := flow(inlineNode, env, false)
+			debug.Debug("=== %+v\n",result)
+			_, ok := result.Value().(dynaml.Expression)
+			if ok {
+				newMap := make(map[string]yaml.Node) 
+				newMap["<<"] = result
+				val = yaml.NewNode(newMap,orig.SourceName())
+				processed = false
+			} else {
+				inline, ok := result.Value().([]yaml.Node)
 
-					if ok {
-						inlineNew := newEntries(inline, root)
-						spliced = append(spliced, inlineNew...)
-						continue
-					}
+				if ok {
+					inlineNew := newEntries(inline, root)
+					spliced = append(spliced, inlineNew...)
 				}
+				continue
 			}
 		}
 
 		spliced = append(spliced, val)
 	}
 
-	debug.Debug("--> %+v\n",spliced)
-	return spliced
+	debug.Debug("--> %+v  %v\n",spliced, processed)
+	return spliced, processed
 }
 
 func newEntries(a []yaml.Node, b []yaml.Node) []yaml.Node {

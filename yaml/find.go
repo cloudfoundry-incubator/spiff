@@ -72,6 +72,12 @@ func stepThroughList(here []Node, step string) (Node, bool) {
 			return nil, false
 		}
 
+		for i:=0; i<=index; i++ {
+			_ , ok := UnresolvedMerge(here[i])
+			if ok {
+				return nil, false
+			}
+		}
 		return here[index], true
 	}
 
@@ -91,5 +97,18 @@ func stepThroughList(here []Node, step string) (Node, bool) {
 		}
 	}
 
+	return nil, false
+}
+
+func UnresolvedMerge(node Node) (Node, bool) {
+	subMap, ok := node.Value().(map[string]Node)
+	if ok {
+		if len(subMap) == 1 {
+			inlineNode, ok := subMap["<<"]
+			if ok {
+				return inlineNode, true
+			}
+		}
+	}
 	return nil, false
 }
