@@ -41,7 +41,8 @@ Merge <- 'merge'
 
 Auto <- 'auto'
 
-Reference <- '.'? [a-zA-Z0-9_] [a-zA-Z0-9_\-]* ('.' [a-zA-Z0-9_] [a-zA-Z0-9_\-]* / '.' '[' [0-9]+ ']')*
+Reference <- '.'? Key ('.' Key / '.' '[' [0-9]+ ']')*
+Key <- [a-zA-Z0-9_] [a-zA-Z0-9_\-]* ( ':' [a-zA-Z0-9_] [a-zA-Z0-9_\-]* )?
 
 ws <- [ \t\n\r]*
 

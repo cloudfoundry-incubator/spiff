@@ -82,6 +82,7 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 		case ruleComma, ruleContents, ruleArguments:
 			expr := tokens.Pop()
 			tokens.PushToSeq(expr)
+		case ruleKey:
 		case ruleGrouped:
 		case ruleLevel0, ruleLevel1, ruleLevel2:
 		case ruleExpression:

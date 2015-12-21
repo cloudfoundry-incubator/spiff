@@ -3,6 +3,7 @@ package yaml
 import (
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 var listIndex = regexp.MustCompile(`^\[(\d+)\]$`)
@@ -81,13 +82,20 @@ func stepThroughList(here []Node, step string) (Node, bool) {
 		return here[index], true
 	}
 
+	key := "name"
+	split := strings.Index(step, ":")
+	if split>0 {
+		key = step[:split]
+		step = step[split+1:]
+	}
+
 	for _, sub := range here {
 		_, ok := sub.Value().(map[string]Node)
 		if !ok {
 			continue
 		}
 
-		name, ok := FindString(sub, "name")
+		name, ok := FindString(sub, key)
 		if !ok {
 			continue
 		}
