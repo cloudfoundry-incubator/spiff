@@ -24,69 +24,69 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 	for token := range grammar.Tokens() {
 		contents := grammar.Buffer[token.begin:token.end]
 
-		switch token.Rule {
-		case RuleDynaml:
+		switch token.pegRule {
+		case ruleDynaml:
 			return tokens.Pop()
-		case RuleAuto:
+		case ruleAuto:
 			tokens.Push(AutoExpr{path})
-		case RuleMerge:
+		case ruleMerge:
 			tokens.Push(MergeExpr{path})
-		case RuleReference:
+		case ruleReference:
 			tokens.Push(ReferenceExpr{strings.Split(contents, ".")})
-		case RuleInteger:
+		case ruleInteger:
 			val, err := strconv.ParseInt(contents, 10, 64)
 			if err != nil {
 				panic(err)
 			}
 
 			tokens.Push(IntegerExpr{val})
-		case RuleNil:
+		case ruleNil:
 			tokens.Push(NilExpr{})
-		case RuleBoolean:
+		case ruleBoolean:
 			tokens.Push(BooleanExpr{contents == "true"})
-		case RuleString:
+		case ruleString:
 			val := strings.Replace(contents[1:len(contents)-1], `\"`, `"`, -1)
 			tokens.Push(StringExpr{val})
-		case RuleOr:
+		case ruleOr:
 			rhs := tokens.Pop()
 			lhs := tokens.Pop()
 
 			tokens.Push(OrExpr{A: lhs, B: rhs})
-		case RuleConcatenation:
+		case ruleConcatenation:
 			rhs := tokens.Pop()
 			lhs := tokens.Pop()
 
 			tokens.Push(ConcatenationExpr{A: lhs, B: rhs})
-		case RuleAddition:
+		case ruleAddition:
 			rhs := tokens.Pop()
 			lhs := tokens.Pop()
 
 			tokens.Push(AdditionExpr{A: lhs, B: rhs})
-		case RuleSubtraction:
+		case ruleSubtraction:
 			rhs := tokens.Pop()
 			lhs := tokens.Pop()
 
 			tokens.Push(SubtractionExpr{A: lhs, B: rhs})
-		case RuleCall:
+		case ruleCall:
 			tokens.Push(CallExpr{
 				Name:      tokens.functionName,
 				Arguments: tokens.PopSeq(),
 			})
-		case RuleName:
+		case ruleName:
 			tokens.functionName = contents
-		case RuleList:
+		case ruleList:
 			seq := tokens.PopSeq()
 			tokens.Push(ListExpr{seq})
-		case RuleComma, RuleContents, RuleArguments:
+		case ruleComma, ruleContents, ruleArguments:
 			expr := tokens.Pop()
 			tokens.PushToSeq(expr)
-		case RuleGrouped:
-		case RuleLevel0, RuleLevel1, RuleLevel2:
-		case RuleExpression:
-		case Rulews:
-		case Rulereq_ws:
+		case ruleGrouped:
+		case ruleLevel0, ruleLevel1, ruleLevel2:
+		case ruleExpression:
+		case rulews:
+		case rulereq_ws:
 		default:
-			panic("unhandled:" + Rul3s[token.Rule])
+			panic("unhandled:" + rul3s[token.pegRule])
 		}
 	}
 

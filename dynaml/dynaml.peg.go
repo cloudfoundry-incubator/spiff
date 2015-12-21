@@ -1,52 +1,51 @@
 package dynaml
 
 import (
-	/*"bytes"*/
 	"fmt"
 	"math"
 	"sort"
 	"strconv"
 )
 
-const END_SYMBOL byte = 0
+const end_symbol rune = 1114112
 
 /* The rule types inferred from the grammar are below. */
-type Rule uint8
+type pegRule uint8
 
 const (
-	RuleUnknown Rule = iota
-	RuleDynaml
-	RuleExpression
-	RuleLevel2
-	RuleOr
-	RuleLevel1
-	RuleConcatenation
-	RuleAddition
-	RuleSubtraction
-	RuleLevel0
-	RuleGrouped
-	RuleCall
-	RuleArguments
-	RuleName
-	RuleComma
-	RuleInteger
-	RuleString
-	RuleBoolean
-	RuleNil
-	RuleList
-	RuleContents
-	RuleMerge
-	RuleAuto
-	RuleReference
-	Rulews
-	Rulereq_ws
+	ruleUnknown pegRule = iota
+	ruleDynaml
+	ruleExpression
+	ruleLevel2
+	ruleOr
+	ruleLevel1
+	ruleConcatenation
+	ruleAddition
+	ruleSubtraction
+	ruleLevel0
+	ruleGrouped
+	ruleCall
+	ruleArguments
+	ruleName
+	ruleComma
+	ruleInteger
+	ruleString
+	ruleBoolean
+	ruleNil
+	ruleList
+	ruleContents
+	ruleMerge
+	ruleAuto
+	ruleReference
+	rulews
+	rulereq_ws
 
-	RulePre_
-	Rule_In_
-	Rule_Suf
+	rulePre_
+	rule_In_
+	rule_Suf
 )
 
-var Rul3s = [...]string{
+var rul3s = [...]string{
 	"Unknown",
 	"Dynaml",
 	"Expression",
@@ -79,267 +78,65 @@ var Rul3s = [...]string{
 	"_Suf",
 }
 
-type TokenTree interface {
+type tokenTree interface {
 	Print()
 	PrintSyntax()
 	PrintSyntaxTree(buffer string)
-	Add(rule Rule, begin, end, next, depth int)
-	Expand(index int) TokenTree
+	Add(rule pegRule, begin, end, next uint32, depth int)
+	Expand(index int) tokenTree
 	Tokens() <-chan token32
+	AST() *node32
 	Error() []token32
 	trim(length int)
 }
 
-/* ${@} bit structure for abstract syntax tree */
-type token16 struct {
-	Rule
-	begin, end, next int16
+type node32 struct {
+	token32
+	up, next *node32
 }
 
-func (t *token16) isZero() bool {
-	return t.Rule == RuleUnknown && t.begin == 0 && t.end == 0 && t.next == 0
-}
-
-func (t *token16) isParentOf(u token16) bool {
-	return t.begin <= u.begin && t.end >= u.end && t.next > u.next
-}
-
-func (t *token16) GetToken32() token32 {
-	return token32{Rule: t.Rule, begin: int32(t.begin), end: int32(t.end), next: int32(t.next)}
-}
-
-func (t *token16) String() string {
-	return fmt.Sprintf("\x1B[34m%v\x1B[m %v %v %v", Rul3s[t.Rule], t.begin, t.end, t.next)
-}
-
-type tokens16 struct {
-	tree    []token16
-	ordered [][]token16
-}
-
-func (t *tokens16) trim(length int) {
-	t.tree = t.tree[0:length]
-}
-
-func (t *tokens16) Print() {
-	for _, token := range t.tree {
-		fmt.Println(token.String())
-	}
-}
-
-func (t *tokens16) Order() [][]token16 {
-	if t.ordered != nil {
-		return t.ordered
-	}
-
-	depths := make([]int16, 1, math.MaxInt16)
-	for i, token := range t.tree {
-		if token.Rule == RuleUnknown {
-			t.tree = t.tree[:i]
-			break
-		}
-		depth := int(token.next)
-		if length := len(depths); depth >= length {
-			depths = depths[:depth+1]
-		}
-		depths[depth]++
-	}
-	depths = append(depths, 0)
-
-	ordered, pool := make([][]token16, len(depths)), make([]token16, len(t.tree)+len(depths))
-	for i, depth := range depths {
-		depth++
-		ordered[i], pool, depths[i] = pool[:depth], pool[depth:], 0
-	}
-
-	for i, token := range t.tree {
-		depth := token.next
-		token.next = int16(i)
-		ordered[depth][depths[depth]] = token
-		depths[depth]++
-	}
-	t.ordered = ordered
-	return ordered
-}
-
-type State16 struct {
-	token16
-	depths []int16
-	leaf   bool
-}
-
-func (t *tokens16) PreOrder() (<-chan State16, [][]token16) {
-	s, ordered := make(chan State16, 6), t.Order()
-	go func() {
-		var states [8]State16
-		for i, _ := range states {
-			states[i].depths = make([]int16, len(ordered))
-		}
-		depths, state, depth := make([]int16, len(ordered)), 0, 1
-		write := func(t token16, leaf bool) {
-			S := states[state]
-			state, S.Rule, S.begin, S.end, S.next, S.leaf = (state+1)%8, t.Rule, t.begin, t.end, int16(depth), leaf
-			copy(S.depths, depths)
-			s <- S
-		}
-
-		states[state].token16 = ordered[0][0]
-		depths[0]++
-		state++
-		a, b := ordered[depth-1][depths[depth-1]-1], ordered[depth][depths[depth]]
-	depthFirstSearch:
-		for {
-			for {
-				if i := depths[depth]; i > 0 {
-					if c, j := ordered[depth][i-1], depths[depth-1]; a.isParentOf(c) &&
-						(j < 2 || !ordered[depth-1][j-2].isParentOf(c)) {
-						if c.end != b.begin {
-							write(token16{Rule: Rule_In_, begin: c.end, end: b.begin}, true)
-						}
-						break
-					}
-				}
-
-				if a.begin < b.begin {
-					write(token16{Rule: RulePre_, begin: a.begin, end: b.begin}, true)
-				}
-				break
-			}
-
-			next := depth + 1
-			if c := ordered[next][depths[next]]; c.Rule != RuleUnknown && b.isParentOf(c) {
-				write(b, false)
-				depths[depth]++
-				depth, a, b = next, b, c
-				continue
-			}
-
-			write(b, true)
-			depths[depth]++
-			c, parent := ordered[depth][depths[depth]], true
-			for {
-				if c.Rule != RuleUnknown && a.isParentOf(c) {
-					b = c
-					continue depthFirstSearch
-				} else if parent && b.end != a.end {
-					write(token16{Rule: Rule_Suf, begin: b.end, end: a.end}, true)
-				}
-
-				depth--
-				if depth > 0 {
-					a, b, c = ordered[depth-1][depths[depth-1]-1], a, ordered[depth][depths[depth]]
-					parent = a.isParentOf(b)
-					continue
-				}
-
-				break depthFirstSearch
-			}
-		}
-
-		close(s)
-	}()
-	return s, ordered
-}
-
-func (t *tokens16) PrintSyntax() {
-	tokens, ordered := t.PreOrder()
-	max := -1
-	for token := range tokens {
-		if !token.leaf {
-			fmt.Printf("%v", token.begin)
-			for i, leaf, depths := 0, int(token.next), token.depths; i < leaf; i++ {
-				fmt.Printf(" \x1B[36m%v\x1B[m", Rul3s[ordered[i][depths[i]-1].Rule])
-			}
-			fmt.Printf(" \x1B[36m%v\x1B[m\n", Rul3s[token.Rule])
-		} else if token.begin == token.end {
-			fmt.Printf("%v", token.begin)
-			for i, leaf, depths := 0, int(token.next), token.depths; i < leaf; i++ {
-				fmt.Printf(" \x1B[31m%v\x1B[m", Rul3s[ordered[i][depths[i]-1].Rule])
-			}
-			fmt.Printf(" \x1B[31m%v\x1B[m\n", Rul3s[token.Rule])
-		} else {
-			for c, end := token.begin, token.end; c < end; c++ {
-				if i := int(c); max+1 < i {
-					for j := max; j < i; j++ {
-						fmt.Printf("skip %v %v\n", j, token.String())
-					}
-					max = i
-				} else if i := int(c); i <= max {
-					for j := i; j <= max; j++ {
-						fmt.Printf("dupe %v %v\n", j, token.String())
-					}
-				} else {
-					max = int(c)
-				}
-				fmt.Printf("%v", c)
-				for i, leaf, depths := 0, int(token.next), token.depths; i < leaf; i++ {
-					fmt.Printf(" \x1B[34m%v\x1B[m", Rul3s[ordered[i][depths[i]-1].Rule])
-				}
-				fmt.Printf(" \x1B[34m%v\x1B[m\n", Rul3s[token.Rule])
-			}
-			fmt.Printf("\n")
-		}
-	}
-}
-
-func (t *tokens16) PrintSyntaxTree(buffer string) {
-	tokens, _ := t.PreOrder()
-	for token := range tokens {
-		for c := 0; c < int(token.next); c++ {
+func (node *node32) print(depth int, buffer string) {
+	for node != nil {
+		for c := 0; c < depth; c++ {
 			fmt.Printf(" ")
 		}
-		fmt.Printf("\x1B[34m%v\x1B[m %v\n", Rul3s[token.Rule], strconv.Quote(buffer[token.begin:token.end]))
+		fmt.Printf("\x1B[34m%v\x1B[m %v\n", rul3s[node.pegRule], strconv.Quote(string(([]rune(buffer)[node.begin:node.end]))))
+		if node.up != nil {
+			node.up.print(depth+1, buffer)
+		}
+		node = node.next
 	}
 }
 
-func (t *tokens16) Add(rule Rule, begin, end, depth, index int) {
-	t.tree[index] = token16{Rule: rule, begin: int16(begin), end: int16(end), next: int16(depth)}
+func (ast *node32) Print(buffer string) {
+	ast.print(0, buffer)
 }
 
-func (t *tokens16) Tokens() <-chan token32 {
-	s := make(chan token32, 16)
-	go func() {
-		for _, v := range t.tree {
-			s <- v.GetToken32()
-		}
-		close(s)
-	}()
-	return s
-}
-
-func (t *tokens16) Error() []token32 {
-	ordered := t.Order()
-	length := len(ordered)
-	tokens, length := make([]token32, length), length-1
-	for i, _ := range tokens {
-		o := ordered[length-i]
-		if len(o) > 1 {
-			tokens[i] = o[len(o)-2].GetToken32()
-		}
-	}
-	return tokens
+type element struct {
+	node *node32
+	down *element
 }
 
 /* ${@} bit structure for abstract syntax tree */
 type token32 struct {
-	Rule
-	begin, end, next int32
+	pegRule
+	begin, end, next uint32
 }
 
 func (t *token32) isZero() bool {
-	return t.Rule == RuleUnknown && t.begin == 0 && t.end == 0 && t.next == 0
+	return t.pegRule == ruleUnknown && t.begin == 0 && t.end == 0 && t.next == 0
 }
 
 func (t *token32) isParentOf(u token32) bool {
 	return t.begin <= u.begin && t.end >= u.end && t.next > u.next
 }
 
-func (t *token32) GetToken32() token32 {
-	return token32{Rule: t.Rule, begin: int32(t.begin), end: int32(t.end), next: int32(t.next)}
+func (t *token32) getToken32() token32 {
+	return token32{pegRule: t.pegRule, begin: uint32(t.begin), end: uint32(t.end), next: uint32(t.next)}
 }
 
 func (t *token32) String() string {
-	return fmt.Sprintf("\x1B[34m%v\x1B[m %v %v %v", Rul3s[t.Rule], t.begin, t.end, t.next)
+	return fmt.Sprintf("\x1B[34m%v\x1B[m %v %v %v", rul3s[t.pegRule], t.begin, t.end, t.next)
 }
 
 type tokens32 struct {
@@ -364,7 +161,7 @@ func (t *tokens32) Order() [][]token32 {
 
 	depths := make([]int32, 1, math.MaxInt16)
 	for i, token := range t.tree {
-		if token.Rule == RuleUnknown {
+		if token.pegRule == ruleUnknown {
 			t.tree = t.tree[:i]
 			break
 		}
@@ -384,7 +181,7 @@ func (t *tokens32) Order() [][]token32 {
 
 	for i, token := range t.tree {
 		depth := token.next
-		token.next = int32(i)
+		token.next = uint32(i)
 		ordered[depth][depths[depth]] = token
 		depths[depth]++
 	}
@@ -392,23 +189,41 @@ func (t *tokens32) Order() [][]token32 {
 	return ordered
 }
 
-type State32 struct {
+type state32 struct {
 	token32
 	depths []int32
 	leaf   bool
 }
 
-func (t *tokens32) PreOrder() (<-chan State32, [][]token32) {
-	s, ordered := make(chan State32, 6), t.Order()
+func (t *tokens32) AST() *node32 {
+	tokens := t.Tokens()
+	stack := &element{node: &node32{token32: <-tokens}}
+	for token := range tokens {
+		if token.begin == token.end {
+			continue
+		}
+		node := &node32{token32: token}
+		for stack != nil && stack.node.begin >= token.begin && stack.node.end <= token.end {
+			stack.node.next = node.up
+			node.up = stack.node
+			stack = stack.down
+		}
+		stack = &element{node: node, down: stack}
+	}
+	return stack.node
+}
+
+func (t *tokens32) PreOrder() (<-chan state32, [][]token32) {
+	s, ordered := make(chan state32, 6), t.Order()
 	go func() {
-		var states [8]State32
+		var states [8]state32
 		for i, _ := range states {
 			states[i].depths = make([]int32, len(ordered))
 		}
 		depths, state, depth := make([]int32, len(ordered)), 0, 1
 		write := func(t token32, leaf bool) {
 			S := states[state]
-			state, S.Rule, S.begin, S.end, S.next, S.leaf = (state+1)%8, t.Rule, t.begin, t.end, int32(depth), leaf
+			state, S.pegRule, S.begin, S.end, S.next, S.leaf = (state+1)%8, t.pegRule, t.begin, t.end, uint32(depth), leaf
 			copy(S.depths, depths)
 			s <- S
 		}
@@ -424,20 +239,20 @@ func (t *tokens32) PreOrder() (<-chan State32, [][]token32) {
 					if c, j := ordered[depth][i-1], depths[depth-1]; a.isParentOf(c) &&
 						(j < 2 || !ordered[depth-1][j-2].isParentOf(c)) {
 						if c.end != b.begin {
-							write(token32{Rule: Rule_In_, begin: c.end, end: b.begin}, true)
+							write(token32{pegRule: rule_In_, begin: c.end, end: b.begin}, true)
 						}
 						break
 					}
 				}
 
 				if a.begin < b.begin {
-					write(token32{Rule: RulePre_, begin: a.begin, end: b.begin}, true)
+					write(token32{pegRule: rulePre_, begin: a.begin, end: b.begin}, true)
 				}
 				break
 			}
 
 			next := depth + 1
-			if c := ordered[next][depths[next]]; c.Rule != RuleUnknown && b.isParentOf(c) {
+			if c := ordered[next][depths[next]]; c.pegRule != ruleUnknown && b.isParentOf(c) {
 				write(b, false)
 				depths[depth]++
 				depth, a, b = next, b, c
@@ -448,11 +263,11 @@ func (t *tokens32) PreOrder() (<-chan State32, [][]token32) {
 			depths[depth]++
 			c, parent := ordered[depth][depths[depth]], true
 			for {
-				if c.Rule != RuleUnknown && a.isParentOf(c) {
+				if c.pegRule != ruleUnknown && a.isParentOf(c) {
 					b = c
 					continue depthFirstSearch
 				} else if parent && b.end != a.end {
-					write(token32{Rule: Rule_Suf, begin: b.end, end: a.end}, true)
+					write(token32{pegRule: rule_Suf, begin: b.end, end: a.end}, true)
 				}
 
 				depth--
@@ -478,15 +293,15 @@ func (t *tokens32) PrintSyntax() {
 		if !token.leaf {
 			fmt.Printf("%v", token.begin)
 			for i, leaf, depths := 0, int(token.next), token.depths; i < leaf; i++ {
-				fmt.Printf(" \x1B[36m%v\x1B[m", Rul3s[ordered[i][depths[i]-1].Rule])
+				fmt.Printf(" \x1B[36m%v\x1B[m", rul3s[ordered[i][depths[i]-1].pegRule])
 			}
-			fmt.Printf(" \x1B[36m%v\x1B[m\n", Rul3s[token.Rule])
+			fmt.Printf(" \x1B[36m%v\x1B[m\n", rul3s[token.pegRule])
 		} else if token.begin == token.end {
 			fmt.Printf("%v", token.begin)
 			for i, leaf, depths := 0, int(token.next), token.depths; i < leaf; i++ {
-				fmt.Printf(" \x1B[31m%v\x1B[m", Rul3s[ordered[i][depths[i]-1].Rule])
+				fmt.Printf(" \x1B[31m%v\x1B[m", rul3s[ordered[i][depths[i]-1].pegRule])
 			}
-			fmt.Printf(" \x1B[31m%v\x1B[m\n", Rul3s[token.Rule])
+			fmt.Printf(" \x1B[31m%v\x1B[m\n", rul3s[token.pegRule])
 		} else {
 			for c, end := token.begin, token.end; c < end; c++ {
 				if i := int(c); max+1 < i {
@@ -503,9 +318,9 @@ func (t *tokens32) PrintSyntax() {
 				}
 				fmt.Printf("%v", c)
 				for i, leaf, depths := 0, int(token.next), token.depths; i < leaf; i++ {
-					fmt.Printf(" \x1B[34m%v\x1B[m", Rul3s[ordered[i][depths[i]-1].Rule])
+					fmt.Printf(" \x1B[34m%v\x1B[m", rul3s[ordered[i][depths[i]-1].pegRule])
 				}
-				fmt.Printf(" \x1B[34m%v\x1B[m\n", Rul3s[token.Rule])
+				fmt.Printf(" \x1B[34m%v\x1B[m\n", rul3s[token.pegRule])
 			}
 			fmt.Printf("\n")
 		}
@@ -518,19 +333,19 @@ func (t *tokens32) PrintSyntaxTree(buffer string) {
 		for c := 0; c < int(token.next); c++ {
 			fmt.Printf(" ")
 		}
-		fmt.Printf("\x1B[34m%v\x1B[m %v\n", Rul3s[token.Rule], strconv.Quote(buffer[token.begin:token.end]))
+		fmt.Printf("\x1B[34m%v\x1B[m %v\n", rul3s[token.pegRule], strconv.Quote(string(([]rune(buffer)[token.begin:token.end]))))
 	}
 }
 
-func (t *tokens32) Add(rule Rule, begin, end, depth, index int) {
-	t.tree[index] = token32{Rule: rule, begin: int32(begin), end: int32(end), next: int32(depth)}
+func (t *tokens32) Add(rule pegRule, begin, end, depth uint32, index int) {
+	t.tree[index] = token32{pegRule: rule, begin: uint32(begin), end: uint32(end), next: uint32(depth)}
 }
 
 func (t *tokens32) Tokens() <-chan token32 {
 	s := make(chan token32, 16)
 	go func() {
 		for _, v := range t.tree {
-			s <- v.GetToken32()
+			s <- v.getToken32()
 		}
 		close(s)
 	}()
@@ -544,25 +359,25 @@ func (t *tokens32) Error() []token32 {
 	for i, _ := range tokens {
 		o := ordered[length-i]
 		if len(o) > 1 {
-			tokens[i] = o[len(o)-2].GetToken32()
+			tokens[i] = o[len(o)-2].getToken32()
 		}
 	}
 	return tokens
 }
 
-func (t *tokens16) Expand(index int) TokenTree {
+/*func (t *tokens16) Expand(index int) tokenTree {
 	tree := t.tree
 	if index >= len(tree) {
-		expanded := make([]token32, 2*len(tree))
+		expanded := make([]token32, 2 * len(tree))
 		for i, v := range tree {
-			expanded[i] = v.GetToken32()
+			expanded[i] = v.getToken32()
 		}
 		return &tokens32{tree: expanded}
 	}
 	return nil
-}
+}*/
 
-func (t *tokens32) Expand(index int) TokenTree {
+func (t *tokens32) Expand(index int) tokenTree {
 	tree := t.tree
 	if index >= len(tree) {
 		expanded := make([]token32, 2*len(tree))
@@ -574,10 +389,11 @@ func (t *tokens32) Expand(index int) TokenTree {
 
 type DynamlGrammar struct {
 	Buffer string
+	buffer []rune
 	rules  [26]func() bool
 	Parse  func(rule ...int) error
 	Reset  func()
-	TokenTree
+	tokenTree
 }
 
 type textPosition struct {
@@ -591,7 +407,7 @@ func translatePositions(buffer string, positions []int) textPositionMap {
 	sort.Ints(positions)
 
 search:
-	for i, c := range buffer[0:] {
+	for i, c := range []rune(buffer) {
 		if c == '\n' {
 			line, symbol = line+1, 0
 		} else {
@@ -616,7 +432,7 @@ type parseError struct {
 }
 
 func (e *parseError) Error() string {
-	tokens, error := e.p.TokenTree.Error(), "\n"
+	tokens, error := e.p.tokenTree.Error(), "\n"
 	positions, p := make([]int, 2*len(tokens)), 0
 	for _, token := range tokens {
 		positions[p], p = int(token.begin), p+1
@@ -626,7 +442,7 @@ func (e *parseError) Error() string {
 	for _, token := range tokens {
 		begin, end := int(token.begin), int(token.end)
 		error += fmt.Sprintf("parse error near \x1B[34m%v\x1B[m (line %v symbol %v - line %v symbol %v):\n%v\n",
-			Rul3s[token.Rule],
+			rul3s[token.pegRule],
 			translations[begin].line, translations[begin].symbol,
 			translations[end].line, translations[end].symbol,
 			/*strconv.Quote(*/ e.p.Buffer[begin:end] /*)*/)
@@ -636,20 +452,21 @@ func (e *parseError) Error() string {
 }
 
 func (p *DynamlGrammar) PrintSyntaxTree() {
-	p.TokenTree.PrintSyntaxTree(p.Buffer)
+	p.tokenTree.PrintSyntaxTree(p.Buffer)
 }
 
 func (p *DynamlGrammar) Highlighter() {
-	p.TokenTree.PrintSyntax()
+	p.tokenTree.PrintSyntax()
 }
 
 func (p *DynamlGrammar) Init() {
-	if p.Buffer[len(p.Buffer)-1] != END_SYMBOL {
-		p.Buffer = p.Buffer + string(END_SYMBOL)
+	p.buffer = []rune(p.Buffer)
+	if len(p.buffer) == 0 || p.buffer[len(p.buffer)-1] != end_symbol {
+		p.buffer = append(p.buffer, end_symbol)
 	}
 
-	var tree TokenTree = &tokens16{tree: make([]token16, math.MaxInt16)}
-	position, depth, tokenIndex, buffer, rules := 0, 0, 0, p.Buffer, p.rules
+	var tree tokenTree = &tokens32{tree: make([]token32, math.MaxInt16)}
+	position, depth, tokenIndex, buffer, _rules := uint32(0), uint32(0), 0, p.buffer, p.rules
 
 	p.Parse = func(rule ...int) error {
 		r := 1
@@ -657,9 +474,9 @@ func (p *DynamlGrammar) Init() {
 			r = rule[0]
 		}
 		matches := p.rules[r]()
-		p.TokenTree = tree
+		p.tokenTree = tree
 		if matches {
-			p.TokenTree.trim(tokenIndex)
+			p.tokenTree.trim(tokenIndex)
 			return nil
 		}
 		return &parseError{p}
@@ -669,7 +486,7 @@ func (p *DynamlGrammar) Init() {
 		position, tokenIndex, depth = 0, 0, 0
 	}
 
-	add := func(rule Rule, begin int) {
+	add := func(rule pegRule, begin uint32) {
 		if t := tree.Expand(tokenIndex); t != nil {
 			tree = t
 		}
@@ -678,7 +495,7 @@ func (p *DynamlGrammar) Init() {
 	}
 
 	matchDot := func() bool {
-		if buffer[position] != END_SYMBOL {
+		if buffer[position] != end_symbol {
 			position++
 			return true
 		}
@@ -701,7 +518,7 @@ func (p *DynamlGrammar) Init() {
 		return false
 	}*/
 
-	rules = [...]func() bool{
+	_rules = [...]func() bool{
 		nil,
 		/* 0 Dynaml <- <(ws Expression ws !.)> */
 		func() bool {
@@ -709,13 +526,13 @@ func (p *DynamlGrammar) Init() {
 			{
 				position1 := position
 				depth++
-				if !rules[Rulews]() {
+				if !_rules[rulews]() {
 					goto l0
 				}
-				if !rules[RuleExpression]() {
+				if !_rules[ruleExpression]() {
 					goto l0
 				}
-				if !rules[Rulews]() {
+				if !_rules[rulews]() {
 					goto l0
 				}
 				{
@@ -728,7 +545,7 @@ func (p *DynamlGrammar) Init() {
 					position, tokenIndex, depth = position2, tokenIndex2, depth2
 				}
 				depth--
-				add(RuleDynaml, position1)
+				add(ruleDynaml, position1)
 			}
 			return true
 		l0:
@@ -741,11 +558,11 @@ func (p *DynamlGrammar) Init() {
 			{
 				position4 := position
 				depth++
-				if !rules[RuleLevel2]() {
+				if !_rules[ruleLevel2]() {
 					goto l3
 				}
 				depth--
-				add(RuleExpression, position4)
+				add(ruleExpression, position4)
 			}
 			return true
 		l3:
@@ -760,19 +577,19 @@ func (p *DynamlGrammar) Init() {
 				depth++
 				{
 					position7, tokenIndex7, depth7 := position, tokenIndex, depth
-					if !rules[RuleOr]() {
+					if !_rules[ruleOr]() {
 						goto l8
 					}
 					goto l7
 				l8:
 					position, tokenIndex, depth = position7, tokenIndex7, depth7
-					if !rules[RuleLevel1]() {
+					if !_rules[ruleLevel1]() {
 						goto l5
 					}
 				}
 			l7:
 				depth--
-				add(RuleLevel2, position6)
+				add(ruleLevel2, position6)
 			}
 			return true
 		l5:
@@ -785,28 +602,28 @@ func (p *DynamlGrammar) Init() {
 			{
 				position10 := position
 				depth++
-				if !rules[RuleLevel1]() {
+				if !_rules[ruleLevel1]() {
 					goto l9
 				}
-				if !rules[Rulereq_ws]() {
+				if !_rules[rulereq_ws]() {
 					goto l9
 				}
-				if buffer[position] != '|' {
-					goto l9
-				}
-				position++
-				if buffer[position] != '|' {
+				if buffer[position] != rune('|') {
 					goto l9
 				}
 				position++
-				if !rules[Rulereq_ws]() {
+				if buffer[position] != rune('|') {
 					goto l9
 				}
-				if !rules[RuleExpression]() {
+				position++
+				if !_rules[rulereq_ws]() {
+					goto l9
+				}
+				if !_rules[ruleExpression]() {
 					goto l9
 				}
 				depth--
-				add(RuleOr, position10)
+				add(ruleOr, position10)
 			}
 			return true
 		l9:
@@ -821,31 +638,31 @@ func (p *DynamlGrammar) Init() {
 				depth++
 				{
 					position13, tokenIndex13, depth13 := position, tokenIndex, depth
-					if !rules[RuleConcatenation]() {
+					if !_rules[ruleConcatenation]() {
 						goto l14
 					}
 					goto l13
 				l14:
 					position, tokenIndex, depth = position13, tokenIndex13, depth13
-					if !rules[RuleAddition]() {
+					if !_rules[ruleAddition]() {
 						goto l15
 					}
 					goto l13
 				l15:
 					position, tokenIndex, depth = position13, tokenIndex13, depth13
-					if !rules[RuleSubtraction]() {
+					if !_rules[ruleSubtraction]() {
 						goto l16
 					}
 					goto l13
 				l16:
 					position, tokenIndex, depth = position13, tokenIndex13, depth13
-					if !rules[RuleLevel0]() {
+					if !_rules[ruleLevel0]() {
 						goto l11
 					}
 				}
 			l13:
 				depth--
-				add(RuleLevel1, position12)
+				add(ruleLevel1, position12)
 			}
 			return true
 		l11:
@@ -858,33 +675,33 @@ func (p *DynamlGrammar) Init() {
 			{
 				position18 := position
 				depth++
-				if !rules[RuleLevel0]() {
+				if !_rules[ruleLevel0]() {
 					goto l17
 				}
 				{
 					position21, tokenIndex21, depth21 := position, tokenIndex, depth
-					if buffer[position] != ' ' {
+					if buffer[position] != rune(' ') {
 						goto l22
 					}
 					position++
 					goto l21
 				l22:
 					position, tokenIndex, depth = position21, tokenIndex21, depth21
-					if buffer[position] != '\t' {
+					if buffer[position] != rune('\t') {
 						goto l23
 					}
 					position++
 					goto l21
 				l23:
 					position, tokenIndex, depth = position21, tokenIndex21, depth21
-					if buffer[position] != '\n' {
+					if buffer[position] != rune('\n') {
 						goto l24
 					}
 					position++
 					goto l21
 				l24:
 					position, tokenIndex, depth = position21, tokenIndex21, depth21
-					if buffer[position] != '\r' {
+					if buffer[position] != rune('\r') {
 						goto l17
 					}
 					position++
@@ -895,28 +712,28 @@ func (p *DynamlGrammar) Init() {
 					position20, tokenIndex20, depth20 := position, tokenIndex, depth
 					{
 						position25, tokenIndex25, depth25 := position, tokenIndex, depth
-						if buffer[position] != ' ' {
+						if buffer[position] != rune(' ') {
 							goto l26
 						}
 						position++
 						goto l25
 					l26:
 						position, tokenIndex, depth = position25, tokenIndex25, depth25
-						if buffer[position] != '\t' {
+						if buffer[position] != rune('\t') {
 							goto l27
 						}
 						position++
 						goto l25
 					l27:
 						position, tokenIndex, depth = position25, tokenIndex25, depth25
-						if buffer[position] != '\n' {
+						if buffer[position] != rune('\n') {
 							goto l28
 						}
 						position++
 						goto l25
 					l28:
 						position, tokenIndex, depth = position25, tokenIndex25, depth25
-						if buffer[position] != '\r' {
+						if buffer[position] != rune('\r') {
 							goto l20
 						}
 						position++
@@ -926,11 +743,11 @@ func (p *DynamlGrammar) Init() {
 				l20:
 					position, tokenIndex, depth = position20, tokenIndex20, depth20
 				}
-				if !rules[RuleLevel1]() {
+				if !_rules[ruleLevel1]() {
 					goto l17
 				}
 				depth--
-				add(RuleConcatenation, position18)
+				add(ruleConcatenation, position18)
 			}
 			return true
 		l17:
@@ -943,24 +760,24 @@ func (p *DynamlGrammar) Init() {
 			{
 				position30 := position
 				depth++
-				if !rules[RuleLevel0]() {
+				if !_rules[ruleLevel0]() {
 					goto l29
 				}
-				if !rules[Rulereq_ws]() {
+				if !_rules[rulereq_ws]() {
 					goto l29
 				}
-				if buffer[position] != '+' {
+				if buffer[position] != rune('+') {
 					goto l29
 				}
 				position++
-				if !rules[Rulereq_ws]() {
+				if !_rules[rulereq_ws]() {
 					goto l29
 				}
-				if !rules[RuleLevel1]() {
+				if !_rules[ruleLevel1]() {
 					goto l29
 				}
 				depth--
-				add(RuleAddition, position30)
+				add(ruleAddition, position30)
 			}
 			return true
 		l29:
@@ -973,24 +790,24 @@ func (p *DynamlGrammar) Init() {
 			{
 				position32 := position
 				depth++
-				if !rules[RuleLevel0]() {
+				if !_rules[ruleLevel0]() {
 					goto l31
 				}
-				if !rules[Rulereq_ws]() {
+				if !_rules[rulereq_ws]() {
 					goto l31
 				}
-				if buffer[position] != '-' {
+				if buffer[position] != rune('-') {
 					goto l31
 				}
 				position++
-				if !rules[Rulereq_ws]() {
+				if !_rules[rulereq_ws]() {
 					goto l31
 				}
-				if !rules[RuleLevel1]() {
+				if !_rules[ruleLevel1]() {
 					goto l31
 				}
 				depth--
-				add(RuleSubtraction, position32)
+				add(ruleSubtraction, position32)
 			}
 			return true
 		l31:
@@ -1005,67 +822,67 @@ func (p *DynamlGrammar) Init() {
 				depth++
 				{
 					position35, tokenIndex35, depth35 := position, tokenIndex, depth
-					if !rules[RuleGrouped]() {
+					if !_rules[ruleGrouped]() {
 						goto l36
 					}
 					goto l35
 				l36:
 					position, tokenIndex, depth = position35, tokenIndex35, depth35
-					if !rules[RuleCall]() {
+					if !_rules[ruleCall]() {
 						goto l37
 					}
 					goto l35
 				l37:
 					position, tokenIndex, depth = position35, tokenIndex35, depth35
-					if !rules[RuleBoolean]() {
+					if !_rules[ruleBoolean]() {
 						goto l38
 					}
 					goto l35
 				l38:
 					position, tokenIndex, depth = position35, tokenIndex35, depth35
-					if !rules[RuleNil]() {
+					if !_rules[ruleNil]() {
 						goto l39
 					}
 					goto l35
 				l39:
 					position, tokenIndex, depth = position35, tokenIndex35, depth35
-					if !rules[RuleString]() {
+					if !_rules[ruleString]() {
 						goto l40
 					}
 					goto l35
 				l40:
 					position, tokenIndex, depth = position35, tokenIndex35, depth35
-					if !rules[RuleInteger]() {
+					if !_rules[ruleInteger]() {
 						goto l41
 					}
 					goto l35
 				l41:
 					position, tokenIndex, depth = position35, tokenIndex35, depth35
-					if !rules[RuleList]() {
+					if !_rules[ruleList]() {
 						goto l42
 					}
 					goto l35
 				l42:
 					position, tokenIndex, depth = position35, tokenIndex35, depth35
-					if !rules[RuleMerge]() {
+					if !_rules[ruleMerge]() {
 						goto l43
 					}
 					goto l35
 				l43:
 					position, tokenIndex, depth = position35, tokenIndex35, depth35
-					if !rules[RuleAuto]() {
+					if !_rules[ruleAuto]() {
 						goto l44
 					}
 					goto l35
 				l44:
 					position, tokenIndex, depth = position35, tokenIndex35, depth35
-					if !rules[RuleReference]() {
+					if !_rules[ruleReference]() {
 						goto l33
 					}
 				}
 			l35:
 				depth--
-				add(RuleLevel0, position34)
+				add(ruleLevel0, position34)
 			}
 			return true
 		l33:
@@ -1078,19 +895,19 @@ func (p *DynamlGrammar) Init() {
 			{
 				position46 := position
 				depth++
-				if buffer[position] != '(' {
+				if buffer[position] != rune('(') {
 					goto l45
 				}
 				position++
-				if !rules[RuleExpression]() {
+				if !_rules[ruleExpression]() {
 					goto l45
 				}
-				if buffer[position] != ')' {
+				if buffer[position] != rune(')') {
 					goto l45
 				}
 				position++
 				depth--
-				add(RuleGrouped, position46)
+				add(ruleGrouped, position46)
 			}
 			return true
 		l45:
@@ -1103,22 +920,22 @@ func (p *DynamlGrammar) Init() {
 			{
 				position48 := position
 				depth++
-				if !rules[RuleName]() {
+				if !_rules[ruleName]() {
 					goto l47
 				}
-				if buffer[position] != '(' {
+				if buffer[position] != rune('(') {
 					goto l47
 				}
 				position++
-				if !rules[RuleArguments]() {
+				if !_rules[ruleArguments]() {
 					goto l47
 				}
-				if buffer[position] != ')' {
+				if buffer[position] != rune(')') {
 					goto l47
 				}
 				position++
 				depth--
-				add(RuleCall, position48)
+				add(ruleCall, position48)
 			}
 			return true
 		l47:
@@ -1131,19 +948,19 @@ func (p *DynamlGrammar) Init() {
 			{
 				position50 := position
 				depth++
-				if !rules[RuleExpression]() {
+				if !_rules[ruleExpression]() {
 					goto l49
 				}
 			l51:
 				{
 					position52, tokenIndex52, depth52 := position, tokenIndex, depth
-					if !rules[RuleComma]() {
+					if !_rules[ruleComma]() {
 						goto l52
 					}
-					if !rules[Rulews]() {
+					if !_rules[rulews]() {
 						goto l52
 					}
-					if !rules[RuleExpression]() {
+					if !_rules[ruleExpression]() {
 						goto l52
 					}
 					goto l51
@@ -1151,7 +968,7 @@ func (p *DynamlGrammar) Init() {
 					position, tokenIndex, depth = position52, tokenIndex52, depth52
 				}
 				depth--
-				add(RuleArguments, position50)
+				add(ruleArguments, position50)
 			}
 			return true
 		l49:
@@ -1166,28 +983,28 @@ func (p *DynamlGrammar) Init() {
 				depth++
 				{
 					position57, tokenIndex57, depth57 := position, tokenIndex, depth
-					if c := buffer[position]; c < 'a' || c > 'z' {
+					if c := buffer[position]; c < rune('a') || c > rune('z') {
 						goto l58
 					}
 					position++
 					goto l57
 				l58:
 					position, tokenIndex, depth = position57, tokenIndex57, depth57
-					if c := buffer[position]; c < 'A' || c > 'Z' {
+					if c := buffer[position]; c < rune('A') || c > rune('Z') {
 						goto l59
 					}
 					position++
 					goto l57
 				l59:
 					position, tokenIndex, depth = position57, tokenIndex57, depth57
-					if c := buffer[position]; c < '0' || c > '9' {
+					if c := buffer[position]; c < rune('0') || c > rune('9') {
 						goto l60
 					}
 					position++
 					goto l57
 				l60:
 					position, tokenIndex, depth = position57, tokenIndex57, depth57
-					if buffer[position] != '_' {
+					if buffer[position] != rune('_') {
 						goto l53
 					}
 					position++
@@ -1198,28 +1015,28 @@ func (p *DynamlGrammar) Init() {
 					position56, tokenIndex56, depth56 := position, tokenIndex, depth
 					{
 						position61, tokenIndex61, depth61 := position, tokenIndex, depth
-						if c := buffer[position]; c < 'a' || c > 'z' {
+						if c := buffer[position]; c < rune('a') || c > rune('z') {
 							goto l62
 						}
 						position++
 						goto l61
 					l62:
 						position, tokenIndex, depth = position61, tokenIndex61, depth61
-						if c := buffer[position]; c < 'A' || c > 'Z' {
+						if c := buffer[position]; c < rune('A') || c > rune('Z') {
 							goto l63
 						}
 						position++
 						goto l61
 					l63:
 						position, tokenIndex, depth = position61, tokenIndex61, depth61
-						if c := buffer[position]; c < '0' || c > '9' {
+						if c := buffer[position]; c < rune('0') || c > rune('9') {
 							goto l64
 						}
 						position++
 						goto l61
 					l64:
 						position, tokenIndex, depth = position61, tokenIndex61, depth61
-						if buffer[position] != '_' {
+						if buffer[position] != rune('_') {
 							goto l56
 						}
 						position++
@@ -1230,7 +1047,7 @@ func (p *DynamlGrammar) Init() {
 					position, tokenIndex, depth = position56, tokenIndex56, depth56
 				}
 				depth--
-				add(RuleName, position54)
+				add(ruleName, position54)
 			}
 			return true
 		l53:
@@ -1243,12 +1060,12 @@ func (p *DynamlGrammar) Init() {
 			{
 				position66 := position
 				depth++
-				if buffer[position] != ',' {
+				if buffer[position] != rune(',') {
 					goto l65
 				}
 				position++
 				depth--
-				add(RuleComma, position66)
+				add(ruleComma, position66)
 			}
 			return true
 		l65:
@@ -1263,7 +1080,7 @@ func (p *DynamlGrammar) Init() {
 				depth++
 				{
 					position69, tokenIndex69, depth69 := position, tokenIndex, depth
-					if buffer[position] != '-' {
+					if buffer[position] != rune('-') {
 						goto l69
 					}
 					position++
@@ -1274,14 +1091,14 @@ func (p *DynamlGrammar) Init() {
 			l70:
 				{
 					position73, tokenIndex73, depth73 := position, tokenIndex, depth
-					if c := buffer[position]; c < '0' || c > '9' {
+					if c := buffer[position]; c < rune('0') || c > rune('9') {
 						goto l74
 					}
 					position++
 					goto l73
 				l74:
 					position, tokenIndex, depth = position73, tokenIndex73, depth73
-					if buffer[position] != '_' {
+					if buffer[position] != rune('_') {
 						goto l67
 					}
 					position++
@@ -1292,14 +1109,14 @@ func (p *DynamlGrammar) Init() {
 					position72, tokenIndex72, depth72 := position, tokenIndex, depth
 					{
 						position75, tokenIndex75, depth75 := position, tokenIndex, depth
-						if c := buffer[position]; c < '0' || c > '9' {
+						if c := buffer[position]; c < rune('0') || c > rune('9') {
 							goto l76
 						}
 						position++
 						goto l75
 					l76:
 						position, tokenIndex, depth = position75, tokenIndex75, depth75
-						if buffer[position] != '_' {
+						if buffer[position] != rune('_') {
 							goto l72
 						}
 						position++
@@ -1310,7 +1127,7 @@ func (p *DynamlGrammar) Init() {
 					position, tokenIndex, depth = position72, tokenIndex72, depth72
 				}
 				depth--
-				add(RuleInteger, position68)
+				add(ruleInteger, position68)
 			}
 			return true
 		l67:
@@ -1323,7 +1140,7 @@ func (p *DynamlGrammar) Init() {
 			{
 				position78 := position
 				depth++
-				if buffer[position] != '"' {
+				if buffer[position] != rune('"') {
 					goto l77
 				}
 				position++
@@ -1332,11 +1149,11 @@ func (p *DynamlGrammar) Init() {
 					position80, tokenIndex80, depth80 := position, tokenIndex, depth
 					{
 						position81, tokenIndex81, depth81 := position, tokenIndex, depth
-						if buffer[position] != '\\' {
+						if buffer[position] != rune('\\') {
 							goto l82
 						}
 						position++
-						if buffer[position] != '"' {
+						if buffer[position] != rune('"') {
 							goto l82
 						}
 						position++
@@ -1345,7 +1162,7 @@ func (p *DynamlGrammar) Init() {
 						position, tokenIndex, depth = position81, tokenIndex81, depth81
 						{
 							position83, tokenIndex83, depth83 := position, tokenIndex, depth
-							if buffer[position] != '"' {
+							if buffer[position] != rune('"') {
 								goto l83
 							}
 							position++
@@ -1362,12 +1179,12 @@ func (p *DynamlGrammar) Init() {
 				l80:
 					position, tokenIndex, depth = position80, tokenIndex80, depth80
 				}
-				if buffer[position] != '"' {
+				if buffer[position] != rune('"') {
 					goto l77
 				}
 				position++
 				depth--
-				add(RuleString, position78)
+				add(ruleString, position78)
 			}
 			return true
 		l77:
@@ -1382,49 +1199,49 @@ func (p *DynamlGrammar) Init() {
 				depth++
 				{
 					position86, tokenIndex86, depth86 := position, tokenIndex, depth
-					if buffer[position] != 't' {
+					if buffer[position] != rune('t') {
 						goto l87
 					}
 					position++
-					if buffer[position] != 'r' {
+					if buffer[position] != rune('r') {
 						goto l87
 					}
 					position++
-					if buffer[position] != 'u' {
+					if buffer[position] != rune('u') {
 						goto l87
 					}
 					position++
-					if buffer[position] != 'e' {
+					if buffer[position] != rune('e') {
 						goto l87
 					}
 					position++
 					goto l86
 				l87:
 					position, tokenIndex, depth = position86, tokenIndex86, depth86
-					if buffer[position] != 'f' {
+					if buffer[position] != rune('f') {
 						goto l84
 					}
 					position++
-					if buffer[position] != 'a' {
+					if buffer[position] != rune('a') {
 						goto l84
 					}
 					position++
-					if buffer[position] != 'l' {
+					if buffer[position] != rune('l') {
 						goto l84
 					}
 					position++
-					if buffer[position] != 's' {
+					if buffer[position] != rune('s') {
 						goto l84
 					}
 					position++
-					if buffer[position] != 'e' {
+					if buffer[position] != rune('e') {
 						goto l84
 					}
 					position++
 				}
 			l86:
 				depth--
-				add(RuleBoolean, position85)
+				add(ruleBoolean, position85)
 			}
 			return true
 		l84:
@@ -1437,20 +1254,20 @@ func (p *DynamlGrammar) Init() {
 			{
 				position89 := position
 				depth++
-				if buffer[position] != 'n' {
+				if buffer[position] != rune('n') {
 					goto l88
 				}
 				position++
-				if buffer[position] != 'i' {
+				if buffer[position] != rune('i') {
 					goto l88
 				}
 				position++
-				if buffer[position] != 'l' {
+				if buffer[position] != rune('l') {
 					goto l88
 				}
 				position++
 				depth--
-				add(RuleNil, position89)
+				add(ruleNil, position89)
 			}
 			return true
 		l88:
@@ -1463,13 +1280,13 @@ func (p *DynamlGrammar) Init() {
 			{
 				position91 := position
 				depth++
-				if buffer[position] != '[' {
+				if buffer[position] != rune('[') {
 					goto l90
 				}
 				position++
 				{
 					position92, tokenIndex92, depth92 := position, tokenIndex, depth
-					if !rules[RuleContents]() {
+					if !_rules[ruleContents]() {
 						goto l92
 					}
 					goto l93
@@ -1477,12 +1294,12 @@ func (p *DynamlGrammar) Init() {
 					position, tokenIndex, depth = position92, tokenIndex92, depth92
 				}
 			l93:
-				if buffer[position] != ']' {
+				if buffer[position] != rune(']') {
 					goto l90
 				}
 				position++
 				depth--
-				add(RuleList, position91)
+				add(ruleList, position91)
 			}
 			return true
 		l90:
@@ -1495,19 +1312,19 @@ func (p *DynamlGrammar) Init() {
 			{
 				position95 := position
 				depth++
-				if !rules[RuleExpression]() {
+				if !_rules[ruleExpression]() {
 					goto l94
 				}
 			l96:
 				{
 					position97, tokenIndex97, depth97 := position, tokenIndex, depth
-					if !rules[RuleComma]() {
+					if !_rules[ruleComma]() {
 						goto l97
 					}
-					if !rules[Rulews]() {
+					if !_rules[rulews]() {
 						goto l97
 					}
-					if !rules[RuleExpression]() {
+					if !_rules[ruleExpression]() {
 						goto l97
 					}
 					goto l96
@@ -1515,7 +1332,7 @@ func (p *DynamlGrammar) Init() {
 					position, tokenIndex, depth = position97, tokenIndex97, depth97
 				}
 				depth--
-				add(RuleContents, position95)
+				add(ruleContents, position95)
 			}
 			return true
 		l94:
@@ -1528,28 +1345,28 @@ func (p *DynamlGrammar) Init() {
 			{
 				position99 := position
 				depth++
-				if buffer[position] != 'm' {
+				if buffer[position] != rune('m') {
 					goto l98
 				}
 				position++
-				if buffer[position] != 'e' {
+				if buffer[position] != rune('e') {
 					goto l98
 				}
 				position++
-				if buffer[position] != 'r' {
+				if buffer[position] != rune('r') {
 					goto l98
 				}
 				position++
-				if buffer[position] != 'g' {
+				if buffer[position] != rune('g') {
 					goto l98
 				}
 				position++
-				if buffer[position] != 'e' {
+				if buffer[position] != rune('e') {
 					goto l98
 				}
 				position++
 				depth--
-				add(RuleMerge, position99)
+				add(ruleMerge, position99)
 			}
 			return true
 		l98:
@@ -1562,24 +1379,24 @@ func (p *DynamlGrammar) Init() {
 			{
 				position101 := position
 				depth++
-				if buffer[position] != 'a' {
+				if buffer[position] != rune('a') {
 					goto l100
 				}
 				position++
-				if buffer[position] != 'u' {
+				if buffer[position] != rune('u') {
 					goto l100
 				}
 				position++
-				if buffer[position] != 't' {
+				if buffer[position] != rune('t') {
 					goto l100
 				}
 				position++
-				if buffer[position] != 'o' {
+				if buffer[position] != rune('o') {
 					goto l100
 				}
 				position++
 				depth--
-				add(RuleAuto, position101)
+				add(ruleAuto, position101)
 			}
 			return true
 		l100:
@@ -1594,7 +1411,7 @@ func (p *DynamlGrammar) Init() {
 				depth++
 				{
 					position104, tokenIndex104, depth104 := position, tokenIndex, depth
-					if buffer[position] != '.' {
+					if buffer[position] != rune('.') {
 						goto l104
 					}
 					position++
@@ -1605,28 +1422,28 @@ func (p *DynamlGrammar) Init() {
 			l105:
 				{
 					position106, tokenIndex106, depth106 := position, tokenIndex, depth
-					if c := buffer[position]; c < 'a' || c > 'z' {
+					if c := buffer[position]; c < rune('a') || c > rune('z') {
 						goto l107
 					}
 					position++
 					goto l106
 				l107:
 					position, tokenIndex, depth = position106, tokenIndex106, depth106
-					if c := buffer[position]; c < 'A' || c > 'Z' {
+					if c := buffer[position]; c < rune('A') || c > rune('Z') {
 						goto l108
 					}
 					position++
 					goto l106
 				l108:
 					position, tokenIndex, depth = position106, tokenIndex106, depth106
-					if c := buffer[position]; c < '0' || c > '9' {
+					if c := buffer[position]; c < rune('0') || c > rune('9') {
 						goto l109
 					}
 					position++
 					goto l106
 				l109:
 					position, tokenIndex, depth = position106, tokenIndex106, depth106
-					if buffer[position] != '_' {
+					if buffer[position] != rune('_') {
 						goto l102
 					}
 					position++
@@ -1637,35 +1454,35 @@ func (p *DynamlGrammar) Init() {
 					position111, tokenIndex111, depth111 := position, tokenIndex, depth
 					{
 						position112, tokenIndex112, depth112 := position, tokenIndex, depth
-						if c := buffer[position]; c < 'a' || c > 'z' {
+						if c := buffer[position]; c < rune('a') || c > rune('z') {
 							goto l113
 						}
 						position++
 						goto l112
 					l113:
 						position, tokenIndex, depth = position112, tokenIndex112, depth112
-						if c := buffer[position]; c < 'A' || c > 'Z' {
+						if c := buffer[position]; c < rune('A') || c > rune('Z') {
 							goto l114
 						}
 						position++
 						goto l112
 					l114:
 						position, tokenIndex, depth = position112, tokenIndex112, depth112
-						if c := buffer[position]; c < '0' || c > '9' {
+						if c := buffer[position]; c < rune('0') || c > rune('9') {
 							goto l115
 						}
 						position++
 						goto l112
 					l115:
 						position, tokenIndex, depth = position112, tokenIndex112, depth112
-						if buffer[position] != '_' {
+						if buffer[position] != rune('_') {
 							goto l116
 						}
 						position++
 						goto l112
 					l116:
 						position, tokenIndex, depth = position112, tokenIndex112, depth112
-						if buffer[position] != '-' {
+						if buffer[position] != rune('-') {
 							goto l111
 						}
 						position++
@@ -1680,34 +1497,34 @@ func (p *DynamlGrammar) Init() {
 					position118, tokenIndex118, depth118 := position, tokenIndex, depth
 					{
 						position119, tokenIndex119, depth119 := position, tokenIndex, depth
-						if buffer[position] != '.' {
+						if buffer[position] != rune('.') {
 							goto l120
 						}
 						position++
 						{
 							position121, tokenIndex121, depth121 := position, tokenIndex, depth
-							if c := buffer[position]; c < 'a' || c > 'z' {
+							if c := buffer[position]; c < rune('a') || c > rune('z') {
 								goto l122
 							}
 							position++
 							goto l121
 						l122:
 							position, tokenIndex, depth = position121, tokenIndex121, depth121
-							if c := buffer[position]; c < 'A' || c > 'Z' {
+							if c := buffer[position]; c < rune('A') || c > rune('Z') {
 								goto l123
 							}
 							position++
 							goto l121
 						l123:
 							position, tokenIndex, depth = position121, tokenIndex121, depth121
-							if c := buffer[position]; c < '0' || c > '9' {
+							if c := buffer[position]; c < rune('0') || c > rune('9') {
 								goto l124
 							}
 							position++
 							goto l121
 						l124:
 							position, tokenIndex, depth = position121, tokenIndex121, depth121
-							if buffer[position] != '_' {
+							if buffer[position] != rune('_') {
 								goto l120
 							}
 							position++
@@ -1718,35 +1535,35 @@ func (p *DynamlGrammar) Init() {
 							position126, tokenIndex126, depth126 := position, tokenIndex, depth
 							{
 								position127, tokenIndex127, depth127 := position, tokenIndex, depth
-								if c := buffer[position]; c < 'a' || c > 'z' {
+								if c := buffer[position]; c < rune('a') || c > rune('z') {
 									goto l128
 								}
 								position++
 								goto l127
 							l128:
 								position, tokenIndex, depth = position127, tokenIndex127, depth127
-								if c := buffer[position]; c < 'A' || c > 'Z' {
+								if c := buffer[position]; c < rune('A') || c > rune('Z') {
 									goto l129
 								}
 								position++
 								goto l127
 							l129:
 								position, tokenIndex, depth = position127, tokenIndex127, depth127
-								if c := buffer[position]; c < '0' || c > '9' {
+								if c := buffer[position]; c < rune('0') || c > rune('9') {
 									goto l130
 								}
 								position++
 								goto l127
 							l130:
 								position, tokenIndex, depth = position127, tokenIndex127, depth127
-								if buffer[position] != '_' {
+								if buffer[position] != rune('_') {
 									goto l131
 								}
 								position++
 								goto l127
 							l131:
 								position, tokenIndex, depth = position127, tokenIndex127, depth127
-								if buffer[position] != '-' {
+								if buffer[position] != rune('-') {
 									goto l126
 								}
 								position++
@@ -1759,22 +1576,22 @@ func (p *DynamlGrammar) Init() {
 						goto l119
 					l120:
 						position, tokenIndex, depth = position119, tokenIndex119, depth119
-						if buffer[position] != '.' {
+						if buffer[position] != rune('.') {
 							goto l118
 						}
 						position++
-						if buffer[position] != '[' {
+						if buffer[position] != rune('[') {
 							goto l118
 						}
 						position++
-						if c := buffer[position]; c < '0' || c > '9' {
+						if c := buffer[position]; c < rune('0') || c > rune('9') {
 							goto l118
 						}
 						position++
 					l132:
 						{
 							position133, tokenIndex133, depth133 := position, tokenIndex, depth
-							if c := buffer[position]; c < '0' || c > '9' {
+							if c := buffer[position]; c < rune('0') || c > rune('9') {
 								goto l133
 							}
 							position++
@@ -1782,7 +1599,7 @@ func (p *DynamlGrammar) Init() {
 						l133:
 							position, tokenIndex, depth = position133, tokenIndex133, depth133
 						}
-						if buffer[position] != ']' {
+						if buffer[position] != rune(']') {
 							goto l118
 						}
 						position++
@@ -1793,7 +1610,7 @@ func (p *DynamlGrammar) Init() {
 					position, tokenIndex, depth = position118, tokenIndex118, depth118
 				}
 				depth--
-				add(RuleReference, position103)
+				add(ruleReference, position103)
 			}
 			return true
 		l102:
@@ -1810,28 +1627,28 @@ func (p *DynamlGrammar) Init() {
 					position137, tokenIndex137, depth137 := position, tokenIndex, depth
 					{
 						position138, tokenIndex138, depth138 := position, tokenIndex, depth
-						if buffer[position] != ' ' {
+						if buffer[position] != rune(' ') {
 							goto l139
 						}
 						position++
 						goto l138
 					l139:
 						position, tokenIndex, depth = position138, tokenIndex138, depth138
-						if buffer[position] != '\t' {
+						if buffer[position] != rune('\t') {
 							goto l140
 						}
 						position++
 						goto l138
 					l140:
 						position, tokenIndex, depth = position138, tokenIndex138, depth138
-						if buffer[position] != '\n' {
+						if buffer[position] != rune('\n') {
 							goto l141
 						}
 						position++
 						goto l138
 					l141:
 						position, tokenIndex, depth = position138, tokenIndex138, depth138
-						if buffer[position] != '\r' {
+						if buffer[position] != rune('\r') {
 							goto l137
 						}
 						position++
@@ -1842,7 +1659,7 @@ func (p *DynamlGrammar) Init() {
 					position, tokenIndex, depth = position137, tokenIndex137, depth137
 				}
 				depth--
-				add(Rulews, position135)
+				add(rulews, position135)
 			}
 			return true
 		},
@@ -1854,28 +1671,28 @@ func (p *DynamlGrammar) Init() {
 				depth++
 				{
 					position146, tokenIndex146, depth146 := position, tokenIndex, depth
-					if buffer[position] != ' ' {
+					if buffer[position] != rune(' ') {
 						goto l147
 					}
 					position++
 					goto l146
 				l147:
 					position, tokenIndex, depth = position146, tokenIndex146, depth146
-					if buffer[position] != '\t' {
+					if buffer[position] != rune('\t') {
 						goto l148
 					}
 					position++
 					goto l146
 				l148:
 					position, tokenIndex, depth = position146, tokenIndex146, depth146
-					if buffer[position] != '\n' {
+					if buffer[position] != rune('\n') {
 						goto l149
 					}
 					position++
 					goto l146
 				l149:
 					position, tokenIndex, depth = position146, tokenIndex146, depth146
-					if buffer[position] != '\r' {
+					if buffer[position] != rune('\r') {
 						goto l142
 					}
 					position++
@@ -1886,28 +1703,28 @@ func (p *DynamlGrammar) Init() {
 					position145, tokenIndex145, depth145 := position, tokenIndex, depth
 					{
 						position150, tokenIndex150, depth150 := position, tokenIndex, depth
-						if buffer[position] != ' ' {
+						if buffer[position] != rune(' ') {
 							goto l151
 						}
 						position++
 						goto l150
 					l151:
 						position, tokenIndex, depth = position150, tokenIndex150, depth150
-						if buffer[position] != '\t' {
+						if buffer[position] != rune('\t') {
 							goto l152
 						}
 						position++
 						goto l150
 					l152:
 						position, tokenIndex, depth = position150, tokenIndex150, depth150
-						if buffer[position] != '\n' {
+						if buffer[position] != rune('\n') {
 							goto l153
 						}
 						position++
 						goto l150
 					l153:
 						position, tokenIndex, depth = position150, tokenIndex150, depth150
-						if buffer[position] != '\r' {
+						if buffer[position] != rune('\r') {
 							goto l145
 						}
 						position++
@@ -1918,7 +1735,7 @@ func (p *DynamlGrammar) Init() {
 					position, tokenIndex, depth = position145, tokenIndex145, depth145
 				}
 				depth--
-				add(Rulereq_ws, position143)
+				add(rulereq_ws, position143)
 			}
 			return true
 		l142:
@@ -1926,5 +1743,5 @@ func (p *DynamlGrammar) Init() {
 			return false
 		},
 	}
-	p.rules = rules
+	p.rules = _rules
 }
