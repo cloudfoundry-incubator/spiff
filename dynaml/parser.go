@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 	
-//	"github.com/cloudfoundry-incubator/spiff/debug"
+	"github.com/cloudfoundry-incubator/spiff/debug"
 )
 
 func Parse(source string, path []string) (Expression, error) {
@@ -32,7 +32,14 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 		case ruleAuto:
 			tokens.Push(AutoExpr{path})
 		case ruleMerge:
+			debug.Debug("*** rule merge\n")
+		case ruleSimpleMerge:
+			debug.Debug("*** rule simple merge\n")
 			tokens.Push(MergeExpr{path})
+		case ruleRefMerge:
+			debug.Debug("*** rule ref merge\n")
+			rhs := tokens.Pop()
+			tokens.Push(MergeExpr{rhs.(ReferenceExpr).Path})
 		case ruleReference:
 			tokens.Push(ReferenceExpr{strings.Split(contents, ".")})
 		case ruleInteger:

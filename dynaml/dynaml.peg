@@ -37,7 +37,9 @@ Nil <- 'nil'
 List <- '[' Contents? ']'
 Contents <- Expression (Comma ws Expression)*
 
-Merge <- 'merge'
+Merge <- RefMerge / SimpleMerge
+RefMerge <- 'merge' req_ws Reference
+SimpleMerge <- 'merge'
 
 Auto <- 'auto'
 

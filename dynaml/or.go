@@ -12,17 +12,18 @@ type OrExpr struct {
 	B Expression
 }
 
-func (e OrExpr) Evaluate(binding Binding) (yaml.Node, bool) {
-	a, ok := e.A.Evaluate(binding)
+func (e OrExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+	a, infoa, ok := e.A.Evaluate(binding)
 	if ok {
 		if reflect.DeepEqual(a.Value(), e.A) {
-			return nil, false
+			return nil, infoa, false
 		}
 
-		return a, true
+		return a, infoa, true
 	}
 
-	return e.B.Evaluate(binding)
+	b, infob, ok := e.B.Evaluate(binding)
+	return b, infoa.Join(infob), ok
 }
 
 func (e OrExpr) String() string {

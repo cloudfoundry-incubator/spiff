@@ -10,6 +10,17 @@ type Binding interface {
 	FindInStubs([]string) (yaml.Node, bool)
 }
 
+type EvaluationInfo struct {
+	RedirectPath []string
+}
+
 type Expression interface {
-	Evaluate(Binding) (yaml.Node, bool)
+	Evaluate(Binding) (yaml.Node, EvaluationInfo, bool)
+}
+
+func (i EvaluationInfo) Join(o EvaluationInfo) EvaluationInfo {
+	if o.RedirectPath !=nil {
+		i.RedirectPath = o.RedirectPath
+	}
+	return i
 }

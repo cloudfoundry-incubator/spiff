@@ -10,8 +10,8 @@ type StringExpr struct {
 	Value string
 }
 
-func (e StringExpr) Evaluate(Binding) (yaml.Node, bool) {
-	return node(e.Value), true
+func (e StringExpr) Evaluate(Binding) (yaml.Node, EvaluationInfo, bool) {
+	return node(e.Value), EvaluationInfo{nil}, true
 }
 
 func (e StringExpr) String() string {

@@ -12,29 +12,30 @@ type ConcatenationExpr struct {
 	B Expression
 }
 
-func (e ConcatenationExpr) Evaluate(binding Binding) (yaml.Node, bool) {
-	a, ok := e.A.Evaluate(binding)
+func (e ConcatenationExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+	a, infoa, ok := e.A.Evaluate(binding)
 	if !ok {
-		return nil, false
+		return nil, infoa, false
 	}
 
-	b, ok := e.B.Evaluate(binding)
+	b, infob, ok := e.B.Evaluate(binding)
+	info := infoa.Join(infob)
 	if !ok {
-		return nil, false
+		return nil, info, false
 	}
 
 	val, ok := concatenateStringAndInt(a, b)
 	if ok {
-		return node(val), true
+		return node(val), info, true
 	}
 
 	alist, aok := a.Value().([]yaml.Node)
 	blist, bok := b.Value().([]yaml.Node)
 	if aok && bok {
-		return node(append(alist, blist...)), true
+		return node(append(alist, blist...)), info, true
 	}
 
-	return nil, false
+	return nil, info, false
 }
 
 func (e ConcatenationExpr) String() string {

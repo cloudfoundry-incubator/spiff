@@ -13,19 +13,21 @@ type CallExpr struct {
 	Arguments []Expression
 }
 
-func (e CallExpr) Evaluate(binding Binding) (yaml.Node, bool) {
+func (e CallExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+	info:= EvaluationInfo{nil}
+	
 	switch e.Name {
 	case "static_ips":
 		indices := make([]int, len(e.Arguments))
 		for i, arg := range e.Arguments {
-			index, ok := arg.Evaluate(binding)
+			index, info, ok := arg.Evaluate(binding)
 			if !ok {
-				return nil, false
+				return nil, info, false
 			}
 
 			index64, ok := index.Value().(int64)
 			if !ok {
-				return nil, false
+				return nil, info, false
 			}
 			indices[i] = int(index64)
 		}
@@ -33,7 +35,7 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 		return generateStaticIPs(binding, indices)
 	}
 
-	return nil, false
+	return nil, info, false
 }
 
 func (e CallExpr) String() string {
@@ -45,40 +47,42 @@ func (e CallExpr) String() string {
 	return fmt.Sprintf("%s(%s)", e.Name, strings.Join(args, ", "))
 }
 
-func generateStaticIPs(binding Binding, indices []int) (yaml.Node, bool) {
+func generateStaticIPs(binding Binding, indices []int) (yaml.Node, EvaluationInfo, bool) {
+	info:= EvaluationInfo{nil}
+	
 	if len(indices) == 0 {
-		return nil, false
+		return nil, info, false
 	}
 
 	ranges, ok := findStaticIPRanges(binding)
 	if !ok {
-		return nil, false
+		return nil, info, false
 	}
 
 	instanceCount, ok := findInstanceCount(binding)
 	if !ok {
-		return nil, false
+		return nil, info, false
 	}
 
 	ipPool, ok := staticIPPool(ranges)
 	if !ok {
-		return nil, false
+		return nil, info, false
 	}
 
 	ips := []yaml.Node{}
 	for _, i := range indices {
 		if len(ipPool) <= i {
-			return nil, false
+			return nil, info, false
 		}
 
 		ips = append(ips, node(ipPool[i].String()))
 	}
 
 	if len(ips) < instanceCount {
-		return nil, false
+		return nil, info, false
 	}
 
-	return node(ips[:instanceCount]), true
+	return node(ips[:instanceCount]), info, true
 }
 
 func findInstanceCount(binding Binding) (int, bool) {

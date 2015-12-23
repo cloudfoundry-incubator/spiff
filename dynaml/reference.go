@@ -10,10 +10,11 @@ type ReferenceExpr struct {
 	Path []string
 }
 
-func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, bool) {
+func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	var step yaml.Node
 	var ok bool
 
+    info := EvaluationInfo{nil}
 	fromRoot := e.Path[0] == ""
 
 	for i := 0; i < len(e.Path); i++ {
@@ -24,16 +25,16 @@ func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 		}
 
 		if !ok {
-			return nil, false
+			return nil, info, false
 		}
 
 		switch step.Value().(type) {
 		case Expression:
-			return node(e), true
+			return node(e), info, true
 		}
 	}
 
-	return step, true
+	return step, info, true
 }
 
 func (e ReferenceExpr) String() string {

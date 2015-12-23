@@ -40,7 +40,12 @@ func flow(root yaml.Node, env Environment, shouldOverride bool) yaml.Node {
 	if root == nil {
 		return root
 	}
-
+	
+	redirect:= root.RedirectPath()
+	if redirect != nil {
+		env = env.RedirectOverwrite(redirect)
+	}
+	
 	switch val := root.Value().(type) {
 	case map[string]yaml.Node:
 		return flowMap(root, env)
@@ -50,37 +55,51 @@ func flow(root yaml.Node, env Environment, shouldOverride bool) yaml.Node {
 
 	case dynaml.Expression:
 		debug.Debug("??? eval %+v\n", val)
-		result, ok := val.Evaluate(env)
+		result, info, ok := val.Evaluate(env)
 		if !ok {
 			debug.Debug("??? ---> KEEP\n")
 			return root
 		}
+		if info.RedirectPath!=nil && ! reflect.DeepEqual(info.RedirectPath, env.Path) {
+			redirect = info.RedirectPath
+			debug.Debug("??? m--> %+v -> %v\n", result, info.RedirectPath)
+			return yaml.RedirectNode(result.Value(), result, redirect)
+		}
 		debug.Debug("??? ---> %+v\n", result)
 		return result
-	}
-
-	if shouldOverride {
-		//debug.Debug("/// lookup %v -> %v\n",env.Path, env.StubPath)
-		debug.Debug("/// lookup %v\n",env.Path)
-
-		overridden, found := env.FindInStubs(env.Path)
-		if found {
-			return overridden
+	
+	case string:
+		result := flowString(root, env)
+		if result != nil {
+			_, ok := result.Value().(dynaml.Expression)
+			if ok {
+				return result
+			}
 		}
 	}
 
-	_, ok := root.Value().(string)
-	if ok {
-		return flowString(root, env)
+	if shouldOverride {
+		debug.Debug("/// lookup %v -> %v\n",env.Path, env.StubPath)
+		overridden, found := env.FindInStubs(env.StubPath)
+		if found {
+			root = overridden
+		}
+	}
+
+	if redirect != nil {
+		return yaml.RedirectNode(root.Value(),root,redirect)
 	}
 
 	return root
 }
 
 func flowMap(root yaml.Node, env Environment) yaml.Node {
+	processed := true
 	rootMap := root.Value().(map[string]yaml.Node)
 
 	env = env.WithScope(rootMap)
+	
+	redirect:= root.RedirectPath()
 
 	newMap := make(map[string]yaml.Node)
 
@@ -93,22 +112,35 @@ func flowMap(root yaml.Node, env Environment) yaml.Node {
 		val := rootMap[key]
 
 		if key == "<<" {
-			base := flow(val, env, true)
-			baseMap, ok := base.Value().(map[string]yaml.Node)
+			base := flow(val, env, false)
+			_, ok := base.Value().(dynaml.Expression)
 			if ok {
-				for k, v := range baseMap {
-					newMap[k] = v
+				val = base
+				processed = false;
+			} else {
+				baseMap, ok := base.Value().(map[string]yaml.Node)
+				if base != nil && base.RedirectPath() != nil {
+					redirect = base.RedirectPath()
+					env=env.RedirectOverwrite(redirect)
 				}
+				if ok {
+					for k, v := range baseMap {
+						newMap[k] = v
+					}
+				}
+				continue
 			}
-
-			continue
+		} else {
+			if processed {
+				val = flow(val, env.WithPath(key), true)
+			}
 		}
 
-		newMap[key] = flow(val, env.WithPath(key), true)
+		newMap[key] = val
 	}
 
 	debug.Debug("MAP DONE %v\n", env.Path)
-	return yaml.NewNode(newMap, root.SourceName())
+	return yaml.RedirectNode(newMap, root, redirect)
 }
 
 func flowList(root yaml.Node, env Environment) yaml.Node {
@@ -125,9 +157,9 @@ func flowList(root yaml.Node, env Environment) yaml.Node {
 			newList = append(newList, flow(val, env.WithPath(step), false))
 		}
 
-		return yaml.NewNode(newList, root.SourceName())
+		return yaml.SubstituteNode(newList, root)
 	} else {
-		return yaml.NewNode(merged, root.SourceName())
+		return yaml.SubstituteNode(merged, root)
 	}
 }
 
@@ -144,7 +176,7 @@ func flowString(root yaml.Node, env Environment) yaml.Node {
 		return root
 	}
 
-	return yaml.NewNode(expr, root.SourceName())
+	return yaml.SubstituteNode(expr, root)
 }
 
 func stepName(index int, value yaml.Node) string {
@@ -174,7 +206,7 @@ func processMerges(orig yaml.Node, root []yaml.Node, env Environment) ([]yaml.No
 			if ok {
 				newMap := make(map[string]yaml.Node) 
 				newMap["<<"] = result
-				val = yaml.NewNode(newMap,orig.SourceName())
+				val = yaml.SubstituteNode(newMap,orig)
 				processed = false
 			} else {
 				inline, ok := result.Value().([]yaml.Node)

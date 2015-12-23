@@ -11,28 +11,29 @@ type SubtractionExpr struct {
 	B Expression
 }
 
-func (e SubtractionExpr) Evaluate(binding Binding) (yaml.Node, bool) {
-	a, ok := e.A.Evaluate(binding)
+func (e SubtractionExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+	a, infoa, ok := e.A.Evaluate(binding)
 	if !ok {
-		return nil, false
+		return nil, infoa, false
 	}
 
-	b, ok := e.B.Evaluate(binding)
+	b, infob, ok := e.B.Evaluate(binding)
+	info := infoa.Join(infob)
 	if !ok {
-		return nil, false
+		return nil, info, false
 	}
 
 	aint, ok := a.Value().(int64)
 	if !ok {
-		return nil, false
+		return nil, info, false
 	}
 
 	bint, ok := b.Value().(int64)
 	if !ok {
-		return nil, false
+		return nil, info, false
 	}
 
-	return node(aint - bint), true
+	return node(aint - bint), info, true
 }
 
 func (e SubtractionExpr) String() string {

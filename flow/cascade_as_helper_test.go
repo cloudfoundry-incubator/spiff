@@ -2,7 +2,6 @@ package flow
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
@@ -27,7 +26,7 @@ func (matcher *CascadeAsMatcher) Match(source interface{}) (success bool, err er
 		return false, err
 	}
 
-	if reflect.DeepEqual(matcher.actual, matcher.Expected) {
+	if matcher.actual.EquivalentToNode( matcher.Expected) {
 		return true, nil
 	} else {
 		return false, nil

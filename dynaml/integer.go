@@ -10,8 +10,8 @@ type IntegerExpr struct {
 	Value int64
 }
 
-func (e IntegerExpr) Evaluate(Binding) (yaml.Node, bool) {
-	return node(e.Value), true
+func (e IntegerExpr) Evaluate(Binding) (yaml.Node, EvaluationInfo, bool) {
+	return node(e.Value), EvaluationInfo{nil}, true
 }
 
 func (e IntegerExpr) String() string {

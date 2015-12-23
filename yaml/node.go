@@ -12,15 +12,25 @@ type Node interface {
 	Value() interface{}
 	SourceName() string
 	EquivalentToNode(Node) bool
+	RedirectPath() []string
 }
 
 type AnnotatedNode struct {
-	value      interface{}
-	sourceName string
+	value        interface{}
+	sourceName   string
+	redirectPath []string
 }
 
 func NewNode(value interface{}, sourcePath string) Node {
-	return AnnotatedNode{massageType(value), sourcePath}
+	return AnnotatedNode{massageType(value), sourcePath, nil}
+}
+
+func SubstituteNode(value interface{}, node Node) Node {
+	return AnnotatedNode{massageType(value), node.SourceName(), node.RedirectPath()}
+}
+
+func RedirectNode(value interface{}, node Node, redirect []string) Node {
+	return AnnotatedNode{massageType(value), node.SourceName(),redirect}
 }
 
 func massageType(value interface{}) interface{} {
@@ -33,6 +43,10 @@ func massageType(value interface{}) interface{} {
 
 func (n AnnotatedNode) Value() interface{} {
 	return n.value
+}
+
+func (n AnnotatedNode) RedirectPath() []string {
+	return n.redirectPath
 }
 
 func (n AnnotatedNode) SourceName() string {

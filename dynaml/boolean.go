@@ -10,8 +10,8 @@ type BooleanExpr struct {
 	Value bool
 }
 
-func (e BooleanExpr) Evaluate(Binding) (yaml.Node, bool) {
-	return node(e.Value), true
+func (e BooleanExpr) Evaluate(Binding) (yaml.Node, EvaluationInfo, bool) {
+	return node(e.Value), EvaluationInfo{nil}, true
 }
 
 func (e BooleanExpr) String() string {

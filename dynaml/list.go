@@ -11,19 +11,20 @@ type ListExpr struct {
 	Contents []Expression
 }
 
-func (e ListExpr) Evaluate(binding Binding) (yaml.Node, bool) {
+func (e ListExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	nodes := []yaml.Node{}
-
+    info := EvaluationInfo{nil}
+	
 	for _, c := range e.Contents {
-		result, ok := c.Evaluate(binding)
+		result, _, ok := c.Evaluate(binding)
 		if !ok {
-			return nil, false
+			return nil, info, false
 		}
 
 		nodes = append(nodes, result)
 	}
 
-	return node(nodes), true
+	return node(nodes), info, true
 }
 
 func (e ListExpr) String() string {

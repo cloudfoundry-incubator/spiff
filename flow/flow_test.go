@@ -384,6 +384,197 @@ properties:
 		})
 	})
 
+	Describe("merging fields", func() {
+		It("merges locally referenced fields", func() {
+			source := parseYAML(`
+---
+foo: 
+  <<: (( bar ))
+  other: other
+bar:
+  alice: alice
+  bob: bob
+`)
+
+
+			resolved := parseYAML(`
+---
+foo:
+  alice: alice
+  bob: bob
+  other: other
+bar:
+  alice: alice
+  bob: bob
+`)
+
+			Expect(source).To(FlowAs(resolved))
+		})
+		
+		It("overwrites locally referenced fields", func() {
+			source := parseYAML(`
+---
+foo: 
+  <<: (( bar ))
+  alice: overwritten
+  other: other
+bar:
+  alice: alice
+  bob: bob
+`)
+
+
+			resolved := parseYAML(`
+---
+foo:
+  alice: overwritten
+  bob: bob
+  other: other
+bar:
+  alice: alice
+  bob: bob
+`)
+
+			Expect(source).To(FlowAs(resolved))
+		})
+		
+		It("merges redirected stub fields", func() {
+			source := parseYAML(`
+---
+foo: 
+  <<: (( merge alt ))
+bar: 42
+`)
+
+			stub := parseYAML(`
+---
+foo: 
+  alice: not merged!
+alt: 
+  bob: merged!
+`)
+
+			resolved := parseYAML(`
+---
+foo: 
+  bob: merged!
+bar: 42
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
+		
+		It("overwrites redirected stub fields", func() {
+			source := parseYAML(`
+---
+foo: 
+  <<: (( merge alt ))
+  bar: 42
+`)
+
+			stub := parseYAML(`
+---
+foo: 
+  alice: not merged!
+alt: 
+  bob: added!
+  bar: overwritten
+`)
+
+			resolved := parseYAML(`
+---
+foo: 
+  bob: added!
+  bar: overwritten
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
+		
+		It("deep overwrites redirected stub fields", func() {
+			source := parseYAML(`
+---
+foo: 
+  <<: (( merge alt ))
+  bar:
+    alice: alice
+    bob: bob
+`)
+
+			stub := parseYAML(`
+---
+foo: 
+  alice: not merged!
+alt: 
+  bob: added!
+  bar:
+    alice: overwritten
+`)
+
+			resolved := parseYAML(`
+---
+foo: 
+  bar:
+    alice: overwritten
+    bob: bob
+  bob: added!
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
+	})
+	
+	
+		Describe("merging field value", func() {
+		It("merges with map", func() {
+			source := parseYAML(`
+---
+foo: (( merge bar ))
+`)
+
+			stub := parseYAML(`
+---
+foo:
+  alice: not merged
+bar:
+  alice: alice
+  bob: bob
+`)
+
+			resolved := parseYAML(`
+---
+foo:
+  alice: alice
+  bob: bob
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
+		
+		It("merges with nothing", func() {
+			source := parseYAML(`
+---
+foo: (( merge nothing || "default" ))
+`)
+
+			stub := parseYAML(`
+---
+foo:
+  alice: not merged
+bar:
+  alice: alice
+  bob: bob
+`)
+
+			resolved := parseYAML(`
+---
+foo: default
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
+	})
+	
 	Describe("automatic resource pool sizes", func() {
 		It("evaluates the node", func() {
 			source := parseYAML(`
