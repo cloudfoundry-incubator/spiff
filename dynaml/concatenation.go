@@ -13,17 +13,23 @@ type ConcatenationExpr struct {
 }
 
 func (e ConcatenationExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+	
+	//fmt.Printf("CONCAT %+v,%+v\n",e.A,e.B)
 	a, infoa, ok := e.A.Evaluate(binding)
 	if !ok {
+		//fmt.Printf("  eval a failed\n")
 		return nil, infoa, false
 	}
 
 	b, infob, ok := e.B.Evaluate(binding)
 	info := infoa.Join(infob)
 	if !ok {
+		//fmt.Printf("  eval b failed\n")
 		return nil, info, false
 	}
-
+	
+	//fmt.Printf("CONCAT %+v,%+v\n",a,b)
+	
 	val, ok := concatenateStringAndInt(a, b)
 	if ok {
 		return node(val), info, true
@@ -43,18 +49,23 @@ func (e ConcatenationExpr) String() string {
 }
 
 func concatenateStringAndInt(a yaml.Node, b yaml.Node) (string, bool) {
-	aString, aOk := a.Value().(string)
-	if aOk {
-		bString, bOk := b.Value().(string)
-		if bOk {
-			return aString + bString, true
-		} else {
-			bInt, bOk := b.Value().(int64)
-			if bOk {
-				return aString + strconv.FormatInt(bInt, 10), true
-			}
-		}
-	}
+	var aString string
 
-	return "", false
+	switch a.Value().(type) {
+		case string:
+			aString = a.Value().(string)
+		case int64:
+			aString = strconv.FormatInt(a.Value().(int64), 10)
+		default:
+			return "", false
+	}
+	
+	switch b.Value().(type) {
+		case string:
+			return  aString + b.Value().(string), true
+		case int64:
+			return aString + strconv.FormatInt(b.Value().(int64), 10), true
+		default:
+			return "", false
+	}
 }

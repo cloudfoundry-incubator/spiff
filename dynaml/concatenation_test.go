@@ -52,7 +52,7 @@ var _ = Describe("concatenation", func() {
 				StringExpr{"one"},
 			}
 
-			Expect(expr).To(FailToEvaluate(FakeBinding{}))
+			Expect(expr).To(EvaluateAs("42one", FakeBinding{}))
 		})
 	})
 

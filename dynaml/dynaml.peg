@@ -2,26 +2,30 @@ package dynaml
 
 type DynamlGrammar Peg {}
 
-Dynaml <- ws Expression ws !.
+Dynaml <- Expression !.
 
-Expression <- Level2
+Expression <- ws Level4 ws
 
-Level2 <- Or / Level1
+Level4 <- Level3 ( req_ws Or )*
+Or <- '||' req_ws Level3
 
-Or <- Level1 req_ws '||' req_ws Expression
+Level3 <- Level2 ( Concatenation )*
+Concatenation <- req_ws Level2
 
-Level1 <- Concatenation / Addition / Subtraction / Level0
+Level2 <-  Level1 ( req_ws ( Addition / Subtraction ) )*
+Addition <- '+' req_ws Level1
+Subtraction <- '-' req_ws Level1
 
-Concatenation <- Level0 [ \t\n\r]+ Level1
-Addition <- Level0 req_ws '+' req_ws Level1
-Subtraction <- Level0 req_ws '-' req_ws Level1
+Level1 <- Level0 ( req_ws ( Multiplication / Division ) )*
+Multiplication <- '*' req_ws Level0
+Division <-  '/' req_ws Level0
 
 Level0 <- Grouped / Call / Boolean / Nil / String / Integer / List / Merge / Auto / Reference
 
 Grouped <- '(' Expression ')'
 
 Call <- Name '(' Arguments ')'
-Arguments <- Expression (Comma ws Expression)*
+Arguments <- Expression (Comma Expression)*
 Name <- [a-zA-Z0-9_]+
 
 Comma <- ','
@@ -35,7 +39,7 @@ Boolean <- 'true' / 'false'
 Nil <- 'nil'
 
 List <- '[' Contents? ']'
-Contents <- Expression (Comma ws Expression)*
+Contents <- Expression (Comma Expression)*
 
 Merge <- RefMerge / SimpleMerge
 RefMerge <- 'merge' req_ws Reference

@@ -789,4 +789,134 @@ properties:
 			})
 		})
 	})
+	
+	Describe("for arithmetic expressions", func() {
+		It("evaluates addition", func() {
+			source := parseYAML(`
+---
+foo: (( 1 + 2 + 3 ))
+`)
+
+			resolved := parseYAML(`
+---
+foo: 6
+`)
+
+			Expect(source).To(FlowAs(resolved))
+		})
+		
+		It("evaluates substraction", func() {
+			source := parseYAML(`
+---
+foo: (( 6 - 2 - 3 ))
+`)
+
+			resolved := parseYAML(`
+---
+foo: 1
+`)
+
+			Expect(source).To(FlowAs(resolved))
+		})
+		
+		It("evaluates multiplication", func() {
+			source := parseYAML(`
+---
+foo: (( 6 * 2 * 3 ))
+`)
+
+			resolved := parseYAML(`
+---
+foo: 36
+`)
+
+			Expect(source).To(FlowAs(resolved))
+		})
+		
+		It("evaluates division", func() {
+			source := parseYAML(`
+---
+foo: (( 6 / 2 / 3 ))
+`)
+
+			resolved := parseYAML(`
+---
+foo: 1
+`)
+
+			Expect(source).To(FlowAs(resolved))
+		})
+		
+		It("evaluates multiplication first", func() {
+			source := parseYAML(`
+---
+foo: (( 6 + 2 * 3 ))
+`)
+
+			resolved := parseYAML(`
+---
+foo: 12
+`)
+
+			Expect(source).To(FlowAs(resolved))
+		})
+		
+		It("evaluates addition last", func() {
+			source := parseYAML(`
+---
+foo: (( 6 * 2 + 3 ))
+`)
+
+			resolved := parseYAML(`
+---
+foo: 15
+`)
+
+			Expect(source).To(FlowAs(resolved))
+		})
+		
+		It("evaluates arithmetic before concatenation", func() {
+			source := parseYAML(`
+---
+foo: (( "prefix" 6 * 2 + 3 "suffix" ))
+`)
+
+			resolved := parseYAML(`
+---
+foo: prefix15suffix
+`)
+
+			Expect(source).To(FlowAs(resolved))
+		})
+		
+		It("concatenates arithmetic values as string", func() {
+			source := parseYAML(`
+---
+foo: ((  6 * 2 + 3 15 ))
+`)
+
+			resolved := parseYAML(`
+---
+foo: "1515"
+`)
+
+			Expect(source).To(FlowAs(resolved))
+		})
+	})
+	
+	Describe("concatenation", func() {
+		It("of lists", func() {
+			source := parseYAML(`
+---
+foo: (( [1,2,3] [ 2 * 3 ] [4,5,6] ))
+`)
+
+			resolved := parseYAML(`
+---
+foo: [1,2,3,6,4,5,6]
+`)
+
+			Expect(source).To(FlowAs(resolved))
+		})
+	})
 })

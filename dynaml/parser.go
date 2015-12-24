@@ -76,6 +76,16 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 			lhs := tokens.Pop()
 
 			tokens.Push(SubtractionExpr{A: lhs, B: rhs})
+		case ruleMultiplication:
+			rhs := tokens.Pop()
+			lhs := tokens.Pop()
+
+			tokens.Push(MultiplicationExpr{A: lhs, B: rhs})
+		case ruleDivision:
+			rhs := tokens.Pop()
+			lhs := tokens.Pop()
+
+			tokens.Push(DivisionExpr{A: lhs, B: rhs})
 		case ruleCall:
 			tokens.Push(CallExpr{
 				Name:      tokens.functionName,
@@ -91,7 +101,7 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 			tokens.PushToSeq(expr)
 		case ruleKey:
 		case ruleGrouped:
-		case ruleLevel0, ruleLevel1, ruleLevel2:
+		case ruleLevel0, ruleLevel1, ruleLevel2, ruleLevel3, ruleLevel4:
 		case ruleExpression:
 		case rulews:
 		case rulereq_ws:

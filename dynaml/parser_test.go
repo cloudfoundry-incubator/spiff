@@ -66,11 +66,11 @@ var _ = Describe("parsing", func() {
 			parsesAs(
 				`"foo" bar merge`,
 				ConcatenationExpr{
-					StringExpr{"foo"},
 					ConcatenationExpr{
+						StringExpr{"foo"},
 						ReferenceExpr{[]string{"bar"}},
-						MergeExpr{},
 					},
+					MergeExpr{},
 				},
 			)
 		})
@@ -89,11 +89,11 @@ var _ = Describe("parsing", func() {
 			parsesAs(
 				`"foo" || bar || merge`,
 				OrExpr{
-					StringExpr{"foo"},
 					OrExpr{
+						StringExpr{"foo"},
 						ReferenceExpr{[]string{"bar"}},
-						MergeExpr{},
 					},
+					MergeExpr{},
 				},
 			)
 		})
@@ -112,11 +112,11 @@ var _ = Describe("parsing", func() {
 			parsesAs(
 				`"foo" + bar + merge`,
 				AdditionExpr{
-					StringExpr{"foo"},
 					AdditionExpr{
+						StringExpr{"foo"},
 						ReferenceExpr{[]string{"bar"}},
-						MergeExpr{},
 					},
+					MergeExpr{},
 				},
 			)
 		})
@@ -135,16 +135,62 @@ var _ = Describe("parsing", func() {
 			parsesAs(
 				`"foo" - bar - merge`,
 				SubtractionExpr{
-					StringExpr{"foo"},
 					SubtractionExpr{
+						StringExpr{"foo"},
 						ReferenceExpr{[]string{"bar"}},
-						MergeExpr{},
 					},
+					MergeExpr{},
 				},
 			)
 		})
 	})
 
+	Describe("multiplication", func() {
+		It("parses nodes separated by *", func() {
+			parsesAs(
+				`"foo" * bar`,
+				MultiplicationExpr{
+					StringExpr{"foo"},
+					ReferenceExpr{[]string{"bar"}},
+				},
+			)
+
+			parsesAs(
+				`"foo" * bar * merge`,
+				MultiplicationExpr{
+					MultiplicationExpr{
+						StringExpr{"foo"},
+						ReferenceExpr{[]string{"bar"}},
+					},
+					MergeExpr{},
+				},
+			)
+		})
+	})
+	
+	Describe("division", func() {
+		It("parses nodes separated by *", func() {
+			parsesAs(
+				`"foo" / bar`,
+				DivisionExpr{
+					StringExpr{"foo"},
+					ReferenceExpr{[]string{"bar"}},
+				},
+			)
+
+			parsesAs(
+				`"foo" / bar / merge`,
+				DivisionExpr{
+					DivisionExpr{
+						StringExpr{"foo"},
+						ReferenceExpr{[]string{"bar"}},
+					},
+					MergeExpr{},
+				},
+			)
+		})
+	})
+	
 	Describe("lists", func() {
 		It("parses an empty list", func() {
 			parsesAs(`[]`, ListExpr{})
