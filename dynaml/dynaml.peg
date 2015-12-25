@@ -16,9 +16,10 @@ Level2 <-  Level1 ( req_ws ( Addition / Subtraction ) )*
 Addition <- '+' req_ws Level1
 Subtraction <- '-' req_ws Level1
 
-Level1 <- Level0 ( req_ws ( Multiplication / Division ) )*
+Level1 <- Level0 ( req_ws ( Multiplication / Division / Modulo ) )*
 Multiplication <- '*' req_ws Level0
 Division <-  '/' req_ws Level0
+Modulo <-  '%' req_ws Level0
 
 Level0 <- Grouped / Call / Boolean / Nil / String / Integer / List / Merge / Auto / Reference
 

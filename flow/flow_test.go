@@ -1224,6 +1224,20 @@ foo: 1
 			Expect(source).To(FlowAs(resolved))
 		})
 		
+		It("evaluates modulo", func() {
+			source := parseYAML(`
+---
+foo: (( 13 % ( 2 * 3 ) ))
+`)
+
+			resolved := parseYAML(`
+---
+foo: 1
+`)
+
+			Expect(source).To(FlowAs(resolved))
+		})
+		
 		It("evaluates multiplication first", func() {
 			source := parseYAML(`
 ---

@@ -203,6 +203,18 @@ var _ = Describe("parsing", func() {
 		})
 	})
 	
+	Describe("modulo", func() {
+		It("parses nodes separated by *", func() {
+			parsesAs(
+				`"foo" % bar`,
+				ModuloExpr{
+					StringExpr{"foo"},
+					ReferenceExpr{[]string{"bar"}},
+				},
+			)
+		})
+	})
+	
 	Describe("lists", func() {
 		It("parses an empty list", func() {
 			parsesAs(`[]`, ListExpr{})

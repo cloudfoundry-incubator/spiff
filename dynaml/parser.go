@@ -124,6 +124,11 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 			lhs := tokens.Pop()
 
 			tokens.Push(DivisionExpr{A: lhs, B: rhs})
+		case ruleModulo:
+			rhs := tokens.Pop()
+			lhs := tokens.Pop()
+
+			tokens.Push(ModuloExpr{A: lhs, B: rhs})
 		case ruleCall:
 			tokens.Push(CallExpr{
 				Name:      tokens.Pop().(nameHelper).name,
