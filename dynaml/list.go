@@ -13,7 +13,7 @@ type ListExpr struct {
 
 func (e ListExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	nodes := []yaml.Node{}
-    info := EvaluationInfo{nil}
+    info := DefaultInfo()
 	
 	for _, c := range e.Contents {
 		result, _, ok := c.Evaluate(binding)

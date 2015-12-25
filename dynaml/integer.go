@@ -11,7 +11,7 @@ type IntegerExpr struct {
 }
 
 func (e IntegerExpr) Evaluate(Binding) (yaml.Node, EvaluationInfo, bool) {
-	return node(e.Value), EvaluationInfo{nil}, true
+	return node(e.Value), DefaultInfo(), true
 }
 
 func (e IntegerExpr) String() string {

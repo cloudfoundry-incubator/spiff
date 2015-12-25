@@ -43,8 +43,9 @@ List <- '[' Contents? ']'
 Contents <- Expression (NextExpression)*
 
 Merge <- RefMerge / SimpleMerge
-RefMerge <- 'merge' req_ws Reference
-SimpleMerge <- 'merge'
+RefMerge <- 'merge' ( req_ws Replace )? req_ws Reference
+SimpleMerge <- 'merge' ( req_ws Replace )?
+Replace <- 'replace'
 
 Auto <- 'auto'
 

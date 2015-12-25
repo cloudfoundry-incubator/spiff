@@ -41,39 +41,50 @@ func flow(root yaml.Node, env Environment, shouldOverride bool) yaml.Node {
 		return root
 	}
 	
+	replace:= root.ReplaceFlag()
 	redirect:= root.RedirectPath()
 	if redirect != nil {
 		env = env.RedirectOverwrite(redirect)
 	}
 	
-	switch val := root.Value().(type) {
-	case map[string]yaml.Node:
-		return flowMap(root, env)
+	if !replace {
+		switch val := root.Value().(type) {
+		case map[string]yaml.Node:
+			return flowMap(root, env)
 
-	case []yaml.Node:
-		return flowList(root, env)
+		case []yaml.Node:
+			return flowList(root, env)
 
-	case dynaml.Expression:
-		debug.Debug("??? eval %+v\n", val)
-		result, info, ok := val.Evaluate(env)
-		if !ok {
-			debug.Debug("??? ---> KEEP\n")
-			return root
-		}
-		if len(info.RedirectPath) > 0 {
-			redirect = info.RedirectPath
-			debug.Debug("??? m--> %+v -> %v\n", result, info.RedirectPath)
-			return yaml.RedirectNode(result.Value(), result, redirect)
-		}
-		debug.Debug("??? ---> %+v\n", result)
-		return result
+		case dynaml.Expression:
+			debug.Debug("??? eval %+v\n", val)
+			result, info, ok := val.Evaluate(env)
+			if !ok {
+				debug.Debug("??? ---> KEEP\n")
+				return root
+			}
+			if info.Replace {
+				debug.Debug("   REPLACE\n")
+			}
+			if len(info.RedirectPath) > 0 {
+				redirect = info.RedirectPath
+				debug.Debug("??? m--> %+v -> %v\n", result, info.RedirectPath)
+				if !info.Replace {
+					return yaml.RedirectNode(result.Value(), result, redirect)
+				}
+			}
+			if info.Replace {
+				result=yaml.ReplaceNode(result.Value(), result, redirect)
+			}
+			debug.Debug("??? ---> %+v\n", result)
+			return result
 	
-	case string:
-		result := flowString(root, env)
-		if result != nil {
-			_, ok := result.Value().(dynaml.Expression)
-			if ok {
-				return result
+		case string:
+			result := flowString(root, env)
+			if result != nil {
+				_, ok := result.Value().(dynaml.Expression)
+				if ok {
+					return result
+				}
 			}
 		}
 	}
@@ -86,6 +97,9 @@ func flow(root yaml.Node, env Environment, shouldOverride bool) yaml.Node {
 		}
 	}
 
+    if replace {
+		return yaml.ReplaceNode(root.Value(),root,redirect)
+	}
 	if redirect != nil {
 		return yaml.RedirectNode(root.Value(),root,redirect)
 	}
@@ -100,7 +114,7 @@ func flowMap(root yaml.Node, env Environment) yaml.Node {
 	env = env.WithScope(rootMap)
 	
 	redirect:= root.RedirectPath()
-
+    replace:= root.ReplaceFlag()
 	newMap := make(map[string]yaml.Node)
 
 	sortedKeys := getSortedKeys(rootMap)
@@ -128,6 +142,10 @@ func flowMap(root yaml.Node, env Environment) yaml.Node {
 						newMap[k] = v
 					}
 				}
+				replace=base.ReplaceFlag()
+				if replace {
+				  break
+				}
 				continue
 			}
 		} else {
@@ -140,27 +158,37 @@ func flowMap(root yaml.Node, env Environment) yaml.Node {
 	}
 
 	debug.Debug("MAP DONE %v\n", env.Path)
+	if replace { 
+	  return yaml.ReplaceNode(newMap, root, redirect)
+	}
 	return yaml.RedirectNode(newMap, root, redirect)
 }
 
 func flowList(root yaml.Node, env Environment) yaml.Node {
 	rootList := root.Value().([]yaml.Node)
 
-	merged, processed := processMerges(root, rootList, env)
+	merged, process, replaced, redirectPath := processMerges(root, rootList, env)
 	
-	if processed {
+	if process {
 
 		newList := []yaml.Node{}
-
+        if len(redirectPath) > 0 {
+			env=env.RedirectOverwrite(redirectPath)
+		}
 		for idx, val := range merged {
 			step := stepName(idx, val)
 			newList = append(newList, flow(val, env.WithPath(step), false))
 		}
 
-		return yaml.SubstituteNode(newList, root)
-	} else {
-		return yaml.SubstituteNode(merged, root)
+		merged = newList
 	}
+	if replaced {
+		return yaml.ReplaceNode(merged, root, redirectPath)
+	}
+	if len(redirectPath) > 0 {
+		return yaml.RedirectNode(merged, root, redirectPath)
+	}
+	return yaml.SubstituteNode(merged, root)
 }
 
 func flowString(root yaml.Node, env Environment) yaml.Node {
@@ -188,9 +216,11 @@ func stepName(index int, value yaml.Node) string {
 	return fmt.Sprintf("[%d]", index)
 }
 
-func processMerges(orig yaml.Node, root []yaml.Node, env Environment) ([]yaml.Node, bool) {
+func processMerges(orig yaml.Node, root []yaml.Node, env Environment) ([]yaml.Node, bool, bool, []string) {
 	spliced := []yaml.Node{}
-	processed := true
+	process := true
+	replaced:= orig.ReplaceFlag()
+	redirectPath := orig.RedirectPath()
 	
 	for _, val := range root {
 		if val == nil {
@@ -207,13 +237,21 @@ func processMerges(orig yaml.Node, root []yaml.Node, env Environment) ([]yaml.No
 				newMap := make(map[string]yaml.Node) 
 				newMap["<<"] = result
 				val = yaml.SubstituteNode(newMap,orig)
-				processed = false
+				process = false
 			} else {
 				inline, ok := result.Value().([]yaml.Node)
 
 				if ok {
 					inlineNew := newEntries(inline, root)
-					spliced = append(spliced, inlineNew...)
+					replaced = result.ReplaceFlag()
+					redirectPath = result.RedirectPath()
+					if replaced {
+						spliced = inlineNew
+						process = false
+						break
+					} else {
+					  spliced = append(spliced, inlineNew...)
+					}
 				}
 				continue
 			}
@@ -222,8 +260,8 @@ func processMerges(orig yaml.Node, root []yaml.Node, env Environment) ([]yaml.No
 		spliced = append(spliced, val)
 	}
 
-	debug.Debug("--> %+v  %v\n",spliced, processed)
-	return spliced, processed
+	debug.Debug("--> %+v  proc=%v replaced=%v redirect=%v\n",spliced, process, replaced, redirectPath)
+	return spliced, process, replaced, redirectPath
 }
 
 func newEntries(a []yaml.Node, b []yaml.Node) []yaml.Node {

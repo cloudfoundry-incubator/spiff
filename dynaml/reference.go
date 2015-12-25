@@ -14,7 +14,7 @@ func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, boo
 	var step yaml.Node
 	var ok bool
 
-    info := EvaluationInfo{nil}
+    info := DefaultInfo()
 	fromRoot := e.Path[0] == ""
 
 	for i := 0; i < len(e.Path); i++ {

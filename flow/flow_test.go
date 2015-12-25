@@ -524,9 +524,194 @@ foo:
 		})
 	})
 	
+	// replace whole structure instead of deep override
+	Describe("replacing nodes from stubs", func() {
+		It("does nothing for no direct match", func() {
+			source := parseYAML(`
+---
+foo: 
+  <<: (( merge replace || nil ))
+  bar: 42
+`)
+
+			resolved := parseYAML(`
+---
+foo: 
+  bar: 42
+`)
+
+			Expect(source).To(FlowAs(resolved))
+		})
+		
+		It("copies the node", func() {
+			source := parseYAML(`
+---
+foo: 
+  <<: (( merge replace ))
+  bar: 42
+`)
+
+			stub := parseYAML(`
+---
+foo: 
+  blah: replaced!
+`)
+
+			resolved := parseYAML(`
+---
+foo: 
+  blah: replaced!
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
+
+		It("does not follow through maps in lists by name", func() {
+			source := parseYAML(`
+---
+foo:
+- <<: (( merge replace ))
+- name: x
+  value: v
+`)
+
+			stub := parseYAML(`
+---
+foo:
+- name: y
+  value: right
+- name: z
+  value: right
+`)
+
+			resolved := parseYAML(`
+---
+foo:
+- name: y
+  value: right
+- name: z
+  value: right
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
+		
+		It("doesn't hamper field value merge", func() {
+			source := parseYAML(`
+---
+foo:
+  bar: (( merge replace ))
+`)
+
+			stub := parseYAML(`
+---
+foo:
+  bar:
+    value: right
+`)
+
+			resolved := parseYAML(`
+---
+foo:
+  bar:
+    value: right
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
+		
+		It("doesn't hamper list value merge", func() {
+			source := parseYAML(`
+---
+foo:
+  bar: (( merge replace ))
+`)
+
+			stub := parseYAML(`
+---
+foo:
+  bar:
+    - alice
+    - bob
+`)
+
+			resolved := parseYAML(`
+---
+foo:
+  bar:
+    - alice
+    - bob
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
+	})
 	
-		Describe("merging field value", func() {
-		It("merges with map", func() {
+	Describe("replacing map with redirection", func() {
+		It("merges with redirected map, but not with original path", func() {
+			source := parseYAML(`
+---
+foo: 
+  <<: (( merge replace bar ))
+  bar:
+    alice: alice
+    bob: bob
+`)
+
+			stub := parseYAML(`
+---
+foo:
+  alice: not merged
+bar:
+  alice: merged
+  bob: merged
+`)
+
+			resolved := parseYAML(`
+---
+foo:
+  alice: merged
+  bob: merged
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
+	})
+	
+	Describe("replacing list with redirection", func() {
+		It("merges with redirected map, but not with original path", func() {
+			source := parseYAML(`
+---
+foo: 
+  - <<: (( merge replace bar ))
+  - bar:
+      alice: alice
+      bob: bob
+`)
+
+			stub := parseYAML(`
+---
+foo:
+  - not
+  - merged
+bar:
+  - alice: merged
+  - bob: merged
+`)
+
+			resolved := parseYAML(`
+---
+foo:
+  - alice: merged
+  - bob: merged
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
+	})
+	
+	Describe("merging field value", func() {
+		It("merges with redirected map, but not with original path", func() {
 			source := parseYAML(`
 ---
 foo: (( merge bar ))
@@ -779,6 +964,40 @@ properties:
 			Expect(source).To(FlowAs(resolved, stub))
 		})
 
+		It("redirects stub", func() {
+			source := parseYAML(`
+---
+properties:
+  something:
+    - a
+    - <<: (( merge alt ))
+    - b
+`)
+
+			stub := parseYAML(`
+---
+properties:
+  something:
+    - e
+    - f
+alt:
+  - c
+  - d
+`)
+
+			resolved := parseYAML(`
+---
+properties:
+  something:
+    - a
+    - c
+    - d
+    - b
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
+		
 		Context("when names match", func() {
 			It("replaces existing entries with matching names", func() {
 				source := parseYAML(`
@@ -816,8 +1035,137 @@ properties:
 
 				Expect(source).To(FlowAs(resolved, stub))
 			})
+		
+			It("replaces existing entries with redirected matching names", func() {
+				source := parseYAML(`
+---
+properties:
+  something:
+    - name: a
+      value: 1
+    - <<: (( merge alt.something ))
+    - name: b
+      value: 2
+`)
+
+				stub := parseYAML(`
+---
+properties:
+  something:
+    - name: a
+      value: 100
+    - name: c
+      value: 300
+
+alt:
+  something:
+    - name: a
+      value: 10
+    - name: c
+      value: 30
+`)
+
+				resolved := parseYAML(`
+---
+properties:
+  something:
+    - name: a
+      value: 10
+    - name: c
+      value: 30
+    - name: b
+      value: 2
+`)
+
+				Expect(source).To(FlowAs(resolved, stub))
+			})
+		})
+		
+		It("uses redirected matching names, but not original path", func() {
+				source := parseYAML(`
+---
+properties:
+  something: (( merge alt.something ))
+`)
+
+				stub := parseYAML(`
+---
+properties:
+  something:
+    - name: a
+      value: 100
+    - name: b
+      value: 200
+
+alt:
+  something:
+    - name: a
+      value: 10
+    - name: c
+      value: 30
+`)
+
+				resolved := parseYAML(`
+---
+properties:
+  something:
+    - name: a
+      value: 10
+    - name: c
+      value: 30
+`)
+
+				Expect(source).To(FlowAs(resolved, stub))
+		})
+		
+		It("avoids override by original path, which occured by traditional redirection", func() {
+				source := parseYAML(`
+---
+alt:
+  something: (( merge ))
+
+properties:
+  something: (( alt.something ))
+`)
+
+				stub := parseYAML(`
+---
+properties:
+  something:
+    - name: a
+      value: 100
+    - name: b
+      value: 200
+
+alt:
+  something:
+    - name: a
+      value: 10
+    - name: c
+      value: 30
+`)
+
+				resolved := parseYAML(`
+---
+alt:
+  something:
+    - name: a
+      value: 10
+    - name: c
+      value: 30
+
+properties:
+  something:
+    - name: a
+      value: 100
+    - name: c
+      value: 30
+`)
+
+				Expect(source).To(FlowAs(resolved, stub))
 		})
 	})
+
 	
 	Describe("for arithmetic expressions", func() {
 		It("evaluates addition", func() {

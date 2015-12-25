@@ -7,7 +7,7 @@ import (
 type NilExpr struct{}
 
 func (e NilExpr) Evaluate(Binding) (yaml.Node, EvaluationInfo, bool) {
-	return node(nil), EvaluationInfo{nil}, true
+	return node(nil), DefaultInfo(), true
 }
 
 func (e NilExpr) String() string {

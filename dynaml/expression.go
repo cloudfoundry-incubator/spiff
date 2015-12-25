@@ -12,6 +12,11 @@ type Binding interface {
 
 type EvaluationInfo struct {
 	RedirectPath []string
+	Replace bool
+}
+
+func DefaultInfo() EvaluationInfo {
+	return EvaluationInfo{nil,false}
 }
 
 type Expression interface {
@@ -22,5 +27,6 @@ func (i EvaluationInfo) Join(o EvaluationInfo) EvaluationInfo {
 	if o.RedirectPath !=nil {
 		i.RedirectPath = o.RedirectPath
 	}
+	i.Replace = o.Replace // replace only by directly using the merge node
 	return i
 }

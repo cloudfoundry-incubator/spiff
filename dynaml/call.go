@@ -14,7 +14,7 @@ type CallExpr struct {
 }
 
 func (e CallExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
-	info:= EvaluationInfo{nil}
+	info:= DefaultInfo()
 	
 	switch e.Name {
 	case "static_ips":
@@ -48,7 +48,7 @@ func (e CallExpr) String() string {
 }
 
 func generateStaticIPs(binding Binding, indices []int) (yaml.Node, EvaluationInfo, bool) {
-	info:= EvaluationInfo{nil}
+	info:= DefaultInfo()
 	
 	if len(indices) == 0 {
 		return nil, info, false

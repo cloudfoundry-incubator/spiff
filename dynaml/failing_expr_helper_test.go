@@ -7,5 +7,5 @@ import (
 type FailingExpr struct{}
 
 func (FailingExpr) Evaluate(Binding) (yaml.Node, EvaluationInfo, bool) {
-	return nil, EvaluationInfo{nil}, false
+	return nil, DefaultInfo(), false
 }

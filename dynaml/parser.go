@@ -57,7 +57,8 @@ func Parse(source string, path []string) (Expression, error) {
 
 func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 	tokens := &tokenStack{}
-
+    replace:= false
+	
 	for token := range grammar.Tokens() {
 		contents := grammar.Buffer[token.begin:token.end]
 
@@ -67,14 +68,16 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 		case ruleAuto:
 			tokens.Push(AutoExpr{path})
 		case ruleMerge:
-			debug.Debug("*** rule merge\n")
+			replace = false
 		case ruleSimpleMerge:
 			debug.Debug("*** rule simple merge\n")
-			tokens.Push(MergeExpr{path,false})
+			tokens.Push(MergeExpr{path,false,replace})
 		case ruleRefMerge:
 			debug.Debug("*** rule ref merge\n")
 			rhs := tokens.Pop()
-			tokens.Push(MergeExpr{rhs.(ReferenceExpr).Path,true})
+			tokens.Push(MergeExpr{rhs.(ReferenceExpr).Path,true,replace})
+		case ruleReplace:
+			replace = true
 		case ruleReference:
 			tokens.Push(ReferenceExpr{strings.Split(contents, ".")})
 		case ruleInteger:

@@ -9,7 +9,7 @@ type AutoExpr struct {
 }
 
 func (e AutoExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
-	info := EvaluationInfo{nil}
+	info := DefaultInfo()
 	
 	if len(e.Path) == 3 && e.Path[0] == "resource_pools" && e.Path[2] == "size" {
 		jobs, found := binding.FindFromRoot([]string{"jobs"})

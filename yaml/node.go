@@ -11,26 +11,33 @@ type Node interface {
 
 	Value() interface{}
 	SourceName() string
-	EquivalentToNode(Node) bool
 	RedirectPath() []string
+	ReplaceFlag() bool
+	
+	EquivalentToNode(Node) bool
 }
 
 type AnnotatedNode struct {
 	value        interface{}
 	sourceName   string
 	redirectPath []string
+	replace      bool
 }
 
 func NewNode(value interface{}, sourcePath string) Node {
-	return AnnotatedNode{massageType(value), sourcePath, nil}
+	return AnnotatedNode{massageType(value), sourcePath, nil, false}
 }
 
 func SubstituteNode(value interface{}, node Node) Node {
-	return AnnotatedNode{massageType(value), node.SourceName(), node.RedirectPath()}
+	return AnnotatedNode{massageType(value), node.SourceName(), node.RedirectPath(),node.ReplaceFlag()}
 }
 
 func RedirectNode(value interface{}, node Node, redirect []string) Node {
-	return AnnotatedNode{massageType(value), node.SourceName(),redirect}
+	return AnnotatedNode{massageType(value), node.SourceName(),redirect,node.ReplaceFlag()}
+}
+
+func ReplaceNode(value interface{}, node Node, redirect []string) Node {
+	return AnnotatedNode{massageType(value), node.SourceName(), redirect,true}
 }
 
 func massageType(value interface{}) interface{} {
@@ -47,6 +54,10 @@ func (n AnnotatedNode) Value() interface{} {
 
 func (n AnnotatedNode) RedirectPath() []string {
 	return n.redirectPath
+}
+
+func (n AnnotatedNode) ReplaceFlag() bool {
+	return n.replace
 }
 
 func (n AnnotatedNode) SourceName() string {

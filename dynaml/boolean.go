@@ -11,7 +11,7 @@ type BooleanExpr struct {
 }
 
 func (e BooleanExpr) Evaluate(Binding) (yaml.Node, EvaluationInfo, bool) {
-	return node(e.Value), EvaluationInfo{nil}, true
+	return node(e.Value), DefaultInfo(), true
 }
 
 func (e BooleanExpr) String() string {
