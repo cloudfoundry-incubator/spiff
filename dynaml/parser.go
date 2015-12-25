@@ -4,6 +4,8 @@ import (
 	"container/list"
 	"strconv"
 	"strings"
+	
+//	"github.com/cloudfoundry-incubator/spiff/debug"
 )
 
 func Parse(source string, path []string) (Expression, error) {

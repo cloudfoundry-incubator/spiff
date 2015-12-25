@@ -14,7 +14,9 @@ import (
 	"github.com/cloudfoundry-incubator/spiff/compare"
 	"github.com/cloudfoundry-incubator/spiff/flow"
 	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/cloudfoundry-incubator/spiff/debug"
 )
+
 
 func main() {
 	app := cli.NewApp()
@@ -27,12 +29,18 @@ func main() {
 			Name:      "merge",
 			ShortName: "m",
 			Usage:     "merge stub files into a manifest template",
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "debug",
+					Usage: "print state info",
+				},
+			},
 			Action: func(c *cli.Context) {
 				if len(c.Args()) < 1 {
 					cli.ShowCommandHelp(c, "merge")
 					os.Exit(1)
 				}
-
+				debug.DebugFlag = c.Bool("debug")
 				merge(c.Args()[0], c.Args()[1:])
 			},
 		},

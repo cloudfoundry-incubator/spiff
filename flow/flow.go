@@ -8,6 +8,7 @@ import (
 
 	"github.com/cloudfoundry-incubator/spiff/dynaml"
 	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/cloudfoundry-incubator/spiff/debug"
 )
 
 var embeddedDynaml = regexp.MustCompile(`^\(\((.*)\)\)$`)
@@ -16,7 +17,9 @@ func Flow(source yaml.Node, stubs ...yaml.Node) (yaml.Node, error) {
 	result := source
 
 	for {
+		debug.Debug("@@@ loop:  %+v\n",result)
 		next := flow(result, Environment{Stubs: stubs}, true)
+		debug.Debug("@@@ --->   %+v\n",next)
 
 		if reflect.DeepEqual(result, next) {
 			break
@@ -25,6 +28,7 @@ func Flow(source yaml.Node, stubs ...yaml.Node) (yaml.Node, error) {
 		result = next
 	}
 
+	debug.Debug("@@@ Done\n")
 	unresolved := findUnresolvedNodes(result)
 	if len(unresolved) > 0 {
 		return nil, UnresolvedNodes{unresolved}
@@ -55,6 +59,9 @@ func flow(root yaml.Node, env Environment, shouldOverride bool) yaml.Node {
 	}
 
 	if shouldOverride {
+		//debug.Debug("/// lookup %v -> %v\n",env.Path, env.StubPath)
+		debug.Debug("/// lookup %v\n",env.Path)
+
 		overridden, found := env.FindInStubs(env.Path)
 		if found {
 			return overridden
@@ -78,6 +85,7 @@ func flowMap(root yaml.Node, env Environment) yaml.Node {
 
 	sortedKeys := getSortedKeys(rootMap)
 
+	debug.Debug("HANDLE MAP %v\n", env.Path)
 	// iteration order matters for the "<<" operator, it must be the first key in the map that is handled
 	for i := range sortedKeys {
 		key := sortedKeys[i]
@@ -98,6 +106,7 @@ func flowMap(root yaml.Node, env Environment) yaml.Node {
 		newMap[key] = flow(val, env.WithPath(key), true)
 	}
 
+	debug.Debug("MAP DONE %v\n", env.Path)
 	return yaml.NewNode(newMap, root.SourceName())
 }
 
@@ -168,6 +177,7 @@ func processMerges(root []yaml.Node, env Environment) []yaml.Node {
 		spliced = append(spliced, val)
 	}
 
+	debug.Debug("--> %+v\n",spliced)
 	return spliced
 }
 
