@@ -37,7 +37,7 @@ var _ = Describe("parsing", func() {
 
 	Describe("merge", func() {
 		It("parses as a merge node with the given path", func() {
-			parsesAs("merge", MergeExpr{[]string{"foo", "bar"}}, "foo", "bar")
+			parsesAs("merge", MergeExpr{[]string{"foo", "bar"},false}, "foo", "bar")
 		})
 	})
 

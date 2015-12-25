@@ -70,11 +70,11 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 			debug.Debug("*** rule merge\n")
 		case ruleSimpleMerge:
 			debug.Debug("*** rule simple merge\n")
-			tokens.Push(MergeExpr{path})
+			tokens.Push(MergeExpr{path,false})
 		case ruleRefMerge:
 			debug.Debug("*** rule ref merge\n")
 			rhs := tokens.Pop()
-			tokens.Push(MergeExpr{rhs.(ReferenceExpr).Path})
+			tokens.Push(MergeExpr{rhs.(ReferenceExpr).Path,true})
 		case ruleReference:
 			tokens.Push(ReferenceExpr{strings.Split(contents, ".")})
 		case ruleInteger:

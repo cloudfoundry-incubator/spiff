@@ -60,7 +60,7 @@ func flow(root yaml.Node, env Environment, shouldOverride bool) yaml.Node {
 			debug.Debug("??? ---> KEEP\n")
 			return root
 		}
-		if info.RedirectPath!=nil && ! reflect.DeepEqual(info.RedirectPath, env.Path) {
+		if len(info.RedirectPath) > 0 {
 			redirect = info.RedirectPath
 			debug.Debug("??? m--> %+v -> %v\n", result, info.RedirectPath)
 			return yaml.RedirectNode(result.Value(), result, redirect)

@@ -12,7 +12,7 @@ var _ = Describe("merges", func() {
 		It("evaluates to the merged node", func() {
 			referencedNode := IntegerExpr{42}
 
-			expr := MergeExpr{[]string{"foo", "bar"}}
+			expr := MergeExpr{[]string{"foo", "bar"},false}
 
 			binding := FakeBinding{
 				FoundInStubs: map[string]yaml.Node{
@@ -28,7 +28,7 @@ var _ = Describe("merges", func() {
 		It("fails", func() {
 			referencedNode := IntegerExpr{42}
 
-			expr := MergeExpr{[]string{"foo", "bar", "baz"}}
+			expr := MergeExpr{[]string{"foo", "bar", "baz"},false}
 
 			binding := FakeBinding{
 				FoundInStubs: map[string]yaml.Node{
