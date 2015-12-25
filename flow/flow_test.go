@@ -725,6 +725,35 @@ properties:
 properties:
   something:
     - a
+    - <<: (( list ))
+    - b
+  list:
+    - c
+    - d
+`)
+
+			resolved := parseYAML(`
+---
+properties:
+  something:
+    - a
+    - c
+    - d
+    - b
+  list:
+    - c
+    - d
+`)
+
+			Expect(source).To(FlowAs(resolved))
+		})
+		
+		It("merges stub", func() {
+			source := parseYAML(`
+---
+properties:
+  something:
+    - a
     - <<: (( merge ))
     - b
 `)
