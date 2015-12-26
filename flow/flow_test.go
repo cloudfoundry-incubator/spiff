@@ -1587,19 +1587,105 @@ foo: "1515"
 		})
 	})
 	
-	Describe("concatenation", func() {
-		It("of lists", func() {
-			source := parseYAML(`
+	Describe("when concatenating a list", func() {
+		Context("with other lists", func() {
+			It("yields a joined list", func() {
+				source := parseYAML(`
 ---
 foo: (( [1,2,3] [ 2 * 3 ] [4,5,6] ))
 `)
 
-			resolved := parseYAML(`
+				resolved := parseYAML(`
 ---
 foo: [1,2,3,6,4,5,6]
 `)
 
-			Expect(source).To(FlowAs(resolved))
+				Expect(source).To(FlowAs(resolved))
+			})
+		})
+		
+		Context("with an integer", func() {
+			It("appends the value to the list", func() {
+				source := parseYAML(`
+---
+foo: (( [1,2,3] 4 5 ))
+`)
+
+				resolved := parseYAML(`
+---
+foo: [1,2,3,4,5]
+`)
+
+				Expect(source).To(FlowAs(resolved))
+			})
+		})
+		
+		Context("with a string", func() {
+			It("appends the value to the list", func() {
+				source := parseYAML(`
+---
+foo: (( [1,2,3] "foo" "bar" ))
+`)
+
+				resolved := parseYAML(`
+---
+foo: [1,2,3,"foo","bar"]
+`)
+
+				Expect(source).To(FlowAs(resolved))
+			})
+		})
+		
+		Context("with a map", func() {
+			It("appends the map to the list", func() {
+				source := parseYAML(`
+---
+bar:
+  alice: and bob
+foo: (( [1,2,3] bar ))
+`)
+
+				resolved := parseYAML(`
+---
+bar:
+  alice: and bob
+foo: [1,2,3,{"alice": "and bob"}]
+`)
+
+				Expect(source).To(FlowAs(resolved))
+			})
+		})
+		
+		Context("with a nested string concatenation", func() {
+			It("appends the value to the list", func() {
+				source := parseYAML(`
+---
+foo: (( [1,2,3] ("foo" "bar") ))
+`)
+
+				resolved := parseYAML(`
+---
+foo: [1,2,3,"foobar"]
+`)
+
+				Expect(source).To(FlowAs(resolved))
+			})
+		})
+		
+		Context("with a nested list concatenation", func() {
+			It("joins the list", func() {
+				source := parseYAML(`
+---
+foo: (( [1,2,3] ([] "bar") ))
+`)
+
+				resolved := parseYAML(`
+---
+foo: [1,2,3,"bar"]
+`)
+
+				Expect(source).To(FlowAs(resolved))
+			})
 		})
 	})
 })

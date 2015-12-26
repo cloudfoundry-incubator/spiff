@@ -36,12 +36,24 @@ func (e ConcatenationExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo,
 	}
 
 	alist, aok := a.Value().([]yaml.Node)
-	blist, bok := b.Value().([]yaml.Node)
-	if aok && bok {
-		return node(append(alist, blist...)), info, true
+	if !aok {
+		return nil, info, false
 	}
-
-	return nil, info, false
+	
+	bval := b.Value()
+	switch bval.(type) {
+		case []yaml.Node:
+			return node(append(alist, bval.([]yaml.Node)...)), info, true
+		case string:
+			return node(append(alist, b)), info, true
+		case int64:
+			return node(append(alist, b)), info, true
+		case map[string]yaml.Node:
+			return node(append(alist, b)), info, true
+		default:
+			return nil, info, false
+			
+	}
 }
 
 func (e ConcatenationExpr) String() string {
