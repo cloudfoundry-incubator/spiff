@@ -18,18 +18,31 @@ spiff is a command line tool and declarative YAML templating system, specially d
 Contents:
 - [Installation](#installation)
 - [Usage](#usage)
-- [dynaml Templating Tanguage](#dynaml-templating-language)
+- [dynaml Templating Language](#dynaml-templating-language)
 	- [(( foo ))](#-foo-)
 	- [(( foo.bar.[1].baz ))](#-foobar1baz-)
 	- [(( "foo" ))](#-foo--1)
-	- [(( "foo" bar ))](#-foo-bar-)
+	- [(( foo bar ))](#-foo-bar-)
+		- [(( "foo" bar ))](#-foo-bar--1)
+		- [(( [1,2] bar ))](#-12-bar-)
 	- [(( auto ))](#-auto-)
 	- [(( merge ))](#-merge-)
 		- [<<: (( merge ))](#--merge-)
 			- [merging maps](#merging-maps)
 			- [merging lists](#merging-lists)
+		- [<<: (( merge replace ))](#--merge-replace-)
+			- [merging maps](#merging-maps-1)
+			- [merging lists](#merging-lists-1)
+		- [<<: (( foo )) ](#--foo-)
+			- [merging maps](#merging-maps-2)
+			- [merging lists](#merging-lists-2)
+		- [<<: (( merge foo ))](#--merge-foo-)
+			- [merging maps](#merging-maps-3)
+			- [merging lists](#merging-lists-3)
 	- [(( a || b ))](#-a--b-)
+	- [(( 1 + 2 * foo ))](#-1--2--foo-)
 	- [(( static_ips(0, 1, 3) ))](#-static_ips0-1-3-)
+	- [Operation Priorities](#operation-priorities)
 
 
 # Installation
@@ -161,9 +174,13 @@ from:
 
 String literal. The only escape character handled currently is '"'.
 
-## `(( "foo" bar ))`
+## `(( foo bar ))`
 
-Concatenation (where bar is another dynaml expr).
+Concatenation expression used to concatenate a sequence of dynaml expressions.
+
+### `(( "foo" bar ))`
+
+Concatenation (where bar is another dynaml expr). Any sequences of integer values or strings can be concatenated, given by any dynaml expression.
 
 e.g.
 
@@ -173,6 +190,29 @@ uri: (( "https://" domain ))
 ```
 
 In this example `uri` will resolve to the value `"https://example.com"`.
+
+### `(( [1,2] bar ))`
+
+Concatenation of lists as expression (where bar is another dynaml expr). Any sequences of lists can be concatenated, given by any dynaml expression.
+
+e.g.
+
+```yaml
+other_ips: [ 10.0.0.2, 10.0.0.3 ]
+static_ips: (( ["10.0.1.2","10.0.1.3"] other_ips ))
+```
+
+In this example `static_ips` will resolve to the value `[ 10.0.1.2, 10.0.1.3, 10.0.0.2, 10.0.0.3 ] `.
+
+If the second expression evaluates to a value other than a list (integer, string or map), the value is concatenated to the first list.
+
+e.g.
+
+```yaml
+foo: 3
+bar: (( [1] 2 foo "alice" ))
+```
+yields the list `[ 1, 2, 3, "alice" ]` for `bar`.
 
 ## `(( auto ))`
 
@@ -289,6 +329,221 @@ foo:
   - 4
 ```
 
+### `<<: (( merge replace ))`
+
+Replaces the complete content of an element by the content found in some stub instead of doing a deep merge for the existing content.
+
+#### Merging maps
+
+**values.yml**
+```yaml
+foo:
+  a: 1
+  b: 2
+```
+
+**template.yml**
+```yaml
+foo:
+  <<: (( merge replace ))
+  b: 3
+  c: 4
+```
+
+`spiff merge template.yml values.yml` yields:
+
+```yaml
+foo:
+  a: 1
+  b: 2
+```
+
+#### Merging lists
+
+**values.yml**
+```yaml
+foo:
+  - 1
+  - 2
+```
+
+**template.yml**
+```yaml
+foo:
+  - <<: (( merge replace ))
+  - 3
+  - 4
+```
+
+`spiff merge template.yml values.yml` yields:
+
+```yaml
+foo:
+  - 1
+  - 2
+```
+
+### `<<: (( foo ))`
+
+Merging of maps and lists found in the same template or stub.
+
+#### Merging maps
+
+```yaml
+foo:
+  a: 1
+  b: 2
+
+bar:
+  <<: (( foo )) # any dynaml expression
+  b: 3
+```
+
+yields:
+
+```yaml
+foo:
+  a: 1
+  b: 2
+
+bar:
+  a: 1
+  b: 3
+```
+
+#### Merging lists
+
+```yaml
+bar:
+  - 1
+  - 2
+
+foo:
+  - 3
+  - <<: (( bar ))
+  - 4
+```
+
+yields:
+
+```yaml
+bar:
+  - 1
+  - 2
+
+foo:
+  - 3
+  - 1
+  - 2
+  - 4
+```
+
+A common use-case for this is merging lists of static ips or ranges into a list of ips. Another possibility is to use a single [concatenation expression](#-12-bar-).
+
+### `<<: (( merge foo ))`
+
+Merging of maps or lists with the content of an arbitrary element found in some stub (Redirecting merge). There will be no further (deep) merge with the element of the same name found in some stub. (Deep merge of lists requires maps with field `name`)
+
+Redirecting merges can be used as direct field value, also. They can be combined with replacing merges like `(( merge replace foo ))`.
+
+#### Merging maps
+
+**values.yml**
+```yaml
+foo:
+  a: 10
+  b: 20
+  
+bar:
+  a: 1
+  b: 2
+```
+
+**template.yml**
+```yaml
+foo:
+  <<: (( merge bar))
+  b: 3
+  c: 4
+```
+
+`spiff merge template.yml values.yml` yields:
+
+```yaml
+foo:
+  a: 1
+  b: 2
+  c: 4
+```
+
+Another way doing a merge with another element in some stub could also be done the traditional way:
+
+**values.yml**
+```yaml
+foo:
+  a: 10
+  b: 20
+  
+bar:
+  a: 1
+  b: 2
+```
+
+**template.yml**
+```yaml
+bar: 
+  <<: (( merge ))
+  b: 3
+  c: 4
+  
+foo: (( bar ))
+```
+
+But in this scenario the merge still performs the deep merge with the original element name. Therefore 
+`spiff merge template.yml values.yml` yields:
+
+```yaml
+bar:
+  a: 1
+  b: 2
+  c: 4
+foo:
+  a: 10
+  b: 20
+  c: 4
+```
+
+#### Merging lists
+
+**values.yml**
+```yaml
+foo:
+  - 10
+  - 20
+
+bar:
+  - 1
+  - 2
+```
+
+**template.yml**
+```yaml
+foo:
+  - 3
+  - <<: (( merge bar ))
+  - 4
+```
+
+`spiff merge template.yml values.yml` yields:
+
+```yaml
+foo:
+  - 3
+  - 1
+  - 2
+  - 4
+```
+
 ## `(( a || b ))`
 
 Uses a, or b if a cannot be resolved.
@@ -308,6 +563,26 @@ mything:
 
 This will try to merge in `mything.complicated_structure`, or, if it cannot be
 merged in, use the default specified in `foo.bar`.
+
+## `(( 1 + 2 * foo ))`
+
+Dynaml expressions can be used to execute arithmetic integer calculations. Supported operations are +, -, *, / and %.
+
+e.g.:
+
+**values.yml**
+```yaml
+foo: 3
+bar: (( 1 + 2 * foo ))
+```
+
+`spiff merge values.yml` yields `7` for `bar`. This can be combined with [concatentions](#-foo-bar-) (calculation has higher priority than concatenation in dynaml expressions):
+
+```yaml
+foo: 3
+bar: (( foo " times 2 yields " 2 * foo ))
+```
+The result is the string `3 times 2 yields 6`.
 
 ## `(( static_ips(0, 1, 3) ))`
 
@@ -446,3 +721,16 @@ networks:
     - 10.60.3.10 - 10.60.3.70
   type: manual
 ```
+
+## Operation Priorities
+
+Dynaml expressions are evaluated obeying certain priority levels. This means operations with a higher priority are evaluated first. For example the expression `1 + 2 * 3` is evaluated in the order `1 + ( 2 * 3 )`. Operations with the same priority are evaluated from left to right (in contrast to version 1.0.7). This means the expression `6 - 3 - 2` is evaluated as `( 6 - 3 ) - 2`.
+
+The following levels are supported (from low priority to high priority)
+- `||`
+- White-space separated sequence as concatenation operation (`foo bar`)
+- `+`, `-`
+- `*`, `/`, `%`
+- Grouping `( )`, constants, references (`foo.bar`) and functions (`merge`, `auto`, `static_ips`)
+
+The complete grammar can be found in [dynaml.peg](dynaml/dynaml.peg).
