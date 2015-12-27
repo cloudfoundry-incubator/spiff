@@ -8,6 +8,107 @@ import (
 )
 
 var _ = Describe("calls", func() {
+	Describe("join(\", \"...)", func() {
+		expr := CallExpr{
+			Name: "join",
+			Arguments: []Expression{
+				StringExpr{", "},
+				ReferenceExpr{[]string{"alice"}},
+				ReferenceExpr{[]string{"bob"}},
+			},
+		}
+		
+		It("joins string values ", func() {
+			binding := FakeBinding{
+				FoundReferences: map[string]yaml.Node{
+					"alice":   node("alice"),
+					"bob":     node("bob"),
+				},
+			}
+			
+			Expect(expr).To(
+				EvaluateAs(
+					"alice, bob",
+					binding,
+				),
+			)
+		})
+		
+		It("joins int values ", func() {
+			binding := FakeBinding{
+				FoundReferences: map[string]yaml.Node{
+					"alice":   node(10),
+					"bob":     node(20),
+				},
+			}
+			
+			Expect(expr).To(
+				EvaluateAs(
+					"10, 20",
+					binding,
+				),
+			)
+		})
+		
+		It("joins list entries ", func() {
+			list := parseYAML(`
+  - foo
+  - bar
+`)
+
+			binding := FakeBinding{
+				FoundReferences: map[string]yaml.Node{
+					"alice":   list,
+					"bob":     node(20),
+				},
+			}
+			
+			Expect(expr).To(
+				EvaluateAs(
+					"foo, bar, 20",
+					binding,
+				),
+			)
+		})
+		
+		It("joins nothing", func() {
+			expr := CallExpr{
+				Name: "join",
+				Arguments: []Expression{
+					StringExpr{", "},
+				},
+			}
+			
+			Expect(expr).To(
+				EvaluateAs(
+					"",
+					nil,
+				),
+			)
+		})
+		
+		It("fails for missing args", func() {
+			expr := CallExpr{
+				Name: "join",
+				Arguments: []Expression{
+				},
+			}
+			
+			Expect(expr).To(FailToEvaluate(nil))
+		})
+		
+		It("fails for wrong separator type", func() {
+			expr := CallExpr{
+				Name: "join",
+				Arguments: []Expression{
+					ListExpr{[]Expression{IntegerExpr{0}}},
+				},
+			}
+			
+			Expect(expr).To(FailToEvaluate(nil))
+		})
+	})
+	
 	Describe("static_ips(ips...)", func() {
 		expr := CallExpr{
 			Name: "static_ips",

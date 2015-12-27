@@ -41,6 +41,8 @@ Contents:
 			- [merging lists](#merging-lists-3)
 	- [(( a || b ))](#-a--b-)
 	- [(( 1 + 2 * foo ))](#-1--2--foo-)
+	- [(( join( ", ", list) ))](#-join---list-)
+	- [(( exec( "command", arg1, arg2) ))](#-exec-command-arg1-arg2-)
 	- [(( static_ips(0, 1, 3) ))](#-static_ips0-1-3-)
 	- [Operation Priorities](#operation-priorities)
 
@@ -584,6 +586,56 @@ bar: (( foo " times 2 yields " 2 * foo ))
 ```
 The result is the string `3 times 2 yields 6`.
 
+## `(( join( ", ", list) ))`
+
+Join entries of lists or direct values to a single string value using a given separator string. The arguments to join can be dynaml expressions evaluating to lists, whose values again are strings or integers, or string or integer values.
+
+e.g.
+
+```yaml
+alice: alice
+list:
+  - foo
+  - bar
+
+join: (( join(", ", "bob", list, alice, 10) ))
+```
+
+yields the string value `bob, foo, bar, alice, 10` for `join`.
+
+## `(( exec( "command", arg1, arg2) ))`
+
+Execute a command. Arguments can be any dynaml expressions including reference expressions evaluated to lists or maps. Lists or maps are passed as single arguments containing a yaml document with the given fragment.
+
+The result is determined by parsing the standard output of the command. It might be a yaml document or a single multi-line string or integer value. A yaml document must start with the document prefix `---`. If the command fails the expression is handled as undefined.
+
+e.g.
+
+```yaml
+arg:
+  - a
+  - b
+list: (( exec( "echo", arg ) ))
+string: (( exec( "echo", arg.[0] ) ))
+
+```
+
+yields
+
+```yaml
+arg:
+- alice
+- bob
+list:
+- alice
+- bob
+string: alice
+```
+
+Alternatively `exec` can be called with a single list argument completely describing the command line.
+
+The same command will be executed once, only, even if it is used in multiple expressions.
+
 ## `(( static_ips(0, 1, 3) ))`
 
 Generate a list of static IPs for a job.
@@ -731,6 +783,6 @@ The following levels are supported (from low priority to high priority)
 - White-space separated sequence as concatenation operation (`foo bar`)
 - `+`, `-`
 - `*`, `/`, `%`
-- Grouping `( )`, constants, references (`foo.bar`) and functions (`merge`, `auto`, `static_ips`)
+- Grouping `( )`, constants, references (`foo.bar`) and functions (`merge`, `auto`, `join`, `exec`, `static_ips`)
 
 The complete grammar can be found in [dynaml.peg](dynaml/dynaml.peg).

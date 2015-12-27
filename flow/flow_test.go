@@ -1248,6 +1248,73 @@ properties:
 		})
 	})
 
+	Describe("for list expressions", func() {
+		It("evaluates lists", func() {
+				source := parseYAML(`
+---
+foo: (( [ "a", "b" ] ))
+`)
+				resolved := parseYAML(`
+---
+foo:
+  - a
+  - b
+`)
+				Expect(source).To(FlowAs(resolved))
+		})
+		
+		It("evaluates lists with references", func() {
+				source := parseYAML(`
+---
+a: alice
+b: bob
+foo: (( [ a, b ] || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+a: alice
+b: bob
+foo:
+  - alice
+  - bob
+`)
+				Expect(source).To(FlowAs(resolved))
+		})
+		
+		It("evaluates for lists with deep references", func() {
+				source := parseYAML(`
+---
+a: alice
+b: bob
+c: (( b ))
+foo: (( [ a, c ] || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+a: alice
+b: bob
+c: bob
+foo:
+  - alice
+  - bob
+`)
+				Expect(source).To(FlowAs(resolved))
+		})
+		
+		It("failes for lists with unresolved references", func() {
+				source := parseYAML(`
+---
+a: alice
+foo: (( [ a, b ] || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+a: alice
+foo: failed
+`)
+				Expect(source).To(FlowAs(resolved))
+		})
+	})
 	
 	Describe("for arithmetic expressions", func() {
 		///////////////////////
@@ -1588,8 +1655,8 @@ foo: "1515"
 	})
 	
 	Describe("when concatenating a list", func() {
-		Context("incremental expression resolution", func() {
-			It("evaluates in case of successfull complete operand resolution", func() {
+		Context("with incremental expression resolution", func() {
+			It("evaluates in case of successfully completed operand resolution", func() {
 				source := parseYAML(`
 ---
 a: alice
@@ -1720,6 +1787,141 @@ foo: (( [1,2,3] ([] "bar") ))
 foo: [1,2,3,"bar"]
 `)
 
+				Expect(source).To(FlowAs(resolved))
+			})
+		})
+	})
+	
+	/////////////////////
+	// function join
+	/////////////////////
+	Describe("when joining", func() {
+		It("joins strings and integers", func() {
+			source := parseYAML(`
+---
+foo: (( join( ", ", "alice", "bob", 5) ))
+`)
+			resolved := parseYAML(`
+---
+foo: alice, bob, 5
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+		
+		It("joins elements from lists", func() {
+			source := parseYAML(`
+---
+list:
+  - alice
+  - bob
+foo: (( join( ", ", list, 5) ))
+`)
+			resolved := parseYAML(`
+---
+list:
+  - alice
+  - bob
+foo: alice, bob, 5
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+		
+		It("joins elements from inline list", func() {
+				source := parseYAML(`
+---
+b: bob
+foo: (( join( ", ", [ "alice", b ] ) ))
+`)
+				resolved := parseYAML(`
+---
+b: bob
+foo: alice, bob
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
+		
+		Context("with incremental expression resolution", func() {
+			It("evaluates in case of successfully completed operand resolution", func() {
+				source := parseYAML(`
+---
+a: alice
+b: bob
+c: (( b ))
+foo: (( join( ", ", a, c) || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+a: alice
+b: bob
+c: bob
+foo: alice, bob
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
+			
+			It("evaluates in case of successfully completed list operand resolution", func() {
+				source := parseYAML(`
+---
+list:
+  - alice
+  - (( c ))
+b: bob
+c: (( b ))
+foo: (( join( ", ", list) || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+list:
+  - alice
+  - bob
+b: bob
+c: bob
+foo: alice, bob
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
+			
+			It("evaluates in case of successfully completed list expression resolution", func() {
+				source := parseYAML(`
+---
+b: bob
+c: (( b ))
+foo: (( join( ", ", [ "alice", c ] ) || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+b: bob
+c: bob
+foo: alice, bob
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
+			
+			It("fails only after failed final resolution", func() {
+				source := parseYAML(`
+---
+a: alice
+b: bob
+foo: (( join( ", ", a, c) || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+a: alice
+b: bob
+foo: failed
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
+			
+			It("fails only after failed final list resolution", func() {
+				source := parseYAML(`
+---
+foo: (( join( ", ", [ "alice", c ] ) || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+foo: failed
+`)
 				Expect(source).To(FlowAs(resolved))
 			})
 		})
