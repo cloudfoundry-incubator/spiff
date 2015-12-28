@@ -30,3 +30,25 @@ func (i EvaluationInfo) Join(o EvaluationInfo) EvaluationInfo {
 	i.Replace = o.Replace // replace only by directly using the merge node
 	return i
 }
+
+
+func ResolveIntegerExpressionOrPushEvaluation(e *Expression, resolved *bool, info *EvaluationInfo, binding Binding) (int64, EvaluationInfo, bool) {
+	node, infoe, ok := (*e).Evaluate(binding)
+	if info!=nil {
+		infoe = (*info).Join(infoe)
+	}
+	if !ok {
+		return 0, infoe, false
+	}
+
+	switch node.Value().(type) {
+		case Expression:
+			*e = node.Value().(Expression)
+			*resolved = false
+			return 0, infoe, true
+		case int64:
+			return node.Value().(int64), infoe, true
+		default:
+			return 0, infoe, false
+	}
+}

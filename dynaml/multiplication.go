@@ -12,27 +12,21 @@ type MultiplicationExpr struct {
 }
 
 func (e MultiplicationExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
-	a, infoa, ok := e.A.Evaluate(binding)
-	if !ok {
-		return nil, infoa, false
-	}
-
-	b, infob, ok := e.B.Evaluate(binding)
-	info := infoa.Join(infob)
+	resolved:=true
+	
+	aint, info, ok := ResolveIntegerExpressionOrPushEvaluation(&e.A,&resolved,nil,binding)
 	if !ok {
 		return nil, info, false
 	}
 
-	aint, ok := a.Value().(int64)
+	bint, info, ok := ResolveIntegerExpressionOrPushEvaluation(&e.B,&resolved,&info,binding)
 	if !ok {
 		return nil, info, false
 	}
 
-	bint, ok := b.Value().(int64)
-	if !ok {
-		return nil, info, false
+    if !resolved {
+		return node(e), info, true
 	}
-
 	return node(aint * bint), info, true
 }
 

@@ -1168,103 +1168,313 @@ properties:
 
 	
 	Describe("for arithmetic expressions", func() {
-		It("evaluates addition", func() {
-			source := parseYAML(`
+		///////////////////////
+		// Addition
+		///////////////////////
+		Context("addition", func() {
+			It("evaluates addition", func() {
+				source := parseYAML(`
 ---
 foo: (( 1 + 2 + 3 ))
 `)
-
-			resolved := parseYAML(`
+				resolved := parseYAML(`
 ---
 foo: 6
 `)
-
-			Expect(source).To(FlowAs(resolved))
+				Expect(source).To(FlowAs(resolved))
+			})
+			
+			It("evaluates incremental expression resolution", func() {
+				source := parseYAML(`
+---
+a: 1
+b: 2
+c: (( b ))
+foo: (( a + c || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+a: 1
+b: 2
+c: 2
+foo: 3
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
+			
+			It("evaluates incremental expression resolution until failure", func() {
+				source := parseYAML(`
+---
+a: 1
+b: 2
+foo: (( a + c || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+a: 1
+b: 2
+foo: failed
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
 		})
 		
-		It("evaluates substraction", func() {
-			source := parseYAML(`
+		///////////////////////
+		// Subtraction
+		///////////////////////
+		Context("subtraction", func() {
+			It("evaluates subtraction", func() {
+				source := parseYAML(`
 ---
-foo: (( 6 - 2 - 3 ))
+foo: (( 6 - 3 - 2 ))
 `)
-
-			resolved := parseYAML(`
+				resolved := parseYAML(`
 ---
 foo: 1
 `)
+				Expect(source).To(FlowAs(resolved))
+			})
+			
+			It("evaluates incremental expression resolution", func() {
+				source := parseYAML(`
+---
+a: 3
+b: 2
+c: (( b ))
+foo: (( a - c || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+a: 3
+b: 2
+c: 2
+foo: 1
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
+			
+			It("evaluates incremental expression resolution until failure", func() {
+				source := parseYAML(`
+---
+a: 3
+b: 2
+foo: (( a - c || "failed" ))
+`)
 
-			Expect(source).To(FlowAs(resolved))
+				resolved := parseYAML(`
+---
+a: 3
+b: 2
+foo: failed
+`)
+
+				Expect(source).To(FlowAs(resolved))
+			})
 		})
 		
-		It("evaluates multiplication", func() {
-			source := parseYAML(`
+		///////////////////////
+		// Multiplication
+		///////////////////////
+		Context("multiplication", func() {
+			It("evaluates multiplication", func() {
+				source := parseYAML(`
 ---
 foo: (( 6 * 2 * 3 ))
 `)
-
-			resolved := parseYAML(`
+				resolved := parseYAML(`
 ---
 foo: 36
 `)
-
-			Expect(source).To(FlowAs(resolved))
+				Expect(source).To(FlowAs(resolved))
+			})
+			
+			It("evaluates incremental expression resolution", func() {
+				source := parseYAML(`
+---
+a: 6
+b: 2
+c: (( b ))
+foo: (( a * c || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+a: 6
+b: 2
+c: 2
+foo: 12
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
+			
+			It("evaluates incremental expression resolution until failure", func() {
+				source := parseYAML(`
+---
+a: 6
+b: 2
+foo: (( a * c || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+a: 6
+b: 2
+foo: failed
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
 		})
 		
-		It("evaluates division", func() {
-			source := parseYAML(`
+		///////////////////////
+		// Division
+		///////////////////////
+		Context("division", func() {
+			It("evaluates division", func() {
+				source := parseYAML(`
 ---
 foo: (( 6 / 2 / 3 ))
 `)
-
-			resolved := parseYAML(`
+				resolved := parseYAML(`
 ---
 foo: 1
 `)
-
-			Expect(source).To(FlowAs(resolved))
+				Expect(source).To(FlowAs(resolved))
+			})
+			
+			It("division by zero fails", func() {
+				source := parseYAML(`
+---
+foo: (( 6 / 0 || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+foo: failed
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
+			
+			It("evaluates incremental expression resolution", func() {
+				source := parseYAML(`
+---
+a: 6
+b: 2
+c: (( b ))
+foo: (( a / c || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+a: 6
+b: 2
+c: 2
+foo: 3
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
+			
+			It("evaluates incremental expression resolution until failure", func() {
+				source := parseYAML(`
+---
+a: 6
+b: 2
+foo: (( a / c || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+a: 6
+b: 2
+foo: failed
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
 		})
 		
-		It("evaluates modulo", func() {
-			source := parseYAML(`
+		///////////////////////
+		// Modulo
+		///////////////////////
+		Context("modulo", func() {
+			It("evaluates modulo", func() {
+				source := parseYAML(`
 ---
-foo: (( 13 % ( 2 * 3 ) ))
+foo: (( 13 % ( 2 * 3 )))
 `)
-
-			resolved := parseYAML(`
+				resolved := parseYAML(`
 ---
 foo: 1
 `)
-
-			Expect(source).To(FlowAs(resolved))
+				Expect(source).To(FlowAs(resolved))
+			})
+			
+			It("modulo by zero fails", func() {
+				source := parseYAML(`
+---
+foo: (( 13 % ( 2 - 2 ) || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+foo: failed
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
+			
+			It("evaluates incremental expression resolution", func() {
+				source := parseYAML(`
+---
+a: 7
+b: 2
+c: (( b ))
+foo: (( a % c || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+a: 7
+b: 2
+c: 2
+foo: 1
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
+			
+			It("evaluates incremental expression resolution until failure", func() {
+				source := parseYAML(`
+---
+a: 7
+b: 2
+foo: (( a / c || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+a: 7
+b: 2
+foo: failed
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
 		})
 		
-		It("evaluates multiplication first", func() {
-			source := parseYAML(`
+		Context("mixed levels", func() {
+			It("evaluates multiplication first", func() {
+				source := parseYAML(`
 ---
 foo: (( 6 + 2 * 3 ))
 `)
-
-			resolved := parseYAML(`
+				resolved := parseYAML(`
 ---
 foo: 12
 `)
-
-			Expect(source).To(FlowAs(resolved))
-		})
+				Expect(source).To(FlowAs(resolved))
+			})
 		
-		It("evaluates addition last", func() {
-			source := parseYAML(`
+			It("evaluates addition last", func() {
+				source := parseYAML(`
 ---
 foo: (( 6 * 2 + 3 ))
 `)
-
-			resolved := parseYAML(`
+				resolved := parseYAML(`
 ---
 foo: 15
 `)
-
-			Expect(source).To(FlowAs(resolved))
+				Expect(source).To(FlowAs(resolved))
+			})
 		})
+		
 		
 		It("evaluates arithmetic before concatenation", func() {
 			source := parseYAML(`
