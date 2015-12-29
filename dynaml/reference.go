@@ -34,6 +34,9 @@ func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, boo
 		}
 	}
 
+	if !isResolved(step) {
+		return node(e), info, true
+	}
 	return step, info, true
 }
 

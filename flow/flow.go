@@ -28,9 +28,9 @@ func Flow(source yaml.Node, stubs ...yaml.Node) (yaml.Node, error) {
 		result = next
 	}
 	debug.Debug("@@@ Done\n")
-	unresolved := findUnresolvedNodes(result)
+	unresolved := dynaml.FindUnresolvedNodes(result)
 	if len(unresolved) > 0 {
-		return nil, UnresolvedNodes{unresolved}
+		return nil, dynaml.UnresolvedNodes{unresolved}
 	}
 
 	return result, nil

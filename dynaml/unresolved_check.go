@@ -1,10 +1,9 @@
-package flow
+package dynaml
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/cloudfoundry-incubator/spiff/dynaml"
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
@@ -36,7 +35,7 @@ func (e UnresolvedNodes) Error() string {
 	return message
 }
 
-func findUnresolvedNodes(root yaml.Node, context ...string) (nodes []UnresolvedNode) {
+func FindUnresolvedNodes(root yaml.Node, context ...string) (nodes []UnresolvedNode) {
 	if root == nil {
 		return nodes
 	}
@@ -46,7 +45,7 @@ func findUnresolvedNodes(root yaml.Node, context ...string) (nodes []UnresolvedN
 		for key, val := range val {
 			nodes = append(
 				nodes,
-				findUnresolvedNodes(val, addContext(context, key)...)...,
+				FindUnresolvedNodes(val, addContext(context, key)...)...,
 			)
 		}
 
@@ -56,16 +55,16 @@ func findUnresolvedNodes(root yaml.Node, context ...string) (nodes []UnresolvedN
 
 			nodes = append(
 				nodes,
-				findUnresolvedNodes(val, context...)...,
+				FindUnresolvedNodes(val, context...)...,
 			)
 		}
 
-	case dynaml.Expression:
+	case Expression:
 		var path []string
 		switch val := root.Value().(type) {
-		case dynaml.AutoExpr:
+		case AutoExpr:
 			path = val.Path
-		case dynaml.MergeExpr:
+		case MergeExpr:
 			path = val.Path
 		}
 
@@ -83,4 +82,30 @@ func addContext(context []string, step string) []string {
 	dup := make([]string, len(context))
 	copy(dup, context)
 	return append(dup, step)
+}
+
+func isResolved(node yaml.Node) bool {
+	if node==nil {
+		return true
+	}
+	switch node.Value().(type) {
+		case Expression:
+			return false
+		case []yaml.Node:
+			for _,n := range node.Value().([]yaml.Node) {
+				if !isResolved(n) {
+					return false
+				}
+			}
+			return true
+		case map[string]yaml.Node:
+			for _,n := range node.Value().(map[string]yaml.Node) {
+				if !isResolved(n) {
+					return false
+				}
+			}
+			return true
+		default:
+			return true
+	}
 }

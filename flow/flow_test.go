@@ -88,8 +88,8 @@ foo: (( auto ))
 `)
 
 			_, err := Flow(source)
-			Expect(err).To(Equal(UnresolvedNodes{
-				Nodes: []UnresolvedNode{
+			Expect(err).To(Equal(dynaml.UnresolvedNodes{
+				Nodes: []dynaml.UnresolvedNode{
 					{
 						Node: yaml.NewNode(
 							dynaml.AutoExpr{Path: []string{"foo"}},
