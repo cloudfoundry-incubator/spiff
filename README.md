@@ -44,6 +44,7 @@ Contents:
 	- [(( join( ", ", list) ))](#-join---list-)
 	- [(( exec( "command", arg1, arg2) ))](#-exec-command-arg1-arg2-)
 	- [(( static_ips(0, 1, 3) ))](#-static_ips0-1-3-)
+	- [(( map[list|x|->x ":" port] ))](#-maplistx-x--port-) 
 	- [Operation Priorities](#operation-priorities)
 
 
@@ -774,6 +775,53 @@ networks:
   type: manual
 ```
 
+## `(( map[list|x|->x ":" port] ))`
+
+Execute a mapping expression on members of a list to produce a new (mapped) list. The first expression (`list`) must resolve to a list. The last expression (`x ":" port`) defines the mapping expression used to map all members of the given list. Inside this expression an arbitrarily declared simple reference name (here `x`) can be used to access the actually processed list element.
+
+e.g.
+
+```yaml
+port: 4711
+hosts:
+  - alice
+  - bob
+mapped: (( map[hosts|x|->x ":" port] ))
+```
+
+yields
+
+```yaml
+port: 4711
+list:
+  - alice
+  - bob
+mapped:
+  - alice:4711
+  - bob:4711
+```
+
+This expression can be combined with others, for example:
+
+```yaml
+port: 4711
+list:
+  - alice
+  - bob
+joined: (( join( ", ", map[list|x|->x ":" port] ) ))
+
+```
+
+which magically provides a comma separated list of ported hosts:
+
+```yaml
+port: 4711
+list:
+  - alice
+  - bob
+joined: alice:4711, bob:4711
+```
+ 
 ## Operation Priorities
 
 Dynaml expressions are evaluated obeying certain priority levels. This means operations with a higher priority are evaluated first. For example the expression `1 + 2 * 3` is evaluated in the order `1 + ( 2 * 3 )`. Operations with the same priority are evaluated from left to right (in contrast to version 1.0.7). This means the expression `6 - 3 - 2` is evaluated as `( 6 - 3 ) - 2`.
@@ -783,6 +831,6 @@ The following levels are supported (from low priority to high priority)
 - White-space separated sequence as concatenation operation (`foo bar`)
 - `+`, `-`
 - `*`, `/`, `%`
-- Grouping `( )`, constants, references (`foo.bar`) and functions (`merge`, `auto`, `join`, `exec`, `static_ips`)
+- Grouping `( )`, constants, references (`foo.bar`) and functions (`merge`, `auto`, `map[]`, `join`, `exec`, `static_ips`)
 
 The complete grammar can be found in [dynaml.peg](dynaml/dynaml.peg).

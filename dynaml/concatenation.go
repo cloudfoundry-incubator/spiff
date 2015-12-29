@@ -36,10 +36,11 @@ func (e ConcatenationExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo,
 		return node(e), info, true
 	}
 	
-	debug.Debug("CONCAT --> %+v,%+v\n",a,b)
+	debug.Debug("CONCAT resolved %+v,%+v\n",a,b)
 	
 	val, ok := concatenateStringAndInt(a, b)
 	if ok {
+		debug.Debug("CONCAT --> string %+v\n",val)
 		return node(val), info, true
 	}
 

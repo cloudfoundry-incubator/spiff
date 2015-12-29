@@ -323,6 +323,33 @@ var _ = Describe("parsing", func() {
 			)
 		})
 	})
+	
+	Describe("mapping", func() {
+		It("parses simple mappinng", func() {
+			parsesAs(
+				`map[list|x|->x]`,
+				MapExpr{
+					ReferenceExpr{[]string{"list"}},
+					"x",
+					ReferenceExpr{[]string{"x"}},
+				},
+			)
+		})
+		
+		It("parses complex mappinng", func() {
+			parsesAs(
+				`map[list|x|->x ".*"]`,
+				MapExpr{
+					ReferenceExpr{[]string{"list"}},
+					"x",
+					ConcatenationExpr{
+						ReferenceExpr{[]string{"x"}},
+						StringExpr{".*"},
+					},
+				},
+			)
+		})
+	})
 })
 
 func parsesAs(source string, expr Expression, path ...string) {
