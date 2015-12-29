@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/cloudfoundry-incubator/spiff/yaml"
+	"github.com/cloudfoundry-incubator/spiff/debug"
 )
 
 type ReferenceExpr struct {
@@ -17,6 +18,7 @@ func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, boo
     info := DefaultInfo()
 	fromRoot := e.Path[0] == ""
 
+	debug.Debug("reference: %v\n",e.Path)
 	for i := 0; i < len(e.Path); i++ {
 		if fromRoot {
 			step, ok = binding.FindFromRoot(e.Path[1 : i+1])
@@ -24,6 +26,7 @@ func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, boo
 			step, ok = binding.FindReference(e.Path[:i+1])
 		}
 
+		debug.Debug("  %d: %v %+v\n",i,ok,step)
 		if !ok {
 			return nil, info, false
 		}

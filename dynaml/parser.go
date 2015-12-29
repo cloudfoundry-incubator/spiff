@@ -149,11 +149,16 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 		case ruleName:
 			tokens.Push(nameHelper{name:contents})
 		
-		case ruleMap:
-			rhs := tokens.Pop()
-			name:= tokens.Pop()
-			lhs := tokens.Pop()
-			tokens.Push(MapExpr{A: lhs, Name: name.(nameHelper).name, B: rhs})
+		case ruleMapping:
+			rhs  := tokens.Pop()
+			names:=[]string{tokens.Pop().(nameHelper).name}
+			lhs  :=tokens.Pop()
+			name,ok:=lhs.(nameHelper)
+			if ok {
+				names=append(names,name.name)
+				lhs  =tokens.Pop()
+			}
+			tokens.Push(MapExpr{A: lhs, Names: names, B: rhs})
 			
 		case ruleList:
 			seq := tokens.GetExpressionList()
@@ -169,7 +174,6 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 		case ruleContents, ruleArguments:
 			tokens.SetExpressionList(tokens.PopExpressionList())
 			
-		case ruleComma:
 		case ruleKey:
 		case ruleGrouped:
 		case ruleLevel0, ruleLevel1, ruleLevel2, ruleLevel3, ruleLevel4:

@@ -1943,15 +1943,16 @@ foo: failed
 	// mapping
 	/////////////////////
 	Describe("when doing a mapping", func() {
-		It("maps simple expression", func() {
-			source := parseYAML(`
+		Context("for a list", func() {
+			It("maps simple expression", func() {
+				source := parseYAML(`
 ---
 list:
   - alice
   - bob
 mapped: (( map[list|x|->x] ))
 `)
-			resolved := parseYAML(`
+				resolved := parseYAML(`
 ---
 list:
   - alice
@@ -1960,11 +1961,31 @@ mapped:
   - alice
   - bob
 `)
-			Expect(source).To(FlowAs(resolved))
+				Expect(source).To(FlowAs(resolved))
+			})
+		
+			It("maps index expression", func() {
+				source := parseYAML(`
+---
+list:
+  - alice
+  - bob
+mapped: (( map[list|y,x|->y x] ))
+`)
+				resolved := parseYAML(`
+---
+list:
+  - alice
+  - bob
+mapped:
+  - 0alice
+  - 1bob
+`)
+				Expect(source).To(FlowAs(resolved))
 		})
 		
-		It("maps concatenation expression", func() {
-			source := parseYAML(`
+			It("maps concatenation expression", func() {
+				source := parseYAML(`
 ---
 port: 4711
 list:
@@ -1972,7 +1993,7 @@ list:
   - bob
 mapped: (( map[list|x|->x ":" port] ))
 `)
-			resolved := parseYAML(`
+				resolved := parseYAML(`
 ---
 port: 4711
 list:
@@ -1982,11 +2003,35 @@ mapped:
   - alice:4711
   - bob:4711
 `)
-			Expect(source).To(FlowAs(resolved))
-		})
+				Expect(source).To(FlowAs(resolved))
+			})
 		
-		It("maps concatenation expression without failure", func() {
-			source := parseYAML(`
+			It("maps reference expression", func() {
+				source := parseYAML(`
+---
+list:
+  - name: alice
+    age: 25
+  - name: bob
+    age: 24
+names: (( map[list|x|->x.name] ))
+`)
+				resolved := parseYAML(`
+---
+list:
+  - name: alice
+    age: 25
+  - name: bob
+    age: 24
+names:
+  - alice
+  - bob
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
+		
+			It("maps concatenation expression without failure", func() {
+				source := parseYAML(`
 ---
 port: 4711
 list:
@@ -1994,7 +2039,7 @@ list:
   - bob
 mapped: (( map[list|x|->x ":" port] || "failed" ))
 `)
-			resolved := parseYAML(`
+				resolved := parseYAML(`
 ---
 port: 4711
 list:
@@ -2004,29 +2049,29 @@ mapped:
   - alice:4711
   - bob:4711
 `)
-			Expect(source).To(FlowAs(resolved))
-		})
+				Expect(source).To(FlowAs(resolved))
+			})
 		
-		It("maps concatenation expression with failure", func() {
-			source := parseYAML(`
+			It("maps concatenation expression with failure", func() {
+				source := parseYAML(`
 ---
 list:
   - alice
   - bob
 mapped: (( map[list|x|->x ":" port] || "failed" ))
 `)
-			resolved := parseYAML(`
+				resolved := parseYAML(`
 ---
 list:
   - alice
   - bob
 mapped: failed
 `)
-			Expect(source).To(FlowAs(resolved))
-		})
+				Expect(source).To(FlowAs(resolved))
+			})
 		
-		It("works with nested expressions", func() {
-			source := parseYAML(`
+			It("works with nested expressions", func() {
+				source := parseYAML(`
 ---
 port: 4711
 list:
@@ -2034,7 +2079,7 @@ list:
   - bob
 joined: (( join( ", ", map[list|x|->x ":" port] ) || "failed" ))
 `)
-			resolved := parseYAML(`
+				resolved := parseYAML(`
 ---
 port: 4711
 list:
@@ -2042,25 +2087,68 @@ list:
   - bob
 joined: alice:4711, bob:4711
 `)
-			Expect(source).To(FlowAs(resolved))
-		})
+				Expect(source).To(FlowAs(resolved))
+			})
 		
-		It("works with nested failing expressions", func() {
-			source := parseYAML(`
+			It("works with nested failing expressions", func() {
+				source := parseYAML(`
 ---
 list:
   - alice
   - bob
 joined: (( join( ", ", map[list|x|->x ":" port] ) || "failed" ))
 `)
-			resolved := parseYAML(`
+				resolved := parseYAML(`
 ---
 list:
   - alice
   - bob
 joined: failed
 `)
-			Expect(source).To(FlowAs(resolved))
+				Expect(source).To(FlowAs(resolved))
+			})
+		})
+		
+		Context("for a map", func() {
+			It("maps simple expression", func() {
+				source := parseYAML(`
+---
+map:
+  alice: 25
+  bob: 24
+mapped: (( map[map|x|->x] ))
+`)
+				resolved := parseYAML(`
+---
+map:
+  alice: 25
+  bob: 24
+mapped:
+  - 25
+  - 24
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
+		
+			It("maps key expression", func() {
+				source := parseYAML(`
+---
+map:
+  alice: 25
+  bob: 24
+mapped: (( map[map|y,x|->y x] ))
+`)
+				resolved := parseYAML(`
+---
+map:
+  alice: 25
+  bob: 24
+mapped:
+  - alice25
+  - bob24
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
 		})
 	})
 })

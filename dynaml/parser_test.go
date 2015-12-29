@@ -330,7 +330,18 @@ var _ = Describe("parsing", func() {
 				`map[list|x|->x]`,
 				MapExpr{
 					ReferenceExpr{[]string{"list"}},
-					"x",
+					[]string{"x"},
+					ReferenceExpr{[]string{"x"}},
+				},
+			)
+		})
+		
+		It("parses key/value mappinng", func() {
+			parsesAs(
+				`map[list|x,y|->x]`,
+				MapExpr{
+					ReferenceExpr{[]string{"list"}},
+					[]string{"y","x"},
 					ReferenceExpr{[]string{"x"}},
 				},
 			)
@@ -341,7 +352,7 @@ var _ = Describe("parsing", func() {
 				`map[list|x|->x ".*"]`,
 				MapExpr{
 					ReferenceExpr{[]string{"list"}},
-					"x",
+					[]string{"x"},
 					ConcatenationExpr{
 						ReferenceExpr{[]string{"x"}},
 						StringExpr{".*"},

@@ -21,16 +21,14 @@ Multiplication <- '*' req_ws Level0
 Division <-  '/' req_ws Level0
 Modulo <-  '%' req_ws Level0
 
-Level0 <- Grouped / Call / Boolean / Nil / String / Integer / List / Merge / Auto / Map / Reference
+Level0 <- Grouped / Call / Boolean / Nil / String / Integer / List / Merge / Auto / Mapping / Reference
 
 Grouped <- '(' Expression ')'
 
 Call <- Name '(' Arguments ')'
 Name <- [a-zA-Z0-9_]+
 Arguments <- Expression (NextExpression)*
-NextExpression <- Comma Expression
-
-Comma <- ','
+NextExpression <- ',' Expression
 
 Integer <- '-'? [0-9_]+
 
@@ -51,7 +49,7 @@ Required <- 'required'
 
 Auto <- 'auto'
 
-Map <- 'map[' Expression '|' Name '|->' Expression ']'
+Mapping <- 'map[' Expression '|' ws Name ( ws ',' ws Name)? ws '|' ws '->' Expression ']'
 
 Reference <- '.'? Key ('.' Key / '.' '[' [0-9]+ ']')*
 Key <- [a-zA-Z0-9_] [a-zA-Z0-9_\-]* ( ':' [a-zA-Z0-9_] [a-zA-Z0-9_\-]* )?

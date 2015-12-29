@@ -44,7 +44,9 @@ Contents:
 	- [(( join( ", ", list) ))](#-join---list-)
 	- [(( exec( "command", arg1, arg2) ))](#-exec-command-arg1-arg2-)
 	- [(( static_ips(0, 1, 3) ))](#-static_ips0-1-3-)
-	- [(( map[list|x|->x ":" port] ))](#-maplistx-x--port-) 
+	- [Mappings](#mappings)
+		- [(( map[list|x|->x ":" port] ))](#-maplistx-x--port-) 
+		- [(( map[map|x,y|->x ":" port] ))](#-mapmapxy-x--port-) 
 	- [Operation Priorities](#operation-priorities)
 
 
@@ -775,7 +777,9 @@ networks:
   type: manual
 ```
 
-## `(( map[list|x|->x ":" port] ))`
+## Mappings
+
+### `(( map[list|x|->x ":" port] ))`
 
 Execute a mapping expression on members of a list to produce a new (mapped) list. The first expression (`list`) must resolve to a list. The last expression (`x ":" port`) defines the mapping expression used to map all members of the given list. Inside this expression an arbitrarily declared simple reference name (here `x`) can be used to access the actually processed list element.
 
@@ -821,7 +825,62 @@ list:
   - bob
 joined: alice:4711, bob:4711
 ```
+
+There is a two reference form available, also. In this case the first one is provided with the index and the second one with the value for the index.
+
+e.g.
+
+```yaml
+list:
+  - name: alice
+    age: 25
+  - name: bob
+    age: 24
+	
+ages: (( map[list|i,p|->i + 1 ". " p.name " is " p.age ] ))
+```
  
+yields
+
+```yaml
+list:
+  - name: alice
+    age: 25
+  - name: bob
+    age: 24
+	
+ages:
+- 1. alice is 25
+- 2. bob is 24
+```
+
+### (( map[map|x,y|->x ":" port] ))
+
+Mapping of a map to a list using a mapping expression. The expression may have access to the key and/or the value. If two references are declared, both values are passed to the expression, the first one is provided with the key and the second one with the value for the key. If one reference is declared, only the value is provided.
+
+e.g.
+
+```yaml
+ages:
+  alice: 25
+  bob: 24
+
+keys: (( map[ages|k,v|->k] ))
+
+```
+
+yields
+
+```yaml
+ages:
+  alice: 25
+  bob: 24
+
+keys:
+- alice
+- bob
+```
+
 ## Operation Priorities
 
 Dynaml expressions are evaluated obeying certain priority levels. This means operations with a higher priority are evaluated first. For example the expression `1 + 2 * 3` is evaluated in the order `1 + ( 2 * 3 )`. Operations with the same priority are evaluated from left to right (in contrast to version 1.0.7). This means the expression `6 - 3 - 2` is evaluated as `( 6 - 3 ) - 2`.
