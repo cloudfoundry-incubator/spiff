@@ -208,6 +208,24 @@ var _ = Describe("parsing", func() {
 				},
 			)
 		})
+		
+		It("parses nested lists", func() {
+			parsesAs(
+				`[1, "two", [ three, "four" ] ]`,
+				ListExpr{
+					[]Expression{
+						IntegerExpr{1},
+						StringExpr{"two"},
+						ListExpr{
+							[]Expression{
+								ReferenceExpr{[]string{"three"}},
+								StringExpr{"four"},
+							},
+						},
+					},
+				},
+			)
+		})
 	})
 
 	Describe("calls", func() {
@@ -220,6 +238,43 @@ var _ = Describe("parsing", func() {
 						IntegerExpr{1},
 						StringExpr{"two"},
 						ReferenceExpr{[]string{"three"}},
+					},
+				},
+			)
+		})
+		
+		It("parses lists in arguments to function calls", func() {
+			parsesAs(
+				`foo(1, [ "two", three ])`,
+				CallExpr{
+					"foo",
+					[]Expression{
+						IntegerExpr{1},
+						ListExpr{
+							[]Expression{
+								StringExpr{"two"},
+								ReferenceExpr{[]string{"three"}},
+							},
+						},
+					},
+				},
+			)
+		})
+		
+		It("parses calls in arguments to function calls", func() {
+			parsesAs(
+				`foo(1, bar( "two", three ))`,
+				CallExpr{
+					"foo",
+					[]Expression{
+						IntegerExpr{1},
+						CallExpr{
+							"bar", 
+							[]Expression{
+								StringExpr{"two"},
+								ReferenceExpr{[]string{"three"}},
+							},
+						},
 					},
 				},
 			)
