@@ -25,8 +25,9 @@ Level0 <- Grouped / Call / Boolean / Nil / String / Integer / List / Merge / Aut
 Grouped <- '(' Expression ')'
 
 Call <- Name '(' Arguments ')'
-Arguments <- Expression (Comma Expression)*
 Name <- [a-zA-Z0-9_]+
+Arguments <- Expression (NextExpression)*
+NextExpression <- Comma Expression
 
 Comma <- ','
 
@@ -39,7 +40,7 @@ Boolean <- 'true' / 'false'
 Nil <- 'nil'
 
 List <- '[' Contents? ']'
-Contents <- Expression (Comma Expression)*
+Contents <- Expression (NextExpression)*
 
 Merge <- RefMerge / SimpleMerge
 RefMerge <- 'merge' req_ws Reference

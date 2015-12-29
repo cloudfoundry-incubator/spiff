@@ -5,8 +5,43 @@ import (
 	"strconv"
 	"strings"
 	
+	"github.com/cloudfoundry-incubator/spiff/yaml"
 	"github.com/cloudfoundry-incubator/spiff/debug"
 )
+
+/////////////////////////////////////////////////////////////////
+// internal helper nodes
+// used during expression parsing, they will never be contained in finally
+// parsed expression trees
+/////////////////////////////////////////////////////////////////
+
+type helperNode struct { }
+
+func (e helperNode) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+	panic("not intended to be evaluated")
+}
+
+/*
+ * internal helper expression node to gather expression lists
+ * used for list constants and call argument lists during expression parsing
+ */
+type expressionListHelper struct {
+	helperNode
+	list []Expression
+}
+
+/*
+ * internal helper expression node to gather expression lists
+ * used for list constants and call argument lists during expression parsing
+ */
+type nameHelper struct {
+	helperNode
+	name string
+}
+
+/////////////////////////////////////////////////////////////////
+// Parsing
+/////////////////////////////////////////////////////////////////
 
 func Parse(source string, path []string) (Expression, error) {
 	grammar := &DynamlGrammar{Buffer: source}
@@ -88,17 +123,27 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 			tokens.Push(DivisionExpr{A: lhs, B: rhs})
 		case ruleCall:
 			tokens.Push(CallExpr{
-				Name:      tokens.functionName,
-				Arguments: tokens.PopSeq(),
+				Name:      tokens.Pop().(nameHelper).name,
+				Arguments: tokens.GetExpressionList(),
 			})
 		case ruleName:
-			tokens.functionName = contents
+			tokens.Push(nameHelper{name:contents})
+			
 		case ruleList:
-			seq := tokens.PopSeq()
+			seq := tokens.GetExpressionList()
 			tokens.Push(ListExpr{seq})
-		case ruleComma, ruleContents, ruleArguments:
-			expr := tokens.Pop()
-			tokens.PushToSeq(expr)
+		
+		case ruleNextExpression:
+			rhs := tokens.Pop()
+			
+			list:=tokens.PopExpressionList()
+			list.list=append(list.list,rhs)
+			tokens.Push(list)
+		
+		case ruleContents, ruleArguments:
+			tokens.SetExpressionList(tokens.PopExpressionList())
+			
+		case ruleComma:
 		case ruleKey:
 		case ruleGrouped:
 		case ruleLevel0, ruleLevel1, ruleLevel2, ruleLevel3, ruleLevel4:
@@ -116,9 +161,7 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 type tokenStack struct {
 	list.List
 
-	seq []Expression
-
-	functionName string
+	expressionList *expressionListHelper
 }
 
 func (s *tokenStack) Pop() Expression {
@@ -136,16 +179,24 @@ func (s *tokenStack) Push(expr Expression) {
 	s.PushFront(expr)
 }
 
-func (s *tokenStack) PushToSeq(expr Expression) {
-	if s.seq == nil {
-		s.seq = []Expression{}
+func (s *tokenStack) PopExpressionList() expressionListHelper {
+	lhs := s.Pop()
+	list, ok:= lhs.(expressionListHelper)
+	if !ok {
+		list=expressionListHelper{list:[]Expression{lhs}}
 	}
-
-	s.seq = append(s.seq, expr)
+	return list
 }
 
-func (s *tokenStack) PopSeq() []Expression {
-	seq := s.seq
-	s.seq = nil
-	return seq
+func (s *tokenStack) SetExpressionList(list expressionListHelper) {
+	s.expressionList = &list
+}
+
+func (s *tokenStack) GetExpressionList() []Expression {
+	list := s.expressionList
+	s.expressionList = nil
+	if list==nil {
+		return []Expression(nil)
+	}
+	return list.list
 }
