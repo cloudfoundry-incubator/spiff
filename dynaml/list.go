@@ -12,18 +12,21 @@ type ListExpr struct {
 }
 
 func (e ListExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
-	nodes := []yaml.Node{}
-    info := DefaultInfo()
-	
-	for _, c := range e.Contents {
-		result, _, ok := c.Evaluate(binding)
-		if !ok {
-			return nil, info, false
-		}
+	resolved := true
 
-		nodes = append(nodes, result)
+	values, info, ok:=ResolveExpressionListOrPushEvaluation(&e.Contents, &resolved, nil, binding)
+
+	if !ok {
+		return nil, info, false
 	}
-
+	if !resolved {
+		return node(e), info, true
+	}
+	
+	nodes := []yaml.Node{}
+	for i, _ := range values {
+		nodes = append(nodes, node(values[i]))
+	}
 	return node(nodes), info, true
 }
 

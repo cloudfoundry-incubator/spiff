@@ -67,3 +67,23 @@ func ResolveIntegerExpressionOrPushEvaluation(e *Expression, resolved *bool, inf
 		return 0, infoe, false
 	}
 }
+
+func ResolveExpressionListOrPushEvaluation(list *[]Expression, resolved *bool, info *EvaluationInfo, binding Binding) ([]interface{}, EvaluationInfo, bool) {
+	values := make([]interface{}, len(*list))
+	pushed := make([]Expression, len(*list))
+	infoe  := EvaluationInfo{}
+	ok     := true
+	
+	copy(pushed,*list)
+	
+	for i, _ := range pushed {
+		values[i], infoe, ok = ResolveExpressionOrPushEvaluation(&pushed[i],resolved,info,binding)
+		info=&infoe
+		if !ok {
+		  return nil, infoe, false
+		}
+	}
+	*list=pushed
+	return values, infoe, true
+	
+}
