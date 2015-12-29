@@ -34,24 +34,36 @@ func (i EvaluationInfo) Join(o EvaluationInfo) EvaluationInfo {
 	return i
 }
 
-
-func ResolveIntegerExpressionOrPushEvaluation(e *Expression, resolved *bool, info *EvaluationInfo, binding Binding) (int64, EvaluationInfo, bool) {
+func ResolveExpressionOrPushEvaluation(e *Expression, resolved *bool, info *EvaluationInfo, binding Binding) (interface{}, EvaluationInfo, bool) {
 	node, infoe, ok := (*e).Evaluate(binding)
 	if info!=nil {
 		infoe = (*info).Join(infoe)
 	}
 	if !ok {
-		return 0, infoe, false
+		return nil, infoe, false
 	}
 
 	switch node.Value().(type) {
 		case Expression:
 			*e = node.Value().(Expression)
 			*resolved = false
-			return 0, infoe, true
-		case int64:
-			return node.Value().(int64), infoe, true
+			return nil, infoe, true
 		default:
-			return 0, infoe, false
+			return node.Value(), infoe, true
+	}
+}
+
+func ResolveIntegerExpressionOrPushEvaluation(e *Expression, resolved *bool, info *EvaluationInfo, binding Binding) (int64, EvaluationInfo, bool) {
+	value, infoe, ok := ResolveExpressionOrPushEvaluation(e,resolved,info,binding)
+
+    if value == nil {
+		return 0, infoe, ok
+	}
+	
+    i, ok := value.(int64)
+	if ok {
+		return i, infoe, true
+	} else {
+		return 0, infoe, false
 	}
 }

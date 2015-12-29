@@ -1588,6 +1588,42 @@ foo: "1515"
 	})
 	
 	Describe("when concatenating a list", func() {
+		Context("incremental expression resolution", func() {
+			It("evaluates in case of successfull complete operand resolution", func() {
+				source := parseYAML(`
+---
+a: alice
+b: bob
+c: (( b ))
+foo: (( a "+" c || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+a: alice
+b: bob
+c: bob
+foo: alice+bob
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
+			
+			It("fails only after failed final resolution", func() {
+				source := parseYAML(`
+---
+a: alice
+b: bob
+foo: (( a "+" c || "failed" ))
+`)
+				resolved := parseYAML(`
+---
+a: alice
+b: bob
+foo: failed
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
+		})
+		
 		Context("with other lists", func() {
 			It("yields a joined list", func() {
 				source := parseYAML(`
