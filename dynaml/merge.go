@@ -10,6 +10,7 @@ type MergeExpr struct {
 	Path []string
 	Redirect bool
 	Replace  bool
+	Required bool
 }
 
 func (e MergeExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
@@ -29,6 +30,10 @@ func (e MergeExpr) String() string {
 	rep := ""
 	if e.Replace {
 		rep = " replace"
+	} else {
+		if e.Required {
+			rep = " required"
+		}
 	}
 	if e.Redirect {
 		return "merge" + rep + " " + strings.Join(e.Path, ".")

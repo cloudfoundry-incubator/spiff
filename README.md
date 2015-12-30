@@ -224,6 +224,18 @@ See `||`.
 
 ### `<<: (( merge ))`
 
+Merging of maps or lists with the content of the same element found in some stub.
+
+** Attention **
+This form of `merge` has a compatibility propblem. In versions before 1.0.8, this expression
+was never parsed, only the existence of the key `<<:` was relevant. Therefore there are often 
+usages of `<<: (( merge ))` where `<<: (( merge || nil ))` is meant. The first variant would
+require content in at least one stub (as always for the merge operator). Now this expression
+is evaluated correctly, but this would break existing manifest template sets, which use the
+first variant, but mean the second. Therfore this case is explicitly handled to describe an
+optional merge. If really a required merge is meant an additional explicit qualifier has to
+be used (`(( merge required ))`).  
+
 #### Merging maps
 
 **values.yml**

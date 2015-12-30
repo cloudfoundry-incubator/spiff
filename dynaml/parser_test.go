@@ -37,19 +37,23 @@ var _ = Describe("parsing", func() {
 
 	Describe("merge", func() {
 		It("parses as a merge node with the given path", func() {
-			parsesAs("merge alice.bob", MergeExpr{[]string{"alice", "bob"},true,false}, "foo", "bar")
+			parsesAs("merge alice.bob", MergeExpr{[]string{"alice", "bob"},true,false, true}, "foo", "bar")
 		})
 		
 		It("parses as a merge node with the environment path", func() {
-			parsesAs("merge", MergeExpr{[]string{"foo", "bar"},false,false}, "foo", "bar")
+			parsesAs("merge", MergeExpr{[]string{"foo", "bar"},false,false, false}, "foo", "bar")
 		})
 		
 		It("parses as a merge replace node with the given path", func() {
-			parsesAs("merge replace alice.bob", MergeExpr{[]string{"alice", "bob"},true,true}, "foo", "bar")
+			parsesAs("merge replace alice.bob", MergeExpr{[]string{"alice", "bob"},true,true, true}, "foo", "bar")
 		})
 		
 		It("parses as a merge replace node with the environment path", func() {
-			parsesAs("merge replace", MergeExpr{[]string{"foo", "bar"},false,true}, "foo", "bar")
+			parsesAs("merge replace", MergeExpr{[]string{"foo", "bar"},false,true, true}, "foo", "bar")
+		})
+		
+		It("parses as a merge require node", func() {
+			parsesAs("merge required", MergeExpr{[]string{"foo", "bar"},false,false, true}, "foo", "bar")
 		})
 	})
 

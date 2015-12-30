@@ -56,8 +56,12 @@ func Parse(source string, path []string) (Expression, error) {
 }
 
 func buildExpression(grammar *DynamlGrammar, path []string) Expression {
-	tokens := &tokenStack{}
-    replace:= false
+	tokens  := &tokenStack{}
+	
+	// flags for parsing merge options in merge expression
+	// this expression is NOT recursive, therefore single flag variables are sufficient
+    replace := false
+	required:= false
 	
 	for token := range grammar.Tokens() {
 		contents := grammar.Buffer[token.begin:token.end]
@@ -71,13 +75,19 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 			replace = false
 		case ruleSimpleMerge:
 			debug.Debug("*** rule simple merge\n")
-			tokens.Push(MergeExpr{path,false,replace})
+			tokens.Push(MergeExpr{path,false,replace,replace||required})
+			replace =false
+			required=false
 		case ruleRefMerge:
 			debug.Debug("*** rule ref merge\n")
 			rhs := tokens.Pop()
-			tokens.Push(MergeExpr{rhs.(ReferenceExpr).Path,true,replace})
+			tokens.Push(MergeExpr{rhs.(ReferenceExpr).Path,true,replace,true})
+			replace =false
+			required=false
 		case ruleReplace:
 			replace = true
+		case ruleRequired:
+			required = true
 		case ruleReference:
 			tokens.Push(ReferenceExpr{strings.Split(contents, ".")})
 		case ruleInteger:

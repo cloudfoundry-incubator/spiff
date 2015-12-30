@@ -59,7 +59,7 @@ func flow(root yaml.Node, env Environment, shouldOverride bool) yaml.Node {
 			debug.Debug("??? eval %+v\n", val)
 			result, info, ok := val.Evaluate(env)
 			if !ok {
-				debug.Debug("??? ---> KEEP\n")
+				debug.Debug("??? failed ---> KEEP\n")
 				return root
 			}
 			if info.Replace {
@@ -107,6 +107,20 @@ func flow(root yaml.Node, env Environment, shouldOverride bool) yaml.Node {
 	return root
 }
 
+func optionalMerge(initial bool, node yaml.Node) bool {
+	/////////////////////////////////////////////////////////////
+	// compatibility check. A single merge node is always optional
+	// means: <<: (( merge )) == <<: (( merge || nil ))
+	// the first pass, just parses the dynaml
+	// only the second pass, evaluates a dynaml node!
+	if !initial {
+		merge, ok := node.Value().(dynaml.MergeExpr)
+		return ok && !merge.Required
+	}
+	return false
+	/////////////////////////////////////////////////////////////
+}
+
 func flowMap(root yaml.Node, env Environment) yaml.Node {
 	processed := true
 	rootMap := root.Value().(map[string]yaml.Node)
@@ -126,9 +140,14 @@ func flowMap(root yaml.Node, env Environment) yaml.Node {
 		val := rootMap[key]
 
 		if key == "<<" {
+			_, initial := val.Value().(string)
 			base := flow(val, env, false)
 			_, ok := base.Value().(dynaml.Expression)
 			if ok {
+				if optionalMerge(initial,base) {
+					continue
+				}
+				/////////////////////////////////////////////////////////////
 				val = base
 				processed = false;
 			} else {
@@ -167,6 +186,7 @@ func flowMap(root yaml.Node, env Environment) yaml.Node {
 func flowList(root yaml.Node, env Environment) yaml.Node {
 	rootList := root.Value().([]yaml.Node)
 
+	debug.Debug("HANDLE LIST %v\n", env.Path)
 	merged, process, replaced, redirectPath := processMerges(root, rootList, env)
 	
 	if process {
@@ -182,6 +202,8 @@ func flowList(root yaml.Node, env Environment) yaml.Node {
 
 		merged = newList
 	}
+	
+	debug.Debug("LIST DONE %v\n", env.Path)
 	if replaced {
 		return yaml.ReplaceNode(merged, root, redirectPath)
 	}
@@ -198,7 +220,7 @@ func flowString(root yaml.Node, env Environment) yaml.Node {
 	if sub == nil {
 		return root
 	}
-
+	debug.Debug("dynaml: %v: %s\n", env.Path, sub[1])
 	expr, err := dynaml.Parse(sub[1], env.Path)
 	if err != nil {
 		return root
@@ -230,10 +252,14 @@ func processMerges(orig yaml.Node, root []yaml.Node, env Environment) ([]yaml.No
 		inlineNode, ok := yaml.UnresolvedMerge(val)
 		if ok {
 			debug.Debug("*** %+v\n",inlineNode.Value())
+			_, initial := inlineNode.Value().(string)
 			result := flow(inlineNode, env, false)
 			debug.Debug("=== %+v\n",result)
 			_, ok := result.Value().(dynaml.Expression)
 			if ok {
+				if optionalMerge(initial,inlineNode) {
+					continue
+				}
 				newMap := make(map[string]yaml.Node) 
 				newMap["<<"] = result
 				val = yaml.SubstituteNode(newMap,orig)
