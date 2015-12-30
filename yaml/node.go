@@ -14,6 +14,8 @@ type Node interface {
 	SourceName() string
 	RedirectPath() []string
 	ReplaceFlag() bool
+	Preferred() bool
+	Merged() bool
 	
 	EquivalentToNode(Node) bool
 }
@@ -23,22 +25,32 @@ type AnnotatedNode struct {
 	sourceName   string
 	redirectPath []string
 	replace      bool
+	preferred    bool
+	merged       bool
 }
 
 func NewNode(value interface{}, sourcePath string) Node {
-	return AnnotatedNode{massageType(value), sourcePath, nil, false}
+	return AnnotatedNode{massageType(value), sourcePath, nil, false, false, false}
 }
 
 func SubstituteNode(value interface{}, node Node) Node {
-	return AnnotatedNode{massageType(value), node.SourceName(), node.RedirectPath(),node.ReplaceFlag()}
+	return AnnotatedNode{massageType(value), node.SourceName(), node.RedirectPath(),node.ReplaceFlag(),node.Preferred(),node.Merged()}
 }
 
 func RedirectNode(value interface{}, node Node, redirect []string) Node {
-	return AnnotatedNode{massageType(value), node.SourceName(),redirect,node.ReplaceFlag()}
+	return AnnotatedNode{massageType(value), node.SourceName(),redirect,node.ReplaceFlag(), node.Preferred(), node.Merged()}
 }
 
 func ReplaceNode(value interface{}, node Node, redirect []string) Node {
-	return AnnotatedNode{massageType(value), node.SourceName(), redirect,true}
+	return AnnotatedNode{massageType(value), node.SourceName(), redirect,true, node.Preferred(),node.Merged()}
+}
+
+func PreferredNode(node Node) Node {
+	return AnnotatedNode{node.Value(), node.SourceName(), node.RedirectPath(),node.ReplaceFlag(), true, node.Merged()}
+}
+
+func MergedNode(node Node) Node {
+	return AnnotatedNode{node.Value(), node.SourceName(), node.RedirectPath(),node.ReplaceFlag(), node.Preferred(), true}
 }
 
 func massageType(value interface{}) interface{} {
@@ -59,6 +71,14 @@ func (n AnnotatedNode) RedirectPath() []string {
 
 func (n AnnotatedNode) ReplaceFlag() bool {
 	return n.replace
+}
+
+func (n AnnotatedNode) Preferred() bool {
+	return n.preferred
+}
+
+func (n AnnotatedNode) Merged() bool {
+	return n.merged || n.ReplaceFlag() || len(n.RedirectPath())>0
 }
 
 func (n AnnotatedNode) SourceName() string {

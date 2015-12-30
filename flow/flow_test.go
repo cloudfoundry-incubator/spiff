@@ -9,7 +9,7 @@ import (
 )
 
 var _ = Describe("Flowing YAML", func() {
-	Context("when deferred expression evaluation occuurs", func() {
+	Context("delays rsilution until merge succeeded", func() {
 		It("is a no-op", func() {
 			source := parseYAML(`
 ---
@@ -34,6 +34,63 @@ foobar:
   - foo.bar
 `)
 			Expect(source).To(FlowAs(resolved,stub))
+		})
+		
+		It("replaces a non-merge expression node before expanding", func() {
+			source := parseYAML(`
+---
+alt:
+  - wrong
+properties: (( alt ))
+`)
+			stub := parseYAML(`
+---
+properties:
+  - right
+`)
+
+			resolved := parseYAML(`
+---
+alt:
+  - wrong
+properties:
+  - right
+`)
+			Expect(source).To(FlowAs(resolved,stub))
+		})
+		
+		It("expands a preferred non-merge expression node before overriding", func() {
+			source := parseYAML(`
+---
+alt:
+  - right
+properties: (( prefer alt ))
+`)
+			stub := parseYAML(`
+---
+properties:
+  - wrong
+`)
+
+			resolved := parseYAML(`
+---
+alt:
+  - right
+properties:
+  - right
+`)
+			Expect(source).To(FlowAs(resolved,stub))
+		})
+	})
+	
+	Context("when there are no dynaml nodes", func() {
+		It("is a no-op", func() {
+			source := parseYAML(`
+---
+foo: bar
+`)
+
+			Expect(source).To(FlowAs(source))
 		})
 	})
 	
@@ -774,9 +831,6 @@ foo: (( merge nothing || "default" ))
 ---
 foo:
   alice: not merged
-bar:
-  alice: alice
-  bob: bob
 `)
 
 			resolved := parseYAML(`
@@ -1153,7 +1207,7 @@ alt:
   something: (( merge ))
 
 properties:
-  something: (( alt.something ))
+  something: (( prefer alt.something ))
 `)
 
 				stub := parseYAML(`

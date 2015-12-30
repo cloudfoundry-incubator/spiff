@@ -2,8 +2,8 @@ package dynaml
 
 type DynamlGrammar Peg {}
 
-Dynaml <- Expression !.
-
+Dynaml <- (Prefer / Expression) !.
+Prefer <- ws 'prefer' req_ws Expression
 Expression <- ws Level4 ws
 
 Level4 <- Level3 ( req_ws Or )*
@@ -38,7 +38,7 @@ String <- '"' ('\\"' / !'"' .)* '"'
 
 Boolean <- 'true' / 'false'
 
-Nil <- 'nil'
+Nil <- 'nil' / '~'
 
 List <- '[' Contents? ']'
 Contents <- Expression (NextExpression)*

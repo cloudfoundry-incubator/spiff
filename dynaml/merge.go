@@ -22,6 +22,7 @@ func (e MergeExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	node, ok := binding.FindInStubs(e.Path)
 	if ok {
 		info.Replace=e.Replace
+		info.Merged=true
 	}
 	return node, info, ok
 }

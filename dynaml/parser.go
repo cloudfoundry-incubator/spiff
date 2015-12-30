@@ -69,6 +69,8 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 		switch token.pegRule {
 		case ruleDynaml:
 			return tokens.Pop()
+		case rulePrefer:
+			tokens.Push(PreferExpr{tokens.Pop()})
 		case ruleAuto:
 			tokens.Push(AutoExpr{path})
 		case ruleMerge:

@@ -40,6 +40,9 @@ func flow(root yaml.Node, env Environment, shouldOverride bool) yaml.Node {
 	
 	replace:= root.ReplaceFlag()
 	redirect:= root.RedirectPath()
+	preferred:= root.Preferred()
+	merged:= root.Merged()
+	
 	if redirect != nil {
 		env = env.RedirectOverwrite(redirect)
 	}
@@ -57,48 +60,78 @@ func flow(root yaml.Node, env Environment, shouldOverride bool) yaml.Node {
 			result, info, ok := val.Evaluate(env)
 			if !ok {
 				debug.Debug("??? failed ---> KEEP\n")
-				return root
-			}
-			if info.Replace {
-				debug.Debug("   REPLACE\n")
-			}
-			if len(info.RedirectPath) > 0 {
-				redirect = info.RedirectPath
-				debug.Debug("??? m--> %+v -> %v\n", result, info.RedirectPath)
-				if !info.Replace {
-					return yaml.RedirectNode(result.Value(), result, redirect)
+				if !shouldOverride {
+					return root
 				}
+				replace=replace||info.Replace
+			} else {
+				_, ok = result.Value().(string)
+				if ok  {
+					// map result to potential expression
+					result=flowString(result,env)
+				}
+				_, expr := result.Value().(dynaml.Expression)
+				
+				// preserve accumulated node attributes
+				if preferred || info.Preferred {
+					debug.Debug("   PREFERRED")
+					result=yaml.PreferredNode(result)
+				}
+				
+				if len(info.RedirectPath) > 0 {
+					redirect = info.RedirectPath
+				}
+				if len(redirect) > 0 {
+					debug.Debug("   REDIRECT -> %v\n", redirect)
+					result=yaml.RedirectNode(result.Value(), result, redirect)
+				}
+
+				if replace || info.Replace {
+					debug.Debug("   REPLACE\n")
+					result=yaml.ReplaceNode(result.Value(), result, redirect)
+				} else {
+					if merged || info.Merged {
+						debug.Debug("   MERGED\n")
+						result=yaml.MergedNode(result)
+					}
+				}
+				if expr || result.Merged() || !shouldOverride || result.Preferred() {
+					debug.Debug("   prefer expression over override")
+					debug.Debug("??? ---> %+v\n", result)
+					return result
+				}
+				debug.Debug("???   try override")
+				replace=result.ReplaceFlag()
+				root=result
 			}
-			if info.Replace {
-				result=yaml.ReplaceNode(result.Value(), result, redirect)
-			}
-			debug.Debug("??? ---> %+v\n", result)
-			return result
 	
 		case string:
 			result := flowString(root, env)
 			if result != nil {
 				_, ok := result.Value().(dynaml.Expression)
 				if ok {
+					// analyse expression before overriding
 					return result
 				}
 			}
 		}
 	}
 
-	if shouldOverride {
-		debug.Debug("/// lookup %v -> %v\n",env.Path, env.StubPath)
+	if !merged && shouldOverride {
+		debug.Debug("/// lookup stub %v -> %v\n",env.Path, env.StubPath)
 		overridden, found := env.FindInStubs(env.StubPath)
 		if found {
 			root = overridden
+    		if replace {
+				return yaml.ReplaceNode(root.Value(),root,redirect)
+			}
+			if redirect != nil {
+				return yaml.RedirectNode(root.Value(),root,redirect)
+			}
+			if merged {
+				return yaml.MergedNode(root)
+			}
 		}
-	}
-
-    if replace {
-		return yaml.ReplaceNode(root.Value(),root,redirect)
-	}
-	if redirect != nil {
-		return yaml.RedirectNode(root.Value(),root,redirect)
 	}
 
 	return root
