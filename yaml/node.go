@@ -2,6 +2,7 @@ package yaml
 
 import (
 	"reflect"
+	"regexp"
 
 	"github.com/cloudfoundry-incubator/candiedyaml"
 )
@@ -120,4 +121,18 @@ func (n AnnotatedNode) EquivalentToNode(o Node) bool {
 	}
 
 	return reflect.DeepEqual(n.Value(), o.Value())
+}
+
+
+
+var embeddedDynaml = regexp.MustCompile(`^\(\((.*)\)\)$`)
+
+func EmbeddedDynaml(root Node) *string {
+	rootString := root.Value().(string)
+
+	sub := embeddedDynaml.FindStringSubmatch(rootString)
+	if sub == nil {
+		return nil
+	}
+	return &sub[1]
 }

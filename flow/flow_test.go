@@ -9,6 +9,34 @@ import (
 )
 
 var _ = Describe("Flowing YAML", func() {
+	Context("when deferred expression evaluation occuurs", func() {
+		It("is a no-op", func() {
+			source := parseYAML(`
+---
+properties:
+  <<: (( merge || nil ))
+  bar: (( merge ))
+
+foobar:
+  - (( "foo." .properties.bar ))
+`)
+			stub := parseYAML(`
+---
+properties:
+  bar: bar
+`)
+
+			resolved := parseYAML(`
+---
+properties:
+  bar: bar
+foobar: 
+  - foo.bar
+`)
+			Expect(source).To(FlowAs(resolved,stub))
+		})
+	})
+	
 	Context("when there are no dynaml nodes", func() {
 		It("is a no-op", func() {
 			source := parseYAML(`

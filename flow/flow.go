@@ -3,15 +3,12 @@ package flow
 import (
 	"fmt"
 	"reflect"
-	"regexp"
 	"sort"
 
 	"github.com/cloudfoundry-incubator/spiff/dynaml"
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 	"github.com/cloudfoundry-incubator/spiff/debug"
 )
-
-var embeddedDynaml = regexp.MustCompile(`^\(\((.*)\)\)$`)
 
 func Flow(source yaml.Node, stubs ...yaml.Node) (yaml.Node, error) {
 	result := source
@@ -214,14 +211,13 @@ func flowList(root yaml.Node, env Environment) yaml.Node {
 }
 
 func flowString(root yaml.Node, env Environment) yaml.Node {
-	rootString := root.Value().(string)
 
-	sub := embeddedDynaml.FindStringSubmatch(rootString)
+	sub := yaml.EmbeddedDynaml(root)
 	if sub == nil {
 		return root
 	}
-	debug.Debug("dynaml: %v: %s\n", env.Path, sub[1])
-	expr, err := dynaml.Parse(sub[1], env.Path)
+	debug.Debug("dynaml: %v: %s\n", env.Path, *sub)
+	expr, err := dynaml.Parse(*sub, env.Path)
 	if err != nil {
 		return root
 	}
