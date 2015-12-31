@@ -48,6 +48,7 @@ Contents:
 		- [(( map[list|x|->x ":" port] ))](#-maplistx-x--port-) 
 		- [(( map[map|x,y|->x ":" port] ))](#-mapmapxy-x--port-) 
 	- [Operation Priorities](#operation-priorities)
+- [Structural Auto-Merge](#structural-auto-merge)
 
 
 # Installation
@@ -174,6 +175,25 @@ from:
   the:
     stub: foo
 ```
+
+If the path starts with a dot (`.`) the path is always evaluated from the root
+of the document.
+
+List entries consisting of a map with `name` field can directly be addressed 
+by their name value.
+
+e.g.:
+
+The age of alice in
+
+```yaml
+list:
+ - name: alice
+   age: 25
+```
+
+can be referenced by using the path `list.alice.age`, instead of `list[0].age`.
+
 
 ## `(( "foo" ))`
 
@@ -893,3 +913,185 @@ The following levels are supported (from low priority to high priority)
 - Grouping `( )`, constants, references (`foo.bar`) and functions (`merge`, `auto`, `map[]`, `join`, `exec`, `static_ips`)
 
 The complete grammar can be found in [dynaml.peg](dynaml/dynaml.peg).
+
+# Structural Auto-Merge
+
+By default `spiff` performs a deep structural merge of its first argument, the template file, with the given stub files. The merge is processed from right to left, providing an intermediate merged stub for every step. This means, that for every step all expressions must be locally resolvable. 
+
+Structural merge means, that besides explicit dynaml `merge` expressions, values will be overridden by values of equivalent nodes found in right-most stub files. In general, flat value lists are not merged. Only lists of maps can be merged by entries in a stub with a matching index. There is a special support for the auto-merge of lists containing maps, if the maps contain a `name` field. Hereby the list is handled like a map with entries according to the value of the list entries' name field.
+
+In general the resolution of matching nodes in stubs is done using the same rules that apply for the reference expressions [(( foo.bar.[1].baz ))](#-foobar1baz-).
+
+For example, given the file template.yml:
+
+```yaml
+foo:
+  - name: alice
+    bar: template
+  - name: bob
+    bar: template
+
+bar:
+  - foo: template
+
+list:
+  - alice
+  - bob
+```
+
+and file stub.yml:
+
+```yaml
+foo: 
+  bob: 
+    bar: stub
+
+bar:
+  - foo: stub
+
+list:
+  - c
+  - d
+```
+
+```
+spiff merge template.yml stub.yml
+```
+
+returns
+
+
+```yaml
+foo:
+- name: alice
+  bar: template
+- name: bob
+  bar: stub
+
+bar:
+- foo: stub
+
+list:
+- a
+- b
+
+```
+
+## Useful to Know
+
+  There are several scenarios yielding results that do not seem to be obvious. Here are some typical pitfalls.
+
+- _The auto merge never adds nodes to existing structures_
+
+  For example, merging
+ 
+  **template.yml**
+  ```yaml
+  foo:
+    alice: 25
+  ```
+  with
+
+  **stub.yml**
+  ```yaml
+  foo:
+    alice: 24
+    bob: 26
+  ```
+
+   yields
+
+  ```yaml
+  foo:
+    alice: 24
+  ```
+
+  Use [<<: (( merge ))](#--merge-) to change this behaviour, or explicitly add desired nodes to be merged:
+
+   **template.yml**
+  ```yaml
+  foo:
+    alice: 25
+	bob: (( merge ))
+  ```
+
+
+- _Simple node values are replaced by values or complete structures coming from stubs, structures are deep_ merged.
+
+  For example, merging
+ 
+  **template.yml**
+  ```yaml
+  foo: (( ["alice"] ))
+  ```
+  with
+
+  **stub.yml**
+  ```yaml
+  foo: 
+    - peter
+    - paul
+  ``` 
+
+  yields
+
+  ```yaml
+  foo:
+    - peter
+    - paul 
+  ```
+
+  But the template
+
+  ```yaml
+   foo: [ (( "alice" )) ] 
+  ```
+
+  is merged without any change.
+
+- _Expressions are subject to be overridden as a whole_
+  
+  A consequence of the behaviour describd above is that nodes described by an expession are basically overridden by a complete merged structure, instead of doing a deep merge with the structues resulting from the expression evaluation.
+
+  For example, merging
+ 
+  **template.yml**
+  ```yaml
+  men:
+    - bob: 24
+  women:
+    - alice: 25
+	
+  people: (( women men ))
+  ```
+  with
+
+  **stub.yml**
+  ```yaml
+  people:
+    - alice: 13
+  ```
+   yields
+
+  ```yaml
+  men:
+    - bob: 24
+  women:
+    - alice: 25
+	
+  people:
+    - alice: 24
+  ```
+
+  To request an auto-merge of the structure resulting from the expression evaluation, the expression has to be preceeded with the modifier `prefer` (`(( prefer women men ))`). This would yield the desired result:
+
+  ```yaml
+  men:
+    - bob: 24
+  women:
+    - alice: 25
+	
+  people:
+    - alice: 24
+	- bob: 24
+  ```
