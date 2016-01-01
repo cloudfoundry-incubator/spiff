@@ -62,6 +62,7 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 	// this expression is NOT recursive, therefore single flag variables are sufficient
     replace := false
 	required:= false
+	keyName := ""
 	
 	for token := range grammar.Tokens() {
 		contents := grammar.Buffer[token.begin:token.end]
@@ -74,24 +75,26 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 		case ruleAuto:
 			tokens.Push(AutoExpr{path})
 		case ruleMerge:
-			replace = false
-		case ruleSimpleMerge:
-			debug.Debug("*** rule simple merge\n")
-			tokens.Push(MergeExpr{path,false,replace,replace||required})
 			replace =false
 			required=false
+			keyName = ""
+		case ruleSimpleMerge:
+			debug.Debug("*** rule simple merge\n")
+			tokens.Push(MergeExpr{path,false,replace,replace||required,keyName})
 		case ruleRefMerge:
 			debug.Debug("*** rule ref merge\n")
 			rhs := tokens.Pop()
-			tokens.Push(MergeExpr{rhs.(ReferenceExpr).Path,true,replace,true})
-			replace =false
-			required=false
+			tokens.Push(MergeExpr{rhs.(ReferenceExpr).Path,true,replace,true,keyName})
 		case ruleReplace:
 			replace = true
 		case ruleRequired:
 			required = true
+		case ruleOn:
+			keyName = tokens.Pop().(nameHelper).name
+			
 		case ruleReference:
 			tokens.Push(ReferenceExpr{strings.Split(contents, ".")})
+		
 		case ruleInteger:
 			val, err := strconv.ParseInt(contents, 10, 64)
 			if err != nil {

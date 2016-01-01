@@ -30,6 +30,7 @@ Contents:
 		- [<<: (( merge ))](#--merge-)
 			- [merging maps](#merging-maps)
 			- [merging lists](#merging-lists)
+		- [- <<: (( merge on key ))](#----merge-on-key-)
 		- [<<: (( merge replace ))](#--merge-replace-)
 			- [merging maps](#merging-maps-1)
 			- [merging lists](#merging-lists-1)
@@ -354,6 +355,45 @@ foo:
   - 2
   - 4
 ```
+
+### `- <<: (( merge on key ))`
+
+`spiff` is able to merge lists of maps with a key field. Those lists are handled like maps with the value of the key field as key. By default the key `name` is used. But with the selector `on` an arbitrary key name can be specified for a list-merge expression.
+
+e.g.:
+
+```yaml
+list:
+  - <<: (( merge on key ))
+  - key: alice
+    age: 25
+  - key: bob
+    age: 24
+```
+
+merged with
+
+```yaml
+list:
+  - key: alice
+    age: 20
+  - key: peter
+    age: 13
+```
+
+yields
+
+```yaml
+list:
+  - key: peter
+    age: 13
+  - key: alice
+    age: 20
+  - key: bob
+    age: 24
+```
+
+If no insertion of new entries is desired (as requested by the insertion merge expression), but only overriding of existent entries, one existing key field can be prefixed with the tag `key:` to indicate a non-standard key name, for example `- key:key: alice`.
 
 ### `<<: (( merge replace ))`
 
@@ -953,7 +993,9 @@ The complete grammar can be found in [dynaml.peg](dynaml/dynaml.peg).
 
 By default `spiff` performs a deep structural merge of its first argument, the template file, with the given stub files. The merge is processed from right to left, providing an intermediate merged stub for every step. This means, that for every step all expressions must be locally resolvable. 
 
-Structural merge means, that besides explicit dynaml `merge` expressions, values will be overridden by values of equivalent nodes found in right-most stub files. In general, flat value lists are not merged. Only lists of maps can be merged by entries in a stub with a matching index. There is a special support for the auto-merge of lists containing maps, if the maps contain a `name` field. Hereby the list is handled like a map with entries according to the value of the list entries' name field.
+Structural merge means, that besides explicit dynaml `merge` expressions, values will be overridden by values of equivalent nodes found in right-most stub files. In general, flat value lists are not merged. Only lists of maps can be merged by entries in a stub with a matching index. 
+
+There is a special support for the auto-merge of lists containing maps, if the maps contain a `name` field. Hereby the list is handled like a map with entries according to the value of the list entries' name field. If another key field than `name` should be used, the key field of one list entry can be tagged with the prefix `key:` to indicate the indended key name. Such tags will be removed for the processed output.
 
 In general the resolution of matching nodes in stubs is done using the same rules that apply for the reference expressions [(( foo.bar.[1].baz ))](#-foobar1baz-).
 

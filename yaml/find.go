@@ -54,14 +54,14 @@ func nextStep(step string, here Node) (Node, bool) {
 	case map[string]Node:
 		here, found = v[step]
 	case []Node:
-		here, found = stepThroughList(v, step)
+		here, found = stepThroughList(v, step, here.KeyName())
 	default:
 	}
 
 	return here, found
 }
 
-func stepThroughList(here []Node, step string) (Node, bool) {
+func stepThroughList(here []Node, step string, key string) (Node, bool) {
 	match := listIndex.FindStringSubmatch(step)
 	if match != nil {
 		index, err := strconv.Atoi(match[1])
@@ -82,7 +82,9 @@ func stepThroughList(here []Node, step string) (Node, bool) {
 		return here[index], true
 	}
 
-	key := "name"
+    if key == "" {
+		key = "name"
+	}
 	split := strings.Index(step, ":")
 	if split>0 {
 		key = step[:split]
@@ -106,6 +108,14 @@ func stepThroughList(here []Node, step string) (Node, bool) {
 	}
 
 	return nil, false
+}
+
+func PathComponent(step string) (string) {
+	split := strings.Index(step, ":")
+	if split>0 {
+		return step[split+1:]
+	}
+	return step
 }
 
 func UnresolvedMerge(node Node) (Node, bool) {

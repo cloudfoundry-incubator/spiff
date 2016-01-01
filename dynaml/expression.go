@@ -15,10 +15,11 @@ type EvaluationInfo struct {
 	Replace      bool
 	Merged       bool
 	Preferred    bool
+	KeyName      string
 }
 
 func DefaultInfo() EvaluationInfo {
-	return EvaluationInfo{nil,false,false,false}
+	return EvaluationInfo{nil,false,false,false,""}
 }
 
 type Expression interface {
@@ -32,6 +33,9 @@ func (i EvaluationInfo) Join(o EvaluationInfo) EvaluationInfo {
 	i.Replace = o.Replace // replace only by directly using the merge node
 	i.Preferred = i.Preferred || o.Preferred
 	i.Merged = i.Merged || o.Merged
+	if o.KeyName != "" {
+		i.KeyName = o.KeyName
+	}
 	return i
 }
 

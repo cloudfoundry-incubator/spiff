@@ -16,6 +16,7 @@ type Node interface {
 	ReplaceFlag() bool
 	Preferred() bool
 	Merged() bool
+	KeyName() string
 	
 	EquivalentToNode(Node) bool
 }
@@ -27,34 +28,39 @@ type AnnotatedNode struct {
 	replace      bool
 	preferred    bool
 	merged       bool
+	keyName      string
 }
 
 func NewNode(value interface{}, sourcePath string) Node {
-	return AnnotatedNode{massageType(value), sourcePath, nil, false, false, false}
+	return AnnotatedNode{massageType(value), sourcePath, nil, false, false, false, ""}
 }
 
 func ReferencedNode(node Node) Node {
-	return AnnotatedNode{node.Value(), node.SourceName(), nil, false, false, false}
+	return AnnotatedNode{node.Value(), node.SourceName(), nil, false, false, false, node.KeyName()}
 }
 
 func SubstituteNode(value interface{}, node Node) Node {
-	return AnnotatedNode{massageType(value), node.SourceName(), node.RedirectPath(),node.ReplaceFlag(),node.Preferred(),node.Merged()}
+	return AnnotatedNode{massageType(value), node.SourceName(), node.RedirectPath(),node.ReplaceFlag(),node.Preferred(),node.Merged(),node.KeyName()}
 }
 
 func RedirectNode(value interface{}, node Node, redirect []string) Node {
-	return AnnotatedNode{massageType(value), node.SourceName(),redirect,node.ReplaceFlag(), node.Preferred(), node.Merged()}
+	return AnnotatedNode{massageType(value), node.SourceName(),redirect,node.ReplaceFlag(), node.Preferred(), node.Merged(),node.KeyName()}
 }
 
 func ReplaceNode(value interface{}, node Node, redirect []string) Node {
-	return AnnotatedNode{massageType(value), node.SourceName(), redirect,true, node.Preferred(),node.Merged()}
+	return AnnotatedNode{massageType(value), node.SourceName(), redirect,true, node.Preferred(),node.Merged(),node.KeyName()}
 }
 
 func PreferredNode(node Node) Node {
-	return AnnotatedNode{node.Value(), node.SourceName(), node.RedirectPath(),node.ReplaceFlag(), true, node.Merged()}
+	return AnnotatedNode{node.Value(), node.SourceName(), node.RedirectPath(),node.ReplaceFlag(), true, node.Merged(),node.KeyName()}
 }
 
 func MergedNode(node Node) Node {
-	return AnnotatedNode{node.Value(), node.SourceName(), node.RedirectPath(),node.ReplaceFlag(), node.Preferred(), true}
+	return AnnotatedNode{node.Value(), node.SourceName(), node.RedirectPath(),node.ReplaceFlag(), node.Preferred(), true,node.KeyName()}
+}
+
+func KeyNameNode(node Node, keyName string) Node {
+	return AnnotatedNode{node.Value(), node.SourceName(), node.RedirectPath(),node.ReplaceFlag(), node.Preferred(), node.Merged(), keyName}
 }
 
 func massageType(value interface{}) interface{} {
@@ -83,6 +89,10 @@ func (n AnnotatedNode) Preferred() bool {
 
 func (n AnnotatedNode) Merged() bool {
 	return n.merged || n.ReplaceFlag() || len(n.RedirectPath())>0
+}
+
+func (n AnnotatedNode) KeyName() string {
+	return n.keyName
 }
 
 func (n AnnotatedNode) SourceName() string {

@@ -17,6 +17,9 @@ func (e AutoExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 			return nil, info, false
 		}
 
+        if !isResolved(jobs) {
+			return node(e), info, true
+		}
 		jobsList, ok := jobs.Value().([]yaml.Node)
 		if !ok {
 			return nil, info, false
@@ -30,7 +33,7 @@ func (e AutoExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 				continue
 			}
 
-			if poolName != e.Path[1] {
+			if poolName != yaml.PathComponent(e.Path[1]) {
 				continue
 			}
 

@@ -9,7 +9,7 @@ import (
 )
 
 var _ = Describe("Flowing YAML", func() {
-	Context("delays rsilution until merge succeeded", func() {
+	Context("delays resolution until merge succeeded", func() {
 		It("is a no-op", func() {
 			source := parseYAML(`
 ---
@@ -2148,6 +2148,96 @@ mapped:
   - bob24
 `)
 				Expect(source).To(FlowAs(resolved))
+			})
+		})
+	})
+	
+	/////////////////////////////////
+	// list key handling
+	/////////////////////////////////
+	Describe("merging lists with specified key", func() {
+		Context("no merge", func() {
+			It("clean up key tag", func() {
+				source := parseYAML(`
+---
+list:
+  - key:address: a
+    attr: b
+  - address: c
+    attr: d
+`)
+				resolved := parseYAML(`
+---
+list:
+  - address: a
+    attr: b
+  - address: c
+    attr: d
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
+		})
+		
+		Context("auto merge with key tag", func() {
+			It("overrides matching key entries", func() {
+				source := parseYAML(`
+---
+list:
+  - key:address: a
+    attr: b
+  - address: c
+    attr: d
+`)
+				stub := parseYAML(`
+---
+list:
+  - address: c
+    attr: stub
+  - address: e
+    attr: f
+`)
+				resolved := parseYAML(`
+---
+list:
+  - address: a
+    attr: b
+  - address: c
+    attr: stub
+`)
+				Expect(source).To(FlowAs(resolved,stub))
+			})
+		})
+		
+		Context("explicit merge with key tag", func() {
+			It("overrides matching key entries", func() {
+				source := parseYAML(`
+---
+list:
+  - <<: (( merge on address ))
+  - address: a
+    attr: b
+  - address: c
+    attr: d
+`)
+				stub := parseYAML(`
+---
+list:
+  - address: c
+    attr: stub
+  - address: e
+    attr: f
+`)
+				resolved := parseYAML(`
+---
+list:
+  - address: e
+    attr: f
+  - address: a
+    attr: b
+  - address: c
+    attr: stub
+`)
+				Expect(source).To(FlowAs(resolved,stub))
 			})
 		})
 	})

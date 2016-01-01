@@ -11,6 +11,7 @@ type MergeExpr struct {
 	Redirect bool
 	Replace  bool
 	Required bool
+	KeyName  string
 }
 
 func (e MergeExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
@@ -18,6 +19,7 @@ func (e MergeExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	if e.Redirect {
 		info.RedirectPath=e.Path
 	}
+	info.KeyName = e.KeyName
 	debug.Debug("/// lookup %v\n",e.Path)
 	node, ok := binding.FindInStubs(e.Path)
 	if ok {
@@ -34,6 +36,10 @@ func (e MergeExpr) String() string {
 	} else {
 		if e.Required {
 			rep = " required"
+		} else {
+			if e.KeyName != "" {
+				rep = " on "+e.KeyName
+			}
 		}
 	}
 	if e.Redirect {

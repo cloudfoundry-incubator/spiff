@@ -102,4 +102,68 @@ bob: bob
                         })
 		})
 	})
+	
+	/////////////////////////////////
+	// list key handling
+	/////////////////////////////////
+	Describe("merging lists with specified key", func() {
+		
+		Context("auto merge with key tag", func() {
+			It("overrides matching key entries", func() {
+				source := parseYAML(`
+---
+list:
+  - key:address: a
+    attr: b
+  - address: c
+    attr: d
+`)
+				stub := parseYAML(`
+---
+list:
+  - address: c
+    attr: stub
+  - address: e
+    attr: f
+`)
+				resolved := parseYAML(`
+---
+list:
+  - address: a
+    attr: b
+  - address: c
+    attr: stub
+`)
+				Expect(source).To(CascadeAs(resolved,stub))
+			})
+		
+			It("overrides matching key entries with key tag", func() {
+				source := parseYAML(`
+---
+list:
+  - key:address: a
+    attr: b
+  - address: c
+    attr: d
+`)
+				stub := parseYAML(`
+---
+list:
+  - key:address: c
+    attr: stub
+  - address: e
+    attr: f
+`)
+				resolved := parseYAML(`
+---
+list:
+  - address: a
+    attr: b
+  - address: c
+    attr: stub
+`)
+				Expect(source).To(CascadeAs(resolved,stub))
+			})
+		})
+	})
 })

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"strings"
 
 	"github.com/cloudfoundry-incubator/spiff/dynaml"
 	"github.com/cloudfoundry-incubator/spiff/yaml"
@@ -42,6 +43,7 @@ func flow(root yaml.Node, env Environment, shouldOverride bool) yaml.Node {
 	redirect:= root.RedirectPath()
 	preferred:= root.Preferred()
 	merged:= root.Merged()
+	keyName:= root.KeyName()
 	
 	if redirect != nil {
 		env = env.RedirectOverwrite(redirect)
@@ -78,6 +80,10 @@ func flow(root yaml.Node, env Environment, shouldOverride bool) yaml.Node {
 					result=yaml.PreferredNode(result)
 				}
 				
+				if info.KeyName != "" {
+					keyName = info.KeyName
+					result=yaml.KeyNameNode(result, keyName)
+				}
 				if len(info.RedirectPath) > 0 {
 					redirect = info.RedirectPath
 				}
@@ -122,6 +128,9 @@ func flow(root yaml.Node, env Environment, shouldOverride bool) yaml.Node {
 		overridden, found := env.FindInStubs(env.StubPath)
 		if found {
 			root = overridden
+			if keyName != "" {
+				root=yaml.KeyNameNode(root,keyName)
+			}
     		if replace {
 				return yaml.ReplaceNode(root.Value(),root,redirect)
 			}
@@ -203,6 +212,7 @@ func flowMap(root yaml.Node, env Environment) yaml.Node {
 			}
 		}
 
+		debug.Debug("MAP (%s)%s\n", val.KeyName(),key)
 		newMap[key] = val
 	}
 
@@ -217,7 +227,7 @@ func flowList(root yaml.Node, env Environment) yaml.Node {
 	rootList := root.Value().([]yaml.Node)
 
 	debug.Debug("HANDLE LIST %v\n", env.Path)
-	merged, process, replaced, redirectPath := processMerges(root, rootList, env)
+	merged, process, replaced, redirectPath, keyName := processMerges(root, rootList, env)
 	
 	if process {
 
@@ -226,14 +236,18 @@ func flowList(root yaml.Node, env Environment) yaml.Node {
 			env=env.RedirectOverwrite(redirectPath)
 		}
 		for idx, val := range merged {
-			step := stepName(idx, val)
+			step := stepName(idx, val, keyName)
+			debug.Debug("  step %s\n",step)
 			newList = append(newList, flow(val, env.WithPath(step), false))
 		}
 
 		merged = newList
 	}
 	
-	debug.Debug("LIST DONE %v\n", env.Path)
+	if keyName != "" {
+		root = yaml.KeyNameNode(root,keyName)
+	}
+	debug.Debug("LIST DONE (%s)%v\n", root.KeyName(), env.Path)
 	if replaced {
 		return yaml.ReplaceNode(merged, root, redirectPath)
 	}
@@ -258,18 +272,22 @@ func flowString(root yaml.Node, env Environment) yaml.Node {
 	return yaml.SubstituteNode(expr, root)
 }
 
-func stepName(index int, value yaml.Node) string {
-	name, ok := yaml.FindString(value, "name")
+func stepName(index int, value yaml.Node, keyName string) string {
+	if keyName == "" {
+		keyName = "name"
+	}
+	name, ok := yaml.FindString(value, keyName)
 	if ok {
-		return name
+		return keyName+":"+name
 	}
 
 	return fmt.Sprintf("[%d]", index)
 }
 
-func processMerges(orig yaml.Node, root []yaml.Node, env Environment) ([]yaml.Node, bool, bool, []string) {
+func processMerges(orig yaml.Node, root []yaml.Node, env Environment) ([]yaml.Node, bool, bool, []string, string) {
 	spliced := []yaml.Node{}
 	process := true
+	keyName := orig.KeyName()
 	replaced:= orig.ReplaceFlag()
 	redirectPath := orig.RedirectPath()
 	
@@ -283,7 +301,10 @@ func processMerges(orig yaml.Node, root []yaml.Node, env Environment) ([]yaml.No
 			debug.Debug("*** %+v\n",inlineNode.Value())
 			_, initial := inlineNode.Value().(string)
 			result := flow(inlineNode, env, false)
-			debug.Debug("=== %+v\n",result)
+			if result.KeyName() != "" {
+				keyName = result.KeyName()
+			}
+			debug.Debug("=== (%s)%+v\n",keyName,result)
 			_, ok := result.Value().(dynaml.Expression)
 			if ok {
 				if optionalMerge(initial,inlineNode) {
@@ -297,7 +318,7 @@ func processMerges(orig yaml.Node, root []yaml.Node, env Environment) ([]yaml.No
 				inline, ok := result.Value().([]yaml.Node)
 
 				if ok {
-					inlineNew := newEntries(inline, root)
+					inlineNew := newEntries(inline, root, keyName)
 					replaced = result.ReplaceFlag()
 					redirectPath = result.RedirectPath()
 					if replaced {
@@ -312,20 +333,62 @@ func processMerges(orig yaml.Node, root []yaml.Node, env Environment) ([]yaml.No
 			}
 		}
 
+		val, newKey := ProcessKeyTag(val)
+		if newKey != "" {
+			keyName = newKey
+		}
 		spliced = append(spliced, val)
 	}
 
-	debug.Debug("--> %+v  proc=%v replaced=%v redirect=%v\n",spliced, process, replaced, redirectPath)
-	return spliced, process, replaced, redirectPath
+	debug.Debug("--> %+v  proc=%v replaced=%v redirect=%v key=%s\n",spliced, process, replaced, redirectPath, keyName)
+	return spliced, process, replaced, redirectPath, keyName
 }
 
-func newEntries(a []yaml.Node, b []yaml.Node) []yaml.Node {
+func ProcessKeyTag(val yaml.Node) (yaml.Node, string) {
+	keyName:=""
+	
+	// lookup tagged entries to identify key name (key:name: value)
+	m, ok := val.Value().(map[string]yaml.Node)
+	if ok {
+		found:=false
+		for key, _:= range m {
+			split := strings.Index(key, ":")
+			if split>0 {
+				if key[:split] == "key" {
+					keyName = key[split+1:]
+					found=true
+				}
+			}
+		}
+		if found {
+			// cleanup tagged entries
+			newMap:=make(map[string]yaml.Node)
+			for key, v:= range m {
+				split := strings.Index(key, ":")
+				if split>0 {
+					if key[:split] == "key" {
+						key=key[split+1:]
+					}
+				}
+				newMap[key]=v
+			}
+			return yaml.SubstituteNode(newMap,val), keyName
+		}
+	}
+	return val, keyName
+}
+
+func newEntries(a []yaml.Node, b []yaml.Node, keyName string) []yaml.Node {
+	if keyName == "" {
+		keyName = "name"
+	}
+	old:=yaml.KeyNameNode(yaml.NewNode(b, "some map"),keyName)
 	added := []yaml.Node{}
 
 	for _, val := range a {
-		name, ok := yaml.FindString(val, "name")
+		name, ok := yaml.FindString(val, keyName)
 		if ok {
-			_, found := yaml.Find(yaml.NewNode(b, "some map"), name) // TODO
+			_, found := yaml.Find(old, name) // TODO
 			if found {
 				continue
 			}
