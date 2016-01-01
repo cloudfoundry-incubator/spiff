@@ -33,6 +33,10 @@ func NewNode(value interface{}, sourcePath string) Node {
 	return AnnotatedNode{massageType(value), sourcePath, nil, false, false, false}
 }
 
+func ReferencedNode(node Node) Node {
+	return AnnotatedNode{node.Value(), node.SourceName(), nil, false, false, false}
+}
+
 func SubstituteNode(value interface{}, node Node) Node {
 	return AnnotatedNode{massageType(value), node.SourceName(), node.RedirectPath(),node.ReplaceFlag(),node.Preferred(),node.Merged()}
 }

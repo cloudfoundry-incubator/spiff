@@ -78,4 +78,28 @@ baz:
 			Expect(source).To(CascadeAs(resolved, secondary, tertiary, stub))
 		})
 	})
+
+        Describe("node annotation propagation", func() {
+                
+                Context("referencing a merged field", func() {
+                        It("is not handled as merge expression", func() {
+                                source := parseYAML(`
+---
+alice: (( merge ))
+bob: (( alice ))
+`)
+                                stub := parseYAML(`
+---
+alice: alice
+bob: bob
+`)
+                                resolved := parseYAML(`
+---
+alice: alice
+bob: bob
+`)
+                                Expect(source).To(CascadeAs(resolved,stub))
+                        })
+		})
+	})
 })
