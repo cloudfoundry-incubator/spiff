@@ -628,6 +628,22 @@ ip: 10.10.10.10
 range: 10.10.10.10-10.11.11.1
 ```
 
+Additionally there are functions working on CIDRs:
+
+```yaml
+cidr: 192.168.0.1/24
+range: (( min_ip(cidr) "-" max_ip(cidr) ))
+next: (( max_ip(cidr) + 1 ))
+```
+
+yields
+
+```yaml
+cidr: 192.168.0.1/24
+range: 192.168.0.0-192.168.0.255
+next: 192.168.1.0
+```
+
 ## `(( join( ", ", list) ))`
 
 Join entries of lists or direct values to a single string value using a given separator string. The arguments to join can be dynaml expressions evaluating to lists, whose values again are strings or integers, or string or integer values.
@@ -929,7 +945,7 @@ The following levels are supported (from low priority to high priority)
 - White-space separated sequence as concatenation operation (`foo bar`)
 - `+`, `-`
 - `*`, `/`, `%`
-- Grouping `( )`, constants, references (`foo.bar`) and functions (`merge`, `auto`, `map[]`, `join`, `exec`, `static_ips`)
+- Grouping `( )`, constants, references (`foo.bar`) and functions (`merge`, `auto`, `map[]`, `join`, `exec`, `static_ips`, `min_ip`, `max_ip`)
 
 The complete grammar can be found in [dynaml.peg](dynaml/dynaml.peg).
 

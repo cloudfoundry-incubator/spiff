@@ -36,6 +36,12 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 		
 	case "exec":
 		result,sub,ok = func_exec(values,binding)
+
+	case "min_ip":
+		result,sub,ok = func_minIP(values,binding)
+
+	case "max_ip":
+		result,sub,ok = func_maxIP(values,binding)
 		
 	default:
 		return nil, info, false

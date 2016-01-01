@@ -8,6 +8,40 @@ import (
 )
 
 var _ = Describe("calls", func() {
+	Describe("CIDR functions", func() {
+		It("determines minimal IP", func() {
+			expr := CallExpr{
+				Name: "min_ip",
+				Arguments: []Expression{
+					StringExpr{"192.168.0.1/24"},
+				},
+			}
+			
+			Expect(expr).To(
+				EvaluateAs(
+					"192.168.0.0",
+					FakeBinding{},
+				),
+			)
+		})
+		
+		It("determines maximal IP", func() {
+			expr := CallExpr{
+				Name: "max_ip",
+				Arguments: []Expression{
+					StringExpr{"192.168.0.1/24"},
+				},
+			}
+			
+			Expect(expr).To(
+				EvaluateAs(
+					"192.168.0.255",
+					FakeBinding{},
+				),
+			)
+		})
+	})
+	
 	Describe("join(\", \"...)", func() {
 		expr := CallExpr{
 			Name: "join",
