@@ -41,6 +41,7 @@ Contents:
 			- [merging lists](#merging-lists-3)
 	- [(( a || b ))](#-a--b-)
 	- [(( 1 + 2 * foo ))](#-1--2--foo-)
+	- [(( "10.10.10.10" - 11 ))](#-10101010---11-)
 	- [(( join( ", ", list) ))](#-join---list-)
 	- [(( exec( "command", arg1, arg2) ))](#-exec-command-arg1-arg2-)
 	- [(( static_ips(0, 1, 3) ))](#-static_ips0-1-3-)
@@ -608,6 +609,24 @@ foo: 3
 bar: (( foo " times 2 yields " 2 * foo ))
 ```
 The result is the string `3 times 2 yields 6`.
+
+## `(( "10.10.10.10" - 11 ))`
+
+Besides arithmetic on integers it is also possible to use addition and subtraction on ip addresses.
+
+e.g.:
+
+```yaml
+ip: 10.10.10.10
+range: (( ip "-" ip + 247 + 256 * 256 ))
+```
+
+yields
+
+```yaml
+ip: 10.10.10.10
+range: 10.10.10.10-10.11.11.1
+```
 
 ## `(( join( ", ", list) ))`
 

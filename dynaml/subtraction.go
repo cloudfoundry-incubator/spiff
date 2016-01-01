@@ -2,6 +2,7 @@ package dynaml
 
 import (
 	"fmt"
+	"net"
 
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
@@ -14,7 +15,7 @@ type SubtractionExpr struct {
 func (e SubtractionExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	resolved:=true
 	
-	aint, info, ok := ResolveIntegerExpressionOrPushEvaluation(&e.A,&resolved,nil,binding)
+	a, info, ok := ResolveExpressionOrPushEvaluation(&e.A,&resolved,nil,binding)
 	if !ok {
 		return nil, info, false
 	}
@@ -27,7 +28,20 @@ func (e SubtractionExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, b
     if !resolved {
 		return node(e), info, true
 	}
-	return node(aint - bint), info, true
+	
+	aint, ok:= a.(int64)
+	if ok {
+	  return node(aint - bint), info, true
+	}
+	
+	str, ok:= a.(string)
+	if ok {
+		ip:=net.ParseIP(str)
+		if ip != nil {
+			return node(IPAdd(ip,-bint).String()), info, true
+		}
+	}
+	return nil, info, false
 }
 
 func (e SubtractionExpr) String() string {
