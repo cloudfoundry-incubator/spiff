@@ -31,6 +31,7 @@ func (i EvaluationInfo) Join(o EvaluationInfo) EvaluationInfo {
 	}
 	i.Replace = o.Replace // replace only by directly using the merge node
 	i.Preferred = i.Preferred || o.Preferred
+	i.Merged = i.Merged || o.Merged
 	return i
 }
 

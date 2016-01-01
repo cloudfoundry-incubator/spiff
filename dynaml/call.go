@@ -24,17 +24,24 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 		return node(e), info, true
 	}
 	
+	var result yaml.Node
+	var sub EvaluationInfo
+	
 	switch e.Name {
 	case "static_ips":
-		return func_static_ips(e.Arguments,binding)
+		result,sub,ok = func_static_ips(e.Arguments,binding)
 
 	case "join":
-		return func_join(values, binding)
+		result,sub,ok = func_join(values, binding)
 		
 	case "exec":
-		return func_exec(values,binding)
+		result,sub,ok = func_exec(values,binding)
+		
+	default:
+		return nil, info, false
 	}
-	return nil, info, false
+
+	return result, sub.Join(info), ok
 }
 
 
