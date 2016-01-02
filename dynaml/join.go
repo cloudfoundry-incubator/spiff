@@ -1,6 +1,7 @@
 package dynaml
 
 import (
+	"fmt"
 	"strings"
     "strconv"
 	
@@ -17,27 +18,33 @@ func func_join(arguments []interface{}, binding Binding) (yaml.Node, EvaluationI
 	
 	args := make([]string,0)
 	for i, arg := range arguments {
-		switch arg.(type) {
+		switch v:=arg.(type) {
 			case string:
-				args=append(args,arg.(string))
+				args=append(args,v)
 			case int64:
-				args=append(args,strconv.FormatInt(arg.(int64), 10))
+				args=append(args,strconv.FormatInt(v, 10))
+			case bool:
+				args=append(args,strconv.FormatBool(v))
 			case []yaml.Node:
 				if i==0 {
+					info.Issue="first argument for join must be a string"
 					return nil, info, false
 				}
-				elems, _ := arg.([]yaml.Node)
-				for _, elem := range elems {
-					switch elem.Value().(type) {
+				for _, elem := range v {
+					switch e:=elem.Value().(type) {
 						case string:
-							args=append(args,elem.Value().(string))
+							args=append(args,e)
 						case int64:
-							args=append(args,strconv.FormatInt(elem.Value().(int64), 10))
+							args=append(args,strconv.FormatInt(e, 10))
+						case bool:
+							args=append(args,strconv.FormatBool(e))
 						default:
+							info.Issue=fmt.Sprintf("elements of list(arg %d) to join must be simple values",i)
 							return nil, info, false
 					}
 				}
 			default:
+				info.Issue=fmt.Sprintf("argument %d to join must be simple value or list",i)
 				return nil, info, false
 		}
 	}

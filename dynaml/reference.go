@@ -28,6 +28,7 @@ func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, boo
 
 		debug.Debug("  %d: %v %+v\n",i,ok,step)
 		if !ok {
+			info.Issue="'"+strings.Join(e.Path,".")+"'"+" not found"
 			return nil, info, false
 		}
 

@@ -51,6 +51,7 @@ Contents:
 		- [(( map[map|x,y|->x ":" port] ))](#-mapmapxy-x--port-) 
 	- [Operation Priorities](#operation-priorities)
 - [Structural Auto-Merge](#structural-auto-merge)
+- [Error Reporting](#error-reporting)
 
 
 # Installation
@@ -207,7 +208,7 @@ Concatenation expression used to concatenate a sequence of dynaml expressions.
 
 ### `(( "foo" bar ))`
 
-Concatenation (where bar is another dynaml expr). Any sequences of integer values or strings can be concatenated, given by any dynaml expression.
+Concatenation (where bar is another dynaml expr). Any sequences of simple values (string, integer and boolean) can be concatenated, given by any dynaml expression.
 
 e.g.
 
@@ -231,7 +232,7 @@ static_ips: (( ["10.0.1.2","10.0.1.3"] other_ips ))
 
 In this example `static_ips` will resolve to the value `[ 10.0.1.2, 10.0.1.3, 10.0.0.2, 10.0.0.3 ] `.
 
-If the second expression evaluates to a value other than a list (integer, string or map), the value is concatenated to the first list.
+If the second expression evaluates to a value other than a list (integer, boolean, string or map), the value is appended to the first list.
 
 e.g.
 
@@ -1172,3 +1173,28 @@ list:
     - alice: 24
 	- bob: 24
   ```
+
+# Error Reporting
+
+The evaluation of dynaml expressions may fail because of several reasons:
+- it is not parseable
+- involved references cannot be satisfied
+- arguments to operations are of the wrong type
+- operations fail
+- there are cyclic dependencies among expressions
+
+If a dynaml expression cannot be resolved to a value, it is reported by the
+`spiff merge` operation using the following layout:
+
+```
+	(( <failed expression> ))	in <file>	<path to node>	(<referred path>)	<issue>
+```
+	
+e.g.:
+
+```	
+	(( min_ip("10") ))	in source.yml	node.a.[0]	()	CIDR argument required
+```
+	
+Cyclic dependencies are detected by iterative evaluation until the document is unchanged after a step.
+Nodes involved in a cycle are therefore typically reported without an issue.

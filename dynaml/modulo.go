@@ -29,6 +29,7 @@ func (e ModuloExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) 
 	}
 
 	if bint == 0 {
+		info.Issue="division by zero"
 		return nil, info, false
 	}
 	return node(aint % bint), info, true

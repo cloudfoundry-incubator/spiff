@@ -57,3 +57,37 @@ func (matcher *FlowAsMatcher) FailureMessage(actual interface{}) (message string
 func (matcher *FlowAsMatcher) NegatedFailureMessage(actual interface{}) (message string) {
 	return formatMessage(matcher.actual, "not to flow as", matcher.Expected)
 }
+
+
+func FlowToErr(expected string, stubs ...yaml.Node) *FlowErrAsMatcher {
+	expected=`unresolved nodes:
+`+expected
+	return &FlowErrAsMatcher{Expected: expected, Stubs: stubs}
+}
+
+type FlowErrAsMatcher struct {
+	Expected string
+	Stubs    []yaml.Node
+	actual   string
+}
+
+func (matcher *FlowErrAsMatcher) Match(source interface{}) (success bool, err error) {
+	_, err = Flow(source.(yaml.Node), matcher.Stubs...)
+	if err == nil {
+		return false, fmt.Errorf("no error reported")
+	}
+	matcher.actual = err.Error()
+	return matcher.actual==matcher.Expected, nil
+}
+
+func formatErrorMessage(actual string, message string, expected string) string {
+	return fmt.Sprintf("Expected\n%s\n%s\n%s", actual, message, expected)
+}
+
+func (matcher *FlowErrAsMatcher) FailureMessage(actual interface{}) (message string) {
+	return formatErrorMessage(matcher.actual, "to be equal to", matcher.Expected)
+}
+
+func (matcher *FlowErrAsMatcher) NegatedFailureMessage(actual interface{}) (message string) {
+	return formatErrorMessage(matcher.actual, "not to be equla to", matcher.Expected)
+}

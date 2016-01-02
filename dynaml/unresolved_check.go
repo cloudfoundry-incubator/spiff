@@ -20,15 +20,27 @@ type UnresolvedNode struct {
 
 func (e UnresolvedNodes) Error() string {
 	message := "unresolved nodes:"
-
+	format := ""
+	
 	for _, node := range e.Nodes {
+		issue:=node.Issue()
+		if issue!="" {
+			issue="\t"+issue
+		}
+		switch node.Value().(type) {
+			case Expression:
+				format = "%s\n\t(( %s ))\tin %s\t%s\t(%s)%s"
+			default:
+				format = "%s\n\t%s\tin %s\t%s\t(%s)%s"
+		}
 		message = fmt.Sprintf(
-			"%s\n\t(( %s ))\tin %s\t%s\t(%s)",
+			format,
 			message,
 			node.Value(),
 			node.SourceName(),
 			strings.Join(node.Context, "."),
 			strings.Join(node.Path, "."),
+			issue,
 		)
 	}
 
@@ -77,7 +89,7 @@ func FindUnresolvedNodes(root yaml.Node, context ...string) (nodes []UnresolvedN
 	case string:
 		if yaml.EmbeddedDynaml(root)!=nil {
 			nodes = append(nodes, UnresolvedNode{
-				Node:    root,
+				Node:    yaml.IssueNode(root,"unparseable expression"),
 				Context: context,
 				Path:    []string{},
 			})

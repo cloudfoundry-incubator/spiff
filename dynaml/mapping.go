@@ -49,12 +49,13 @@ func (e MapExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	var result []yaml.Node
 	switch value.(type) {
 		case []yaml.Node:
-			result,ok=mapList(value.([]yaml.Node),e.Names,e.B,binding)
+			result,info,ok=mapList(value.([]yaml.Node),e.Names,e.B,binding)
 			
 		case map[string]yaml.Node:
-			result,ok=mapMap(value.(map[string]yaml.Node),e.Names,e.B,binding)
+			result,info,ok=mapMap(value.(map[string]yaml.Node),e.Names,e.B,binding)
     
 		default:
+			info.Issue="map or list required for mapping"
 			return nil, info, false
 	}
 	if !ok {
@@ -75,9 +76,10 @@ func (e MapExpr) String() string {
 	return fmt.Sprintf("map[%s|%s|->%s]", e.A, str[1:],  e.B)
 }
 
-func mapList(source []yaml.Node, names []string, e Expression, binding Binding) ([]yaml.Node,bool) {
+func mapList(source []yaml.Node, names []string, e Expression, binding Binding) ([]yaml.Node,EvaluationInfo,bool) {
 	inp:=map[string]yaml.Node{}
 	result:=[]yaml.Node{}
+	info:=DefaultInfo()
 	
 	for i,n := range source {
 		debug.Debug("map:  mapping for %d: %+v\n",i,n)
@@ -86,26 +88,27 @@ func mapList(source []yaml.Node, names []string, e Expression, binding Binding) 
 			inp[names[1]]=node(i)
 		}
 		ctx := MapContext{binding, inp}
-		mapped,_,ok := e.Evaluate(ctx)
+		mapped,info,ok := e.Evaluate(ctx)
 		if !ok {
 			debug.Debug("map:  %d %+v: failed\n",i,n)
-			return nil, false
+			return nil, info, false
 		}
 		
 		_, ok = mapped.Value().(Expression)
 		if ok {
 			debug.Debug("map:  %d unresolved  -> KEEP\n")
-			return nil, true
+			return nil, info, true
 		}
 		debug.Debug("map:  %d --> %+v\n",i,mapped)
 		result=append(result,mapped)
 	}
-	return result, true
+	return result, info, true
 }
 
-func mapMap(source map[string]yaml.Node, names []string, e Expression, binding Binding) ([]yaml.Node,bool) {
+func mapMap(source map[string]yaml.Node, names []string, e Expression, binding Binding) ([]yaml.Node,EvaluationInfo,bool) {
 	inp:=map[string]yaml.Node{}
 	result:=[]yaml.Node{}
+	info:=DefaultInfo()
 	
 	keys:=getSortedKeys(source)
 	for _,k := range keys {
@@ -116,21 +119,21 @@ func mapMap(source map[string]yaml.Node, names []string, e Expression, binding B
 			inp[names[1]]=node(k)
 		}
 		ctx := MapContext{binding, inp}
-		mapped,_,ok := e.Evaluate(ctx)
+		mapped,info,ok := e.Evaluate(ctx)
 		if !ok {
 			debug.Debug("map:  %s %+v: failed\n",k,n)
-			return nil, false
+			return nil, info, false
 		}
 		
 		_, ok = mapped.Value().(Expression)
 		if ok {
 			debug.Debug("map:  %d unresolved  -> KEEP\n")
-			return nil, true
+			return nil, info, true
 		}
 		debug.Debug("map:  %s --> %+v\n",k,mapped)
 		result=append(result,mapped)
 	}
-	return result, true
+	return result, info, true
 }
 
 func getSortedKeys(unsortedMap map[string]yaml.Node) []string {

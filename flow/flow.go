@@ -61,6 +61,7 @@ func flow(root yaml.Node, env Environment, shouldOverride bool) yaml.Node {
 			debug.Debug("??? eval %+v\n", val)
 			result, info, ok := val.Evaluate(env)
 			if !ok {
+				root=yaml.IssueNode(root,info.Issue)
 				debug.Debug("??? failed ---> KEEP\n")
 				if !shouldOverride {
 					return root

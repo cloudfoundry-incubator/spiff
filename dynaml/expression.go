@@ -16,10 +16,11 @@ type EvaluationInfo struct {
 	Merged       bool
 	Preferred    bool
 	KeyName      string
+	Issue        string
 }
 
 func DefaultInfo() EvaluationInfo {
-	return EvaluationInfo{nil,false,false,false,""}
+	return EvaluationInfo{nil,false,false,false,"",""}
 }
 
 type Expression interface {
@@ -35,6 +36,9 @@ func (i EvaluationInfo) Join(o EvaluationInfo) EvaluationInfo {
 	i.Merged = i.Merged || o.Merged
 	if o.KeyName != "" {
 		i.KeyName = o.KeyName
+	}
+	if o.Issue != "" {
+		i.Issue = o.Issue
 	}
 	return i
 }
@@ -69,6 +73,7 @@ func ResolveIntegerExpressionOrPushEvaluation(e *Expression, resolved *bool, inf
 	if ok {
 		return i, infoe, true
 	} else {
+		infoe.Issue="integer operand required"
 		return 0, infoe, false
 	}
 }

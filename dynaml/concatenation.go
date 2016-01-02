@@ -46,6 +46,12 @@ func (e ConcatenationExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo,
 
 	alist, aok := a.([]yaml.Node)
 	if !aok {
+		switch a.(type) {
+			case map[string]yaml.Node:
+				info.Issue="first argument must be list or simple value"
+			default:
+				info.Issue="simple value can only be concatenated with simple values"
+		}
 		return nil, info, false
 	}
 	
@@ -64,20 +70,24 @@ func (e ConcatenationExpr) String() string {
 func concatenateStringAndInt(a interface{}, b interface{}) (string, bool) {
 	var aString string
 
-	switch a.(type) {
+	switch v:=a.(type) {
 		case string:
-			aString = a.(string)
+			aString = v
 		case int64:
-			aString = strconv.FormatInt(a.(int64), 10)
+			aString = strconv.FormatInt(v, 10)
+		case bool:
+			aString = strconv.FormatBool(v)
 		default:
 			return "", false
 	}
 	
-	switch b.(type) {
+	switch v:=b.(type) {
 		case string:
-			return  aString + b.(string), true
+			return  aString + v, true
 		case int64:
-			return aString + strconv.FormatInt(b.(int64), 10), true
+			return aString + strconv.FormatInt(v, 10), true
+		case bool:
+			return aString + strconv.FormatBool(v), true
 		default:
 			return "", false
 	}
