@@ -193,7 +193,7 @@ var _ = Describe("parsing", func() {
 	})
 	
 	Describe("division", func() {
-		It("parses nodes separated by *", func() {
+		It("parses nodes separated by /", func() {
 			parsesAs(
 				`"foo" / bar`,
 				DivisionExpr{
@@ -216,7 +216,7 @@ var _ = Describe("parsing", func() {
 	})
 	
 	Describe("modulo", func() {
-		It("parses nodes separated by *", func() {
+		It("parses nodes separated by %", func() {
 			parsesAs(
 				`"foo" % bar`,
 				ModuloExpr{

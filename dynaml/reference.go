@@ -1,6 +1,7 @@
 package dynaml
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/cloudfoundry-incubator/spiff/yaml"
@@ -28,7 +29,7 @@ func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, boo
 
 		debug.Debug("  %d: %v %+v\n",i,ok,step)
 		if !ok {
-			info.Issue="'"+strings.Join(e.Path,".")+"'"+" not found"
+			info.Issue=fmt.Sprintf("'%s' not found", strings.Join(e.Path,"."))
 			return nil, info, false
 		}
 

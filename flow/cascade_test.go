@@ -102,10 +102,7 @@ bob: bob
                         })
 		})
 	})
-	
-	/////////////////////////////////
-	// list key handling
-	/////////////////////////////////
+
 	Describe("merging lists with specified key", func() {
 		
 		Context("auto merge with key tag", func() {

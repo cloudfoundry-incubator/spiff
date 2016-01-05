@@ -1317,9 +1317,6 @@ foo: failed
 	})
 	
 	Describe("for arithmetic expressions", func() {
-		///////////////////////
-		// Addition
-		///////////////////////
 		Context("addition", func() {
 			It("evaluates addition", func() {
 				source := parseYAML(`
@@ -1368,9 +1365,8 @@ foo: failed
 			})
 		})
 		
-		///////////////////////
-		// Subtraction
-		///////////////////////
+
+
 		Context("subtraction", func() {
 			It("evaluates subtraction", func() {
 				source := parseYAML(`
@@ -1421,9 +1417,7 @@ foo: failed
 			})
 		})
 		
-		///////////////////////
-		// Multiplication
-		///////////////////////
+
 		Context("multiplication", func() {
 			It("evaluates multiplication", func() {
 				source := parseYAML(`
@@ -1472,9 +1466,7 @@ foo: failed
 			})
 		})
 		
-		///////////////////////
-		// Division
-		///////////////////////
+
 		Context("division", func() {
 			It("evaluates division", func() {
 				source := parseYAML(`
@@ -1535,9 +1527,7 @@ foo: failed
 			})
 		})
 		
-		///////////////////////
-		// Modulo
-		///////////////////////
+
 		Context("modulo", func() {
 			It("evaluates modulo", func() {
 				source := parseYAML(`
@@ -1792,9 +1782,7 @@ foo: [1,2,3,"bar"]
 		})
 	})
 	
-	/////////////////////
-	// function join
-	/////////////////////
+
 	Describe("when joining", func() {
 		It("joins single value", func() {
 			source := parseYAML(`
@@ -1939,9 +1927,7 @@ foo: failed
 		})
 	})
 	
-	/////////////////////
-	// mapping
-	/////////////////////
+
 	Describe("when doing a mapping", func() {
 		Context("for a list", func() {
 			It("maps simple expression", func() {
@@ -2152,9 +2138,7 @@ mapped:
 		})
 	})
 	
-	/////////////////////////////////
-	// list key handling
-	/////////////////////////////////
+
 	Describe("merging lists with specified key", func() {
 		Context("no merge", func() {
 			It("clean up key tag", func() {

@@ -147,18 +147,18 @@ func flow(root yaml.Node, env Environment, shouldOverride bool) yaml.Node {
 	return root
 }
 
-func optionalMerge(initial bool, node yaml.Node) bool {
-	/////////////////////////////////////////////////////////////
-	// compatibility check. A single merge node is always optional
-	// means: <<: (( merge )) == <<: (( merge || nil ))
-	// the first pass, just parses the dynaml
-	// only the second pass, evaluates a dynaml node!
+/*
+ * compatibility issue. A single merge node was always optional
+ * means: <<: (( merge )) == <<: (( merge || nil ))
+ * the first pass, just parses the dynaml
+ * only the second pass, evaluates a dynaml node!
+ */
+func simpleMergeCompatibilityCheck(initial bool, node yaml.Node) bool {
 	if !initial {
 		merge, ok := node.Value().(dynaml.MergeExpr)
 		return ok && !merge.Required
 	}
 	return false
-	/////////////////////////////////////////////////////////////
 }
 
 func flowMap(root yaml.Node, env Environment) yaml.Node {
@@ -174,6 +174,7 @@ func flowMap(root yaml.Node, env Environment) yaml.Node {
 	sortedKeys := getSortedKeys(rootMap)
 
 	debug.Debug("HANDLE MAP %v\n", env.Path)
+	
 	// iteration order matters for the "<<" operator, it must be the first key in the map that is handled
 	for i := range sortedKeys {
 		key := sortedKeys[i]
@@ -184,10 +185,9 @@ func flowMap(root yaml.Node, env Environment) yaml.Node {
 			base := flow(val, env, false)
 			_, ok := base.Value().(dynaml.Expression)
 			if ok {
-				if optionalMerge(initial,base) {
+				if simpleMergeCompatibilityCheck(initial,base) {
 					continue
 				}
-				/////////////////////////////////////////////////////////////
 				val = base
 				processed = false;
 			} else {
@@ -308,7 +308,7 @@ func processMerges(orig yaml.Node, root []yaml.Node, env Environment) ([]yaml.No
 			debug.Debug("=== (%s)%+v\n",keyName,result)
 			_, ok := result.Value().(dynaml.Expression)
 			if ok {
-				if optionalMerge(initial,inlineNode) {
+				if simpleMergeCompatibilityCheck(initial,inlineNode) {
 					continue
 				}
 				newMap := make(map[string]yaml.Node) 
@@ -348,7 +348,6 @@ func processMerges(orig yaml.Node, root []yaml.Node, env Environment) ([]yaml.No
 func ProcessKeyTag(val yaml.Node) (yaml.Node, string) {
 	keyName:=""
 	
-	// lookup tagged entries to identify key name (key:name: value)
 	m, ok := val.Value().(map[string]yaml.Node)
 	if ok {
 		found:=false
@@ -362,7 +361,6 @@ func ProcessKeyTag(val yaml.Node) (yaml.Node, string) {
 			}
 		}
 		if found {
-			// cleanup tagged entries
 			newMap:=make(map[string]yaml.Node)
 			for key, v:= range m {
 				split := strings.Index(key, ":")

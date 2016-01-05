@@ -9,11 +9,6 @@ import (
 	"github.com/cloudfoundry-incubator/spiff/debug"
 )
 
-/////////////////////////////////////////////////////////////////
-// internal helper nodes
-// used during expression parsing, they will never be contained in finally
-// parsed expression trees
-/////////////////////////////////////////////////////////////////
 
 type helperNode struct { }
 
@@ -21,27 +16,15 @@ func (e helperNode) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) 
 	panic("not intended to be evaluated")
 }
 
-/*
- * internal helper expression node to gather expression lists
- * used for list constants and call argument lists during expression parsing
- */
 type expressionListHelper struct {
 	helperNode
 	list []Expression
 }
 
-/*
- * internal helper expression node to gather expression lists
- * used for list constants and call argument lists during expression parsing
- */
 type nameHelper struct {
 	helperNode
 	name string
 }
-
-/////////////////////////////////////////////////////////////////
-// Parsing
-/////////////////////////////////////////////////////////////////
 
 func Parse(source string, path []string) (Expression, error) {
 	grammar := &DynamlGrammar{Buffer: source}
