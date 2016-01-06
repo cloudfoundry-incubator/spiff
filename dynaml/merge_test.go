@@ -13,12 +13,12 @@ var _ = Describe("merges", func() {
 			referencedNode := IntegerExpr{42}
 
 			expr := MergeExpr{
-						Path: []string{"foo", "bar"},
-						Redirect: false,
-						Replace: false,
-						Required: false,
-						KeyName: "",
-					}
+				Path:     []string{"foo", "bar"},
+				Redirect: false,
+				Replace:  false,
+				Required: false,
+				KeyName:  "",
+			}
 
 			binding := FakeBinding{
 				FoundInStubs: map[string]yaml.Node{
@@ -35,12 +35,12 @@ var _ = Describe("merges", func() {
 			referencedNode := IntegerExpr{42}
 
 			expr := MergeExpr{
-						Path: []string{"foo", "bar", "baz"},
-						Redirect: false,
-						Replace: false,
-						Required: false,
-						KeyName: "",
-					}
+				Path:     []string{"foo", "bar", "baz"},
+				Redirect: false,
+				Replace:  false,
+				Required: false,
+				KeyName:  "",
+			}
 
 			binding := FakeBinding{
 				FoundInStubs: map[string]yaml.Node{

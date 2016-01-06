@@ -3,13 +3,12 @@ package dynaml
 import (
 	"net"
 	"strings"
-	
+
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
-
 func func_static_ips(arguments []Expression, binding Binding) (yaml.Node, EvaluationInfo, bool) {
-	
+
 	indices := make([]int, len(arguments))
 	for i, arg := range arguments {
 		index, info, ok := arg.Evaluate(binding)
@@ -28,8 +27,8 @@ func func_static_ips(arguments []Expression, binding Binding) (yaml.Node, Evalua
 }
 
 func generateStaticIPs(binding Binding, indices []int) (yaml.Node, EvaluationInfo, bool) {
-	info:= DefaultInfo()
-	
+	info := DefaultInfo()
+
 	if len(indices) == 0 {
 		return nil, info, false
 	}

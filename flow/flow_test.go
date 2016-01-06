@@ -33,9 +33,9 @@ properties:
 foobar: 
   - foo.bar
 `)
-			Expect(source).To(FlowAs(resolved,stub))
+			Expect(source).To(FlowAs(resolved, stub))
 		})
-		
+
 		It("replaces a non-merge expression node before expanding", func() {
 			source := parseYAML(`
 ---
@@ -56,9 +56,9 @@ alt:
 properties:
   - right
 `)
-			Expect(source).To(FlowAs(resolved,stub))
+			Expect(source).To(FlowAs(resolved, stub))
 		})
-		
+
 		It("expands a preferred non-merge expression node before overriding", func() {
 			source := parseYAML(`
 ---
@@ -79,10 +79,10 @@ alt:
 properties:
   - right
 `)
-			Expect(source).To(FlowAs(resolved,stub))
+			Expect(source).To(FlowAs(resolved, stub))
 		})
 	})
-	
+
 	Context("when there are no dynaml nodes", func() {
 		It("is a no-op", func() {
 			source := parseYAML(`
@@ -93,7 +93,7 @@ foo: bar
 			Expect(source).To(FlowAs(source))
 		})
 	})
-	
+
 	Context("when there are no dynaml nodes", func() {
 		It("is a no-op", func() {
 			source := parseYAML(`
@@ -481,7 +481,6 @@ bar:
   bob: bob
 `)
 
-
 			resolved := parseYAML(`
 ---
 foo:
@@ -495,7 +494,7 @@ bar:
 
 			Expect(source).To(FlowAs(resolved))
 		})
-		
+
 		It("overwrites locally referenced fields", func() {
 			source := parseYAML(`
 ---
@@ -508,7 +507,6 @@ bar:
   bob: bob
 `)
 
-
 			resolved := parseYAML(`
 ---
 foo:
@@ -522,7 +520,7 @@ bar:
 
 			Expect(source).To(FlowAs(resolved))
 		})
-		
+
 		It("merges redirected stub fields", func() {
 			source := parseYAML(`
 ---
@@ -548,7 +546,7 @@ bar: 42
 
 			Expect(source).To(FlowAs(resolved, stub))
 		})
-		
+
 		It("overwrites redirected stub fields", func() {
 			source := parseYAML(`
 ---
@@ -575,7 +573,7 @@ foo:
 
 			Expect(source).To(FlowAs(resolved, stub))
 		})
-		
+
 		It("deep overwrites redirected stub fields", func() {
 			source := parseYAML(`
 ---
@@ -608,7 +606,7 @@ foo:
 			Expect(source).To(FlowAs(resolved, stub))
 		})
 	})
-	
+
 	// replace whole structure instead of deep override
 	Describe("replacing nodes from stubs", func() {
 		It("does nothing for no direct match", func() {
@@ -627,7 +625,7 @@ foo:
 
 			Expect(source).To(FlowAs(resolved))
 		})
-		
+
 		It("copies the node", func() {
 			source := parseYAML(`
 ---
@@ -680,7 +678,7 @@ foo:
 
 			Expect(source).To(FlowAs(resolved, stub))
 		})
-		
+
 		It("doesn't hamper field value merge", func() {
 			source := parseYAML(`
 ---
@@ -704,7 +702,7 @@ foo:
 
 			Expect(source).To(FlowAs(resolved, stub))
 		})
-		
+
 		It("doesn't hamper list value merge", func() {
 			source := parseYAML(`
 ---
@@ -731,7 +729,7 @@ foo:
 			Expect(source).To(FlowAs(resolved, stub))
 		})
 	})
-	
+
 	Describe("replacing map with redirection", func() {
 		It("merges with redirected map, but not with original path", func() {
 			source := parseYAML(`
@@ -762,7 +760,7 @@ foo:
 			Expect(source).To(FlowAs(resolved, stub))
 		})
 	})
-	
+
 	Describe("replacing list with redirection", func() {
 		It("merges with redirected map, but not with original path", func() {
 			source := parseYAML(`
@@ -794,7 +792,7 @@ foo:
 			Expect(source).To(FlowAs(resolved, stub))
 		})
 	})
-	
+
 	Describe("merging field value", func() {
 		It("merges with redirected map, but not with original path", func() {
 			source := parseYAML(`
@@ -820,7 +818,7 @@ foo:
 
 			Expect(source).To(FlowAs(resolved, stub))
 		})
-		
+
 		It("merges with nothing", func() {
 			source := parseYAML(`
 ---
@@ -841,7 +839,7 @@ foo: default
 			Expect(source).To(FlowAs(resolved, stub))
 		})
 	})
-	
+
 	Describe("automatic resource pool sizes", func() {
 		It("evaluates the node", func() {
 			source := parseYAML(`
@@ -1014,7 +1012,7 @@ properties:
 
 			Expect(source).To(FlowAs(resolved))
 		})
-		
+
 		It("merges stub", func() {
 			source := parseYAML(`
 ---
@@ -1079,7 +1077,7 @@ properties:
 
 			Expect(source).To(FlowAs(resolved, stub))
 		})
-		
+
 		Context("when names match", func() {
 			It("replaces existing entries with matching names", func() {
 				source := parseYAML(`
@@ -1117,7 +1115,7 @@ properties:
 
 				Expect(source).To(FlowAs(resolved, stub))
 			})
-		
+
 			It("replaces existing entries with redirected matching names", func() {
 				source := parseYAML(`
 ---
@@ -1162,15 +1160,15 @@ properties:
 				Expect(source).To(FlowAs(resolved, stub))
 			})
 		})
-		
+
 		It("uses redirected matching names, but not original path", func() {
-				source := parseYAML(`
+			source := parseYAML(`
 ---
 properties:
   something: (( merge alt.something ))
 `)
 
-				stub := parseYAML(`
+			stub := parseYAML(`
 ---
 properties:
   something:
@@ -1187,7 +1185,7 @@ alt:
       value: 30
 `)
 
-				resolved := parseYAML(`
+			resolved := parseYAML(`
 ---
 properties:
   something:
@@ -1197,11 +1195,11 @@ properties:
       value: 30
 `)
 
-				Expect(source).To(FlowAs(resolved, stub))
+			Expect(source).To(FlowAs(resolved, stub))
 		})
-		
+
 		It("avoids override by original path, which occured by traditional redirection", func() {
-				source := parseYAML(`
+			source := parseYAML(`
 ---
 alt:
   something: (( merge ))
@@ -1210,7 +1208,7 @@ properties:
   something: (( prefer alt.something ))
 `)
 
-				stub := parseYAML(`
+			stub := parseYAML(`
 ---
 properties:
   something:
@@ -1227,7 +1225,7 @@ alt:
       value: 30
 `)
 
-				resolved := parseYAML(`
+			resolved := parseYAML(`
 ---
 alt:
   something:
@@ -1244,33 +1242,33 @@ properties:
       value: 30
 `)
 
-				Expect(source).To(FlowAs(resolved, stub))
+			Expect(source).To(FlowAs(resolved, stub))
 		})
 	})
 
 	Describe("for list expressions", func() {
 		It("evaluates lists", func() {
-				source := parseYAML(`
+			source := parseYAML(`
 ---
 foo: (( [ "a", "b" ] ))
 `)
-				resolved := parseYAML(`
+			resolved := parseYAML(`
 ---
 foo:
   - a
   - b
 `)
-				Expect(source).To(FlowAs(resolved))
+			Expect(source).To(FlowAs(resolved))
 		})
-		
+
 		It("evaluates lists with references", func() {
-				source := parseYAML(`
+			source := parseYAML(`
 ---
 a: alice
 b: bob
 foo: (( [ a, b ] || "failed" ))
 `)
-				resolved := parseYAML(`
+			resolved := parseYAML(`
 ---
 a: alice
 b: bob
@@ -1278,18 +1276,18 @@ foo:
   - alice
   - bob
 `)
-				Expect(source).To(FlowAs(resolved))
+			Expect(source).To(FlowAs(resolved))
 		})
-		
+
 		It("evaluates for lists with deep references", func() {
-				source := parseYAML(`
+			source := parseYAML(`
 ---
 a: alice
 b: bob
 c: (( b ))
 foo: (( [ a, c ] || "failed" ))
 `)
-				resolved := parseYAML(`
+			resolved := parseYAML(`
 ---
 a: alice
 b: bob
@@ -1298,24 +1296,24 @@ foo:
   - alice
   - bob
 `)
-				Expect(source).To(FlowAs(resolved))
+			Expect(source).To(FlowAs(resolved))
 		})
-		
+
 		It("failes for lists with unresolved references", func() {
-				source := parseYAML(`
+			source := parseYAML(`
 ---
 a: alice
 foo: (( [ a, b ] || "failed" ))
 `)
-				resolved := parseYAML(`
+			resolved := parseYAML(`
 ---
 a: alice
 foo: failed
 `)
-				Expect(source).To(FlowAs(resolved))
+			Expect(source).To(FlowAs(resolved))
 		})
 	})
-	
+
 	Describe("for arithmetic expressions", func() {
 		Context("addition", func() {
 			It("evaluates addition", func() {
@@ -1329,7 +1327,7 @@ foo: 6
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-			
+
 			It("evaluates incremental expression resolution", func() {
 				source := parseYAML(`
 ---
@@ -1347,7 +1345,7 @@ foo: 3
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-			
+
 			It("evaluates incremental expression resolution until failure", func() {
 				source := parseYAML(`
 ---
@@ -1364,8 +1362,6 @@ foo: failed
 				Expect(source).To(FlowAs(resolved))
 			})
 		})
-		
-
 
 		Context("subtraction", func() {
 			It("evaluates subtraction", func() {
@@ -1379,7 +1375,7 @@ foo: 1
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-			
+
 			It("evaluates incremental expression resolution", func() {
 				source := parseYAML(`
 ---
@@ -1397,7 +1393,7 @@ foo: 1
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-			
+
 			It("evaluates incremental expression resolution until failure", func() {
 				source := parseYAML(`
 ---
@@ -1416,7 +1412,6 @@ foo: failed
 				Expect(source).To(FlowAs(resolved))
 			})
 		})
-		
 
 		Context("multiplication", func() {
 			It("evaluates multiplication", func() {
@@ -1430,7 +1425,7 @@ foo: 36
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-			
+
 			It("evaluates incremental expression resolution", func() {
 				source := parseYAML(`
 ---
@@ -1448,7 +1443,7 @@ foo: 12
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-			
+
 			It("evaluates incremental expression resolution until failure", func() {
 				source := parseYAML(`
 ---
@@ -1465,7 +1460,6 @@ foo: failed
 				Expect(source).To(FlowAs(resolved))
 			})
 		})
-		
 
 		Context("division", func() {
 			It("evaluates division", func() {
@@ -1479,7 +1473,7 @@ foo: 1
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-			
+
 			It("division by zero fails", func() {
 				source := parseYAML(`
 ---
@@ -1491,7 +1485,7 @@ foo: failed
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-			
+
 			It("evaluates incremental expression resolution", func() {
 				source := parseYAML(`
 ---
@@ -1509,7 +1503,7 @@ foo: 3
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-			
+
 			It("evaluates incremental expression resolution until failure", func() {
 				source := parseYAML(`
 ---
@@ -1526,7 +1520,6 @@ foo: failed
 				Expect(source).To(FlowAs(resolved))
 			})
 		})
-		
 
 		Context("modulo", func() {
 			It("evaluates modulo", func() {
@@ -1540,7 +1533,7 @@ foo: 1
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-			
+
 			It("modulo by zero fails", func() {
 				source := parseYAML(`
 ---
@@ -1552,7 +1545,7 @@ foo: failed
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-			
+
 			It("evaluates incremental expression resolution", func() {
 				source := parseYAML(`
 ---
@@ -1570,7 +1563,7 @@ foo: 1
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-			
+
 			It("evaluates incremental expression resolution until failure", func() {
 				source := parseYAML(`
 ---
@@ -1587,7 +1580,7 @@ foo: failed
 				Expect(source).To(FlowAs(resolved))
 			})
 		})
-		
+
 		Context("mixed levels", func() {
 			It("evaluates multiplication first", func() {
 				source := parseYAML(`
@@ -1600,7 +1593,7 @@ foo: 12
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-		
+
 			It("evaluates addition last", func() {
 				source := parseYAML(`
 ---
@@ -1613,8 +1606,7 @@ foo: 15
 				Expect(source).To(FlowAs(resolved))
 			})
 		})
-		
-		
+
 		It("evaluates arithmetic before concatenation", func() {
 			source := parseYAML(`
 ---
@@ -1628,7 +1620,7 @@ foo: prefix15suffix
 
 			Expect(source).To(FlowAs(resolved))
 		})
-		
+
 		It("concatenates arithmetic values as string", func() {
 			source := parseYAML(`
 ---
@@ -1643,7 +1635,7 @@ foo: "1515"
 			Expect(source).To(FlowAs(resolved))
 		})
 	})
-	
+
 	Describe("when concatenating a list", func() {
 		Context("with incremental expression resolution", func() {
 			It("evaluates in case of successfully completed operand resolution", func() {
@@ -1663,7 +1655,7 @@ foo: alice+bob
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-			
+
 			It("fails only after failed final resolution", func() {
 				source := parseYAML(`
 ---
@@ -1680,7 +1672,7 @@ foo: failed
 				Expect(source).To(FlowAs(resolved))
 			})
 		})
-		
+
 		Context("with other lists", func() {
 			It("yields a joined list", func() {
 				source := parseYAML(`
@@ -1696,7 +1688,7 @@ foo: [1,2,3,6,4,5,6]
 				Expect(source).To(FlowAs(resolved))
 			})
 		})
-		
+
 		Context("with an integer", func() {
 			It("appends the value to the list", func() {
 				source := parseYAML(`
@@ -1712,7 +1704,7 @@ foo: [1,2,3,4,5]
 				Expect(source).To(FlowAs(resolved))
 			})
 		})
-		
+
 		Context("with a string", func() {
 			It("appends the value to the list", func() {
 				source := parseYAML(`
@@ -1728,7 +1720,7 @@ foo: [1,2,3,"foo","bar"]
 				Expect(source).To(FlowAs(resolved))
 			})
 		})
-		
+
 		Context("with a map", func() {
 			It("appends the map to the list", func() {
 				source := parseYAML(`
@@ -1748,7 +1740,7 @@ foo: [1,2,3,{"alice": "and bob"}]
 				Expect(source).To(FlowAs(resolved))
 			})
 		})
-		
+
 		Context("with a nested string concatenation", func() {
 			It("appends the value to the list", func() {
 				source := parseYAML(`
@@ -1764,7 +1756,7 @@ foo: [1,2,3,"foobar"]
 				Expect(source).To(FlowAs(resolved))
 			})
 		})
-		
+
 		Context("with a nested list concatenation", func() {
 			It("joins the list", func() {
 				source := parseYAML(`
@@ -1781,7 +1773,6 @@ foo: [1,2,3,"bar"]
 			})
 		})
 	})
-	
 
 	Describe("when joining", func() {
 		It("joins single value", func() {
@@ -1795,7 +1786,7 @@ foo: alice
 `)
 			Expect(source).To(FlowAs(resolved))
 		})
-		
+
 		It("joins strings and integers", func() {
 			source := parseYAML(`
 ---
@@ -1807,7 +1798,7 @@ foo: alice, bob, 5
 `)
 			Expect(source).To(FlowAs(resolved))
 		})
-		
+
 		It("joins elements from lists", func() {
 			source := parseYAML(`
 ---
@@ -1825,21 +1816,21 @@ foo: alice, bob, 5
 `)
 			Expect(source).To(FlowAs(resolved))
 		})
-		
+
 		It("joins elements from inline list", func() {
-				source := parseYAML(`
+			source := parseYAML(`
 ---
 b: bob
 foo: (( join( ", ", [ "alice", b ] ) ))
 `)
-				resolved := parseYAML(`
+			resolved := parseYAML(`
 ---
 b: bob
 foo: alice, bob
 `)
-				Expect(source).To(FlowAs(resolved))
-			})
-		
+			Expect(source).To(FlowAs(resolved))
+		})
+
 		Context("with incremental expression resolution", func() {
 			It("evaluates in case of successfully completed operand resolution", func() {
 				source := parseYAML(`
@@ -1858,7 +1849,7 @@ foo: alice, bob
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-			
+
 			It("evaluates in case of successfully completed list operand resolution", func() {
 				source := parseYAML(`
 ---
@@ -1880,7 +1871,7 @@ foo: alice, bob
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-			
+
 			It("evaluates in case of successfully completed list expression resolution", func() {
 				source := parseYAML(`
 ---
@@ -1896,7 +1887,7 @@ foo: alice, bob
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-			
+
 			It("fails only after failed final resolution", func() {
 				source := parseYAML(`
 ---
@@ -1912,7 +1903,7 @@ foo: failed
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-			
+
 			It("fails only after failed final list resolution", func() {
 				source := parseYAML(`
 ---
@@ -1926,7 +1917,6 @@ foo: failed
 			})
 		})
 	})
-	
 
 	Describe("when doing a mapping", func() {
 		Context("for a list", func() {
@@ -1949,7 +1939,7 @@ mapped:
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-		
+
 			It("maps index expression", func() {
 				source := parseYAML(`
 ---
@@ -1968,8 +1958,8 @@ mapped:
   - 1bob
 `)
 				Expect(source).To(FlowAs(resolved))
-		})
-		
+			})
+
 			It("maps concatenation expression", func() {
 				source := parseYAML(`
 ---
@@ -1991,7 +1981,7 @@ mapped:
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-		
+
 			It("maps reference expression", func() {
 				source := parseYAML(`
 ---
@@ -2015,7 +2005,7 @@ names:
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-		
+
 			It("maps concatenation expression without failure", func() {
 				source := parseYAML(`
 ---
@@ -2037,7 +2027,7 @@ mapped:
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-		
+
 			It("maps concatenation expression with failure", func() {
 				source := parseYAML(`
 ---
@@ -2055,7 +2045,7 @@ mapped: failed
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-		
+
 			It("works with nested expressions", func() {
 				source := parseYAML(`
 ---
@@ -2075,7 +2065,7 @@ joined: alice:4711, bob:4711
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-		
+
 			It("works with nested failing expressions", func() {
 				source := parseYAML(`
 ---
@@ -2094,7 +2084,7 @@ joined: failed
 				Expect(source).To(FlowAs(resolved))
 			})
 		})
-		
+
 		Context("for a map", func() {
 			It("maps simple expression", func() {
 				source := parseYAML(`
@@ -2115,7 +2105,7 @@ mapped:
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
-		
+
 			It("maps key expression", func() {
 				source := parseYAML(`
 ---
@@ -2137,7 +2127,6 @@ mapped:
 			})
 		})
 	})
-	
 
 	Describe("merging lists with specified key", func() {
 		Context("no merge", func() {
@@ -2161,7 +2150,7 @@ list:
 				Expect(source).To(FlowAs(resolved))
 			})
 		})
-		
+
 		Context("auto merge with key tag", func() {
 			It("overrides matching key entries", func() {
 				source := parseYAML(`
@@ -2188,10 +2177,10 @@ list:
   - address: c
     attr: stub
 `)
-				Expect(source).To(FlowAs(resolved,stub))
+				Expect(source).To(FlowAs(resolved, stub))
 			})
 		})
-		
+
 		Context("explicit merge with key tag", func() {
 			It("overrides matching key entries", func() {
 				source := parseYAML(`
@@ -2221,7 +2210,7 @@ list:
   - address: c
     attr: stub
 `)
-				Expect(source).To(FlowAs(resolved,stub))
+				Expect(source).To(FlowAs(resolved, stub))
 			})
 		})
 	})

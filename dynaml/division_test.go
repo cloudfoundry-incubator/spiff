@@ -36,7 +36,7 @@ var _ = Describe("division", func() {
 			Expect(expr).To(FailToEvaluate(FakeBinding{}))
 		})
 	})
-	
+
 	Context("when the right-hand side is zero", func() {
 		It("fails", func() {
 			expr := DivisionExpr{

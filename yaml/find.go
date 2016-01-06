@@ -73,8 +73,8 @@ func stepThroughList(here []Node, step string, key string) (Node, bool) {
 			return nil, false
 		}
 
-		for i:=0; i<=index; i++ {
-			_ , ok := UnresolvedMerge(here[i])
+		for i := 0; i <= index; i++ {
+			_, ok := UnresolvedMerge(here[i])
 			if ok {
 				return nil, false
 			}
@@ -82,11 +82,11 @@ func stepThroughList(here []Node, step string, key string) (Node, bool) {
 		return here[index], true
 	}
 
-    if key == "" {
+	if key == "" {
 		key = "name"
 	}
 	split := strings.Index(step, ":")
-	if split>0 {
+	if split > 0 {
 		key = step[:split]
 		step = step[split+1:]
 	}
@@ -110,9 +110,9 @@ func stepThroughList(here []Node, step string, key string) (Node, bool) {
 	return nil, false
 }
 
-func PathComponent(step string) (string) {
+func PathComponent(step string) string {
 	split := strings.Index(step, ":")
-	if split>0 {
+	if split > 0 {
 		return step[split+1:]
 	}
 	return step

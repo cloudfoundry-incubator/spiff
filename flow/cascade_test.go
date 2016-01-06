@@ -79,32 +79,32 @@ baz:
 		})
 	})
 
-        Describe("node annotation propagation", func() {
-                
-                Context("referencing a merged field", func() {
-                        It("is not handled as merge expression", func() {
-                                source := parseYAML(`
+	Describe("node annotation propagation", func() {
+
+		Context("referencing a merged field", func() {
+			It("is not handled as merge expression", func() {
+				source := parseYAML(`
 ---
 alice: (( merge ))
 bob: (( alice ))
 `)
-                                stub := parseYAML(`
+				stub := parseYAML(`
 ---
 alice: alice
 bob: bob
 `)
-                                resolved := parseYAML(`
+				resolved := parseYAML(`
 ---
 alice: alice
 bob: bob
 `)
-                                Expect(source).To(CascadeAs(resolved,stub))
-                        })
+				Expect(source).To(CascadeAs(resolved, stub))
+			})
 		})
 	})
 
 	Describe("merging lists with specified key", func() {
-		
+
 		Context("auto merge with key tag", func() {
 			It("overrides matching key entries", func() {
 				source := parseYAML(`
@@ -131,9 +131,9 @@ list:
   - address: c
     attr: stub
 `)
-				Expect(source).To(CascadeAs(resolved,stub))
+				Expect(source).To(CascadeAs(resolved, stub))
 			})
-		
+
 			It("overrides matching key entries with key tag", func() {
 				source := parseYAML(`
 ---
@@ -159,7 +159,7 @@ list:
   - address: c
     attr: stub
 `)
-				Expect(source).To(CascadeAs(resolved,stub))
+				Expect(source).To(CascadeAs(resolved, stub))
 			})
 		})
 	})

@@ -12,11 +12,10 @@ import (
 
 	"github.com/cloudfoundry-incubator/candiedyaml"
 	"github.com/cloudfoundry-incubator/spiff/compare"
+	"github.com/cloudfoundry-incubator/spiff/debug"
 	"github.com/cloudfoundry-incubator/spiff/flow"
 	"github.com/cloudfoundry-incubator/spiff/yaml"
-	"github.com/cloudfoundry-incubator/spiff/debug"
 )
-
 
 func main() {
 	app := cli.NewApp()

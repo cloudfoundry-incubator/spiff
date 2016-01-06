@@ -18,14 +18,14 @@ type Node interface {
 	Merged() bool
 	KeyName() string
 	Issue() string
-	
+
 	GetAnnotation() Annotation
 	EquivalentToNode(Node) bool
 }
 
 type AnnotatedNode struct {
-	value        interface{}
-	sourceName   string
+	value      interface{}
+	sourceName string
 	Annotation
 }
 
@@ -39,7 +39,7 @@ type Annotation struct {
 }
 
 func NewNode(value interface{}, sourcePath string) Node {
-	return AnnotatedNode{massageType(value), sourcePath, EmptyAnnotation() }
+	return AnnotatedNode{massageType(value), sourcePath, EmptyAnnotation()}
 }
 
 func ReferencedNode(node Node) Node {
@@ -82,14 +82,12 @@ func massageType(value interface{}) interface{} {
 	return value
 }
 
-
-
 func EmptyAnnotation() Annotation {
-	return Annotation{nil, false, false, false, "", "" }
+	return Annotation{nil, false, false, false, "", ""}
 }
 
 func NewReferencedAnnotation(node Node) Annotation {
-	return Annotation{nil, false, false, false, node.KeyName(), node.Issue() }
+	return Annotation{nil, false, false, false, node.KeyName(), node.Issue()}
 }
 
 func (n Annotation) RedirectPath() []string {
@@ -105,7 +103,7 @@ func (n Annotation) Preferred() bool {
 }
 
 func (n Annotation) Merged() bool {
-	return n.merged || n.ReplaceFlag() || len(n.RedirectPath())>0
+	return n.merged || n.ReplaceFlag() || len(n.RedirectPath()) > 0
 }
 
 func (n Annotation) KeyName() string {
@@ -116,44 +114,39 @@ func (n Annotation) Issue() string {
 	return n.issue
 }
 
-
-
 func (n Annotation) SetRedirectPath(redirect []string) Annotation {
-	n.redirectPath=redirect
+	n.redirectPath = redirect
 	return n
 }
 
 func (n Annotation) SetReplaceFlag() Annotation {
-	n.replace=true
+	n.replace = true
 	return n
 }
 
 func (n Annotation) SetPreferred() Annotation {
-	n.preferred=true
+	n.preferred = true
 	return n
 }
 
 func (n Annotation) SetMerged() Annotation {
-	n.merged=true
+	n.merged = true
 	return n
 }
 
-
 func (n Annotation) AddKeyName(keyName string) Annotation {
-	if keyName!="" {
-		n.keyName=keyName
+	if keyName != "" {
+		n.keyName = keyName
 	}
 	return n
 }
 
 func (n Annotation) AddIssue(issue string) Annotation {
-	if issue!="" {
-		n.issue=issue
+	if issue != "" {
+		n.issue = issue
 	}
 	return n
 }
-
-
 
 func (n AnnotatedNode) Value() interface{} {
 	return n.value
@@ -224,8 +217,6 @@ func (n AnnotatedNode) EquivalentToNode(o Node) bool {
 
 	return reflect.DeepEqual(n.Value(), o.Value())
 }
-
-
 
 var embeddedDynaml = regexp.MustCompile(`^\(\((.*)\)\)$`)
 

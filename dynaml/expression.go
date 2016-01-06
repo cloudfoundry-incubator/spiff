@@ -20,7 +20,7 @@ type EvaluationInfo struct {
 }
 
 func DefaultInfo() EvaluationInfo {
-	return EvaluationInfo{nil,false,false,false,"",""}
+	return EvaluationInfo{nil, false, false, false, "", ""}
 }
 
 type Expression interface {
@@ -28,7 +28,7 @@ type Expression interface {
 }
 
 func (i EvaluationInfo) Join(o EvaluationInfo) EvaluationInfo {
-	if o.RedirectPath !=nil {
+	if o.RedirectPath != nil {
 		i.RedirectPath = o.RedirectPath
 	}
 	i.Replace = o.Replace // replace only by directly using the merge node
@@ -45,7 +45,7 @@ func (i EvaluationInfo) Join(o EvaluationInfo) EvaluationInfo {
 
 func ResolveExpressionOrPushEvaluation(e *Expression, resolved *bool, info *EvaluationInfo, binding Binding) (interface{}, EvaluationInfo, bool) {
 	node, infoe, ok := (*e).Evaluate(binding)
-	if info!=nil {
+	if info != nil {
 		infoe = (*info).Join(infoe)
 	}
 	if !ok {
@@ -53,27 +53,27 @@ func ResolveExpressionOrPushEvaluation(e *Expression, resolved *bool, info *Eval
 	}
 
 	switch node.Value().(type) {
-		case Expression:
-			*e = node.Value().(Expression)
-			*resolved = false
-			return nil, infoe, true
-		default:
-			return node.Value(), infoe, true
+	case Expression:
+		*e = node.Value().(Expression)
+		*resolved = false
+		return nil, infoe, true
+	default:
+		return node.Value(), infoe, true
 	}
 }
 
 func ResolveIntegerExpressionOrPushEvaluation(e *Expression, resolved *bool, info *EvaluationInfo, binding Binding) (int64, EvaluationInfo, bool) {
-	value, infoe, ok := ResolveExpressionOrPushEvaluation(e,resolved,info,binding)
+	value, infoe, ok := ResolveExpressionOrPushEvaluation(e, resolved, info, binding)
 
-    if value == nil {
+	if value == nil {
 		return 0, infoe, ok
 	}
-	
-    i, ok := value.(int64)
+
+	i, ok := value.(int64)
 	if ok {
 		return i, infoe, true
 	} else {
-		infoe.Issue="integer operand required"
+		infoe.Issue = "integer operand required"
 		return 0, infoe, false
 	}
 }
@@ -81,19 +81,19 @@ func ResolveIntegerExpressionOrPushEvaluation(e *Expression, resolved *bool, inf
 func ResolveExpressionListOrPushEvaluation(list *[]Expression, resolved *bool, info *EvaluationInfo, binding Binding) ([]interface{}, EvaluationInfo, bool) {
 	values := make([]interface{}, len(*list))
 	pushed := make([]Expression, len(*list))
-	infoe  := EvaluationInfo{}
-	ok     := true
-	
-	copy(pushed,*list)
-	
+	infoe := EvaluationInfo{}
+	ok := true
+
+	copy(pushed, *list)
+
 	for i, _ := range pushed {
-		values[i], infoe, ok = ResolveExpressionOrPushEvaluation(&pushed[i],resolved,info,binding)
-		info=&infoe
+		values[i], infoe, ok = ResolveExpressionOrPushEvaluation(&pushed[i], resolved, info, binding)
+		info = &infoe
 		if !ok {
-		  return nil, infoe, false
+			return nil, infoe, false
 		}
 	}
-	*list=pushed
+	*list = pushed
 	return values, infoe, true
-	
+
 }

@@ -26,7 +26,7 @@ func (matcher *CascadeAsMatcher) Match(source interface{}) (success bool, err er
 		return false, err
 	}
 
-	if matcher.actual.EquivalentToNode( matcher.Expected) {
+	if matcher.actual.EquivalentToNode(matcher.Expected) {
 		return true, nil
 	} else {
 		return false, nil

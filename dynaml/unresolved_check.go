@@ -21,17 +21,17 @@ type UnresolvedNode struct {
 func (e UnresolvedNodes) Error() string {
 	message := "unresolved nodes:"
 	format := ""
-	
+
 	for _, node := range e.Nodes {
-		issue:=node.Issue()
-		if issue!="" {
-			issue="\t"+issue
+		issue := node.Issue()
+		if issue != "" {
+			issue = "\t" + issue
 		}
 		switch node.Value().(type) {
-			case Expression:
-				format = "%s\n\t(( %s ))\tin %s\t%s\t(%s)%s"
-			default:
-				format = "%s\n\t%s\tin %s\t%s\t(%s)%s"
+		case Expression:
+			format = "%s\n\t(( %s ))\tin %s\t%s\t(%s)%s"
+		default:
+			format = "%s\n\t%s\tin %s\t%s\t(%s)%s"
 		}
 		message = fmt.Sprintf(
 			format,
@@ -85,11 +85,11 @@ func FindUnresolvedNodes(root yaml.Node, context ...string) (nodes []UnresolvedN
 			Context: context,
 			Path:    path,
 		})
-		
+
 	case string:
-		if yaml.EmbeddedDynaml(root)!=nil {
+		if yaml.EmbeddedDynaml(root) != nil {
 			nodes = append(nodes, UnresolvedNode{
-				Node:    yaml.IssueNode(root,"unparseable expression"),
+				Node:    yaml.IssueNode(root, "unparseable expression"),
 				Context: context,
 				Path:    []string{},
 			})
@@ -106,33 +106,33 @@ func addContext(context []string, step string) []string {
 }
 
 func isResolved(node yaml.Node) bool {
-	if node==nil {
+	if node == nil {
 		return true
 	}
 	switch node.Value().(type) {
-		case Expression:
-			return false
-		case []yaml.Node:
-			for _,n := range node.Value().([]yaml.Node) {
-				if !isResolved(n) {
-					return false
-				}
-			}
-			return true
-		case map[string]yaml.Node:
-			for _,n := range node.Value().(map[string]yaml.Node) {
-				if !isResolved(n) {
-					return false
-				}
-			}
-			return true
-			
-		case string:
-			if yaml.EmbeddedDynaml(node) !=nil {
+	case Expression:
+		return false
+	case []yaml.Node:
+		for _, n := range node.Value().([]yaml.Node) {
+			if !isResolved(n) {
 				return false
 			}
-			return true
-		default:
-			return true
+		}
+		return true
+	case map[string]yaml.Node:
+		for _, n := range node.Value().(map[string]yaml.Node) {
+			if !isResolved(n) {
+				return false
+			}
+		}
+		return true
+
+	case string:
+		if yaml.EmbeddedDynaml(node) != nil {
+			return false
+		}
+		return true
+	default:
+		return true
 	}
 }

@@ -16,7 +16,7 @@ var _ = Describe("calls", func() {
 					StringExpr{"192.168.0.1/24"},
 				},
 			}
-			
+
 			Expect(expr).To(
 				EvaluateAs(
 					"192.168.0.0",
@@ -24,7 +24,7 @@ var _ = Describe("calls", func() {
 				),
 			)
 		})
-		
+
 		It("determines maximal IP", func() {
 			expr := CallExpr{
 				Name: "max_ip",
@@ -32,7 +32,7 @@ var _ = Describe("calls", func() {
 					StringExpr{"192.168.0.1/24"},
 				},
 			}
-			
+
 			Expect(expr).To(
 				EvaluateAs(
 					"192.168.0.255",
@@ -41,7 +41,7 @@ var _ = Describe("calls", func() {
 			)
 		})
 	})
-	
+
 	Describe("join(\", \"...)", func() {
 		expr := CallExpr{
 			Name: "join",
@@ -51,15 +51,15 @@ var _ = Describe("calls", func() {
 				ReferenceExpr{[]string{"bob"}},
 			},
 		}
-		
+
 		It("joins string values ", func() {
 			binding := FakeBinding{
 				FoundReferences: map[string]yaml.Node{
-					"alice":   node("alice"),
-					"bob":     node("bob"),
+					"alice": node("alice"),
+					"bob":   node("bob"),
 				},
 			}
-			
+
 			Expect(expr).To(
 				EvaluateAs(
 					"alice, bob",
@@ -67,15 +67,15 @@ var _ = Describe("calls", func() {
 				),
 			)
 		})
-		
+
 		It("joins int values ", func() {
 			binding := FakeBinding{
 				FoundReferences: map[string]yaml.Node{
-					"alice":   node(10),
-					"bob":     node(20),
+					"alice": node(10),
+					"bob":   node(20),
 				},
 			}
-			
+
 			Expect(expr).To(
 				EvaluateAs(
 					"10, 20",
@@ -83,7 +83,7 @@ var _ = Describe("calls", func() {
 				),
 			)
 		})
-		
+
 		It("joins list entries ", func() {
 			list := parseYAML(`
   - foo
@@ -92,11 +92,11 @@ var _ = Describe("calls", func() {
 
 			binding := FakeBinding{
 				FoundReferences: map[string]yaml.Node{
-					"alice":   list,
-					"bob":     node(20),
+					"alice": list,
+					"bob":   node(20),
 				},
 			}
-			
+
 			Expect(expr).To(
 				EvaluateAs(
 					"foo, bar, 20",
@@ -104,7 +104,7 @@ var _ = Describe("calls", func() {
 				),
 			)
 		})
-		
+
 		It("joins nothing", func() {
 			expr := CallExpr{
 				Name: "join",
@@ -112,7 +112,7 @@ var _ = Describe("calls", func() {
 					StringExpr{", "},
 				},
 			}
-			
+
 			Expect(expr).To(
 				EvaluateAs(
 					"",
@@ -120,17 +120,16 @@ var _ = Describe("calls", func() {
 				),
 			)
 		})
-		
+
 		It("fails for missing args", func() {
 			expr := CallExpr{
-				Name: "join",
-				Arguments: []Expression{
-				},
+				Name:      "join",
+				Arguments: []Expression{},
 			}
-			
+
 			Expect(expr).To(FailToEvaluate(nil))
 		})
-		
+
 		It("fails for wrong separator type", func() {
 			expr := CallExpr{
 				Name: "join",
@@ -138,11 +137,11 @@ var _ = Describe("calls", func() {
 					ListExpr{[]Expression{IntegerExpr{0}}},
 				},
 			}
-			
+
 			Expect(expr).To(FailToEvaluate(nil))
 		})
 	})
-	
+
 	Describe("static_ips(ips...)", func() {
 		expr := CallExpr{
 			Name: "static_ips",

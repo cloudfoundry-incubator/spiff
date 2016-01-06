@@ -79,7 +79,7 @@ var _ = Describe("concatenation", func() {
 					Expect(expr).To(EvaluateAs([]yaml.Node{node("two"), node(42)}, FakeBinding{}))
 				})
 			})
-			
+
 			Context("and the right-hand side is a string", func() {
 				It("appends to the lists", func() {
 					expr := ConcatenationExpr{
@@ -90,7 +90,7 @@ var _ = Describe("concatenation", func() {
 					Expect(expr).To(EvaluateAs([]yaml.Node{node("two"), node("one")}, FakeBinding{}))
 				})
 			})
-			
+
 			Context("and the right-hand side is a map", func() {
 				It("appends to the lists", func() {
 					expr := ConcatenationExpr{
@@ -100,10 +100,10 @@ var _ = Describe("concatenation", func() {
 
 					binding := FakeBinding{
 						FoundReferences: map[string]yaml.Node{
-							"foo":     node(map[string]yaml.Node{"bar":node(42)}),
+							"foo": node(map[string]yaml.Node{"bar": node(42)}),
 						},
 					}
-					Expect(expr).To(EvaluateAs([]yaml.Node{node("two"), node(map[string]yaml.Node{"bar":node(42)})}, binding))
+					Expect(expr).To(EvaluateAs([]yaml.Node{node("two"), node(map[string]yaml.Node{"bar": node(42)})}, binding))
 				})
 			})
 		})

@@ -4,13 +4,12 @@ import (
 	"container/list"
 	"strconv"
 	"strings"
-	
-	"github.com/cloudfoundry-incubator/spiff/yaml"
+
 	"github.com/cloudfoundry-incubator/spiff/debug"
+	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
-
-type helperNode struct { }
+type helperNode struct{}
 
 func (e helperNode) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	panic("not intended to be evaluated")
@@ -39,14 +38,14 @@ func Parse(source string, path []string) (Expression, error) {
 }
 
 func buildExpression(grammar *DynamlGrammar, path []string) Expression {
-	tokens  := &tokenStack{}
-	
+	tokens := &tokenStack{}
+
 	// flags for parsing merge options in merge expression
 	// this expression is NOT recursive, therefore single flag variables are sufficient
-    replace := false
-	required:= false
+	replace := false
+	required := false
 	keyName := ""
-	
+
 	for token := range grammar.Tokens() {
 		contents := grammar.Buffer[token.begin:token.end]
 
@@ -58,26 +57,26 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 		case ruleAuto:
 			tokens.Push(AutoExpr{path})
 		case ruleMerge:
-			replace =false
-			required=false
+			replace = false
+			required = false
 			keyName = ""
 		case ruleSimpleMerge:
 			debug.Debug("*** rule simple merge\n")
-			tokens.Push(MergeExpr{path,false,replace,replace||required,keyName})
+			tokens.Push(MergeExpr{path, false, replace, replace || required, keyName})
 		case ruleRefMerge:
 			debug.Debug("*** rule ref merge\n")
 			rhs := tokens.Pop()
-			tokens.Push(MergeExpr{rhs.(ReferenceExpr).Path,true,replace,true,keyName})
+			tokens.Push(MergeExpr{rhs.(ReferenceExpr).Path, true, replace, true, keyName})
 		case ruleReplace:
 			replace = true
 		case ruleRequired:
 			required = true
 		case ruleOn:
 			keyName = tokens.Pop().(nameHelper).name
-			
+
 		case ruleReference:
 			tokens.Push(ReferenceExpr{strings.Split(contents, ".")})
-		
+
 		case ruleInteger:
 			val, err := strconv.ParseInt(contents, 10, 64)
 			if err != nil {
@@ -133,33 +132,33 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 				Arguments: tokens.GetExpressionList(),
 			})
 		case ruleName:
-			tokens.Push(nameHelper{name:contents})
-		
+			tokens.Push(nameHelper{name: contents})
+
 		case ruleMapping:
-			rhs  := tokens.Pop()
-			names:=[]string{tokens.Pop().(nameHelper).name}
-			lhs  :=tokens.Pop()
-			name,ok:=lhs.(nameHelper)
+			rhs := tokens.Pop()
+			names := []string{tokens.Pop().(nameHelper).name}
+			lhs := tokens.Pop()
+			name, ok := lhs.(nameHelper)
 			if ok {
-				names=append(names,name.name)
-				lhs  =tokens.Pop()
+				names = append(names, name.name)
+				lhs = tokens.Pop()
 			}
 			tokens.Push(MapExpr{A: lhs, Names: names, B: rhs})
-			
+
 		case ruleList:
 			seq := tokens.GetExpressionList()
 			tokens.Push(ListExpr{seq})
-		
+
 		case ruleNextExpression:
 			rhs := tokens.Pop()
-			
-			list:=tokens.PopExpressionList()
-			list.list=append(list.list,rhs)
+
+			list := tokens.PopExpressionList()
+			list.list = append(list.list, rhs)
 			tokens.Push(list)
-		
+
 		case ruleContents, ruleArguments:
 			tokens.SetExpressionList(tokens.PopExpressionList())
-			
+
 		case ruleKey:
 		case ruleGrouped:
 		case ruleLevel0, ruleLevel1, ruleLevel2, ruleLevel3, ruleLevel4:
@@ -197,9 +196,9 @@ func (s *tokenStack) Push(expr Expression) {
 
 func (s *tokenStack) PopExpressionList() expressionListHelper {
 	lhs := s.Pop()
-	list, ok:= lhs.(expressionListHelper)
+	list, ok := lhs.(expressionListHelper)
 	if !ok {
-		list=expressionListHelper{list:[]Expression{lhs}}
+		list = expressionListHelper{list: []Expression{lhs}}
 	}
 	return list
 }
@@ -211,7 +210,7 @@ func (s *tokenStack) SetExpressionList(list expressionListHelper) {
 func (s *tokenStack) GetExpressionList() []Expression {
 	list := s.expressionList
 	s.expressionList = nil
-	if list==nil {
+	if list == nil {
 		return []Expression(nil)
 	}
 	return list.list

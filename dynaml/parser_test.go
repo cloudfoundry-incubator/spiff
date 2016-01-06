@@ -37,31 +37,31 @@ var _ = Describe("parsing", func() {
 
 	Describe("merge", func() {
 		It("parses as a merge node with the given path", func() {
-			parsesAs("merge alice.bob", MergeExpr{[]string{"alice", "bob"},true,false, true, ""}, "foo", "bar")
+			parsesAs("merge alice.bob", MergeExpr{[]string{"alice", "bob"}, true, false, true, ""}, "foo", "bar")
 		})
-		
+
 		It("parses as a merge node with the environment path", func() {
-			parsesAs("merge", MergeExpr{[]string{"foo", "bar"},false,false, false, ""}, "foo", "bar")
+			parsesAs("merge", MergeExpr{[]string{"foo", "bar"}, false, false, false, ""}, "foo", "bar")
 		})
-		
+
 		It("parses as a merge replace node with the given path", func() {
-			parsesAs("merge replace alice.bob", MergeExpr{[]string{"alice", "bob"},true,true, true, ""}, "foo", "bar")
+			parsesAs("merge replace alice.bob", MergeExpr{[]string{"alice", "bob"}, true, true, true, ""}, "foo", "bar")
 		})
-		
+
 		It("parses as a merge replace node with the environment path", func() {
-			parsesAs("merge replace", MergeExpr{[]string{"foo", "bar"},false,true, true, ""}, "foo", "bar")
+			parsesAs("merge replace", MergeExpr{[]string{"foo", "bar"}, false, true, true, ""}, "foo", "bar")
 		})
-		
+
 		It("parses as a merge require node", func() {
-			parsesAs("merge required", MergeExpr{[]string{"foo", "bar"},false,false, true, ""}, "foo", "bar")
+			parsesAs("merge required", MergeExpr{[]string{"foo", "bar"}, false, false, true, ""}, "foo", "bar")
 		})
-		
+
 		It("parses as a merge require node", func() {
-			parsesAs("merge on key", MergeExpr{[]string{"foo", "bar"},false,false, false, "key"}, "foo", "bar")
+			parsesAs("merge on key", MergeExpr{[]string{"foo", "bar"}, false, false, false, "key"}, "foo", "bar")
 		})
-		
+
 		It("parses as a merge require node", func() {
-			parsesAs("merge on key alice.bob", MergeExpr{[]string{"alice","bob"},true,false, true, "key"}, "foo", "bar")
+			parsesAs("merge on key alice.bob", MergeExpr{[]string{"alice", "bob"}, true, false, true, "key"}, "foo", "bar")
 		})
 	})
 
@@ -191,7 +191,7 @@ var _ = Describe("parsing", func() {
 			)
 		})
 	})
-	
+
 	Describe("division", func() {
 		It("parses nodes separated by /", func() {
 			parsesAs(
@@ -214,7 +214,7 @@ var _ = Describe("parsing", func() {
 			)
 		})
 	})
-	
+
 	Describe("modulo", func() {
 		It("parses nodes separated by %", func() {
 			parsesAs(
@@ -226,7 +226,7 @@ var _ = Describe("parsing", func() {
 			)
 		})
 	})
-	
+
 	Describe("lists", func() {
 		It("parses an empty list", func() {
 			parsesAs(`[]`, ListExpr{})
@@ -244,7 +244,7 @@ var _ = Describe("parsing", func() {
 				},
 			)
 		})
-		
+
 		It("parses nested lists", func() {
 			parsesAs(
 				`[1, "two", [ three, "four" ] ]`,
@@ -278,7 +278,7 @@ var _ = Describe("parsing", func() {
 				},
 			)
 		})
-		
+
 		It("parses lists in arguments to function calls", func() {
 			parsesAs(
 				`foo(1, [ "two", three ])`,
@@ -296,7 +296,7 @@ var _ = Describe("parsing", func() {
 				},
 			)
 		})
-		
+
 		It("parses calls in arguments to function calls", func() {
 			parsesAs(
 				`foo(1, bar( "two", three ))`,
@@ -305,7 +305,7 @@ var _ = Describe("parsing", func() {
 					[]Expression{
 						IntegerExpr{1},
 						CallExpr{
-							"bar", 
+							"bar",
 							[]Expression{
 								StringExpr{"two"},
 								ReferenceExpr{[]string{"three"}},
@@ -331,7 +331,7 @@ var _ = Describe("parsing", func() {
 			)
 		})
 	})
-	
+
 	Describe("mapping", func() {
 		It("parses simple mappinng", func() {
 			parsesAs(
@@ -343,18 +343,18 @@ var _ = Describe("parsing", func() {
 				},
 			)
 		})
-		
+
 		It("parses key/value mappinng", func() {
 			parsesAs(
 				`map[list|x,y|->x]`,
 				MapExpr{
 					ReferenceExpr{[]string{"list"}},
-					[]string{"y","x"},
+					[]string{"y", "x"},
 					ReferenceExpr{[]string{"x"}},
 				},
 			)
 		})
-		
+
 		It("parses complex mappinng", func() {
 			parsesAs(
 				`map[list|x|->x ".*"]`,

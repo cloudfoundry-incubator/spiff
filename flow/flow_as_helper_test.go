@@ -58,10 +58,9 @@ func (matcher *FlowAsMatcher) NegatedFailureMessage(actual interface{}) (message
 	return formatMessage(matcher.actual, "not to flow as", matcher.Expected)
 }
 
-
 func FlowToErr(expected string, stubs ...yaml.Node) *FlowErrAsMatcher {
-	expected=`unresolved nodes:
-`+expected
+	expected = `unresolved nodes:
+` + expected
 	return &FlowErrAsMatcher{Expected: expected, Stubs: stubs}
 }
 
@@ -77,7 +76,7 @@ func (matcher *FlowErrAsMatcher) Match(source interface{}) (success bool, err er
 		return false, fmt.Errorf("no error reported")
 	}
 	matcher.actual = err.Error()
-	return matcher.actual==matcher.Expected, nil
+	return matcher.actual == matcher.Expected, nil
 }
 
 func formatErrorMessage(actual string, message string, expected string) string {

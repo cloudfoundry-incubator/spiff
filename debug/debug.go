@@ -3,10 +3,11 @@ package debug
 import (
 	"log"
 )
+
 var DebugFlag bool
 
-func Debug(fmt string, args... interface{}) {
+func Debug(fmt string, args ...interface{}) {
 	if DebugFlag {
-	  log.Printf(fmt, args...)
+		log.Printf(fmt, args...)
 	}
 }
