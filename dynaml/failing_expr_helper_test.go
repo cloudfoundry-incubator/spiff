@@ -6,6 +6,6 @@ import (
 
 type FailingExpr struct{}
 
-func (FailingExpr) Evaluate(Binding) (yaml.Node, bool) {
-	return nil, false
+func (FailingExpr) Evaluate(Binding) (yaml.Node, EvaluationInfo, bool) {
+	return nil, DefaultInfo(), false
 }

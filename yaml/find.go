@@ -3,6 +3,7 @@ package yaml
 import (
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 var listIndex = regexp.MustCompile(`^\[(\d+)\]$`)
@@ -53,14 +54,14 @@ func nextStep(step string, here Node) (Node, bool) {
 	case map[string]Node:
 		here, found = v[step]
 	case []Node:
-		here, found = stepThroughList(v, step)
+		here, found = stepThroughList(v, step, here.KeyName())
 	default:
 	}
 
 	return here, found
 }
 
-func stepThroughList(here []Node, step string) (Node, bool) {
+func stepThroughList(here []Node, step string, key string) (Node, bool) {
 	match := listIndex.FindStringSubmatch(step)
 	if match != nil {
 		index, err := strconv.Atoi(match[1])
@@ -72,7 +73,22 @@ func stepThroughList(here []Node, step string) (Node, bool) {
 			return nil, false
 		}
 
+		for i := 0; i <= index; i++ {
+			_, ok := UnresolvedMerge(here[i])
+			if ok {
+				return nil, false
+			}
+		}
 		return here[index], true
+	}
+
+	if key == "" {
+		key = "name"
+	}
+	split := strings.Index(step, ":")
+	if split > 0 {
+		key = step[:split]
+		step = step[split+1:]
 	}
 
 	for _, sub := range here {
@@ -81,7 +97,7 @@ func stepThroughList(here []Node, step string) (Node, bool) {
 			continue
 		}
 
-		name, ok := FindString(sub, "name")
+		name, ok := FindString(sub, key)
 		if !ok {
 			continue
 		}
@@ -91,5 +107,26 @@ func stepThroughList(here []Node, step string) (Node, bool) {
 		}
 	}
 
+	return nil, false
+}
+
+func PathComponent(step string) string {
+	split := strings.Index(step, ":")
+	if split > 0 {
+		return step[split+1:]
+	}
+	return step
+}
+
+func UnresolvedMerge(node Node) (Node, bool) {
+	subMap, ok := node.Value().(map[string]Node)
+	if ok {
+		if len(subMap) == 1 {
+			inlineNode, ok := subMap["<<"]
+			if ok {
+				return inlineNode, true
+			}
+		}
+	}
 	return nil, false
 }

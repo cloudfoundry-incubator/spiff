@@ -85,7 +85,7 @@ func listToMap(list []yaml.Node) map[string]yaml.Node {
 			}
 		}
 
-		toMap[name] = yaml.NewNode(newMap, val.SourceName())
+		toMap[name] = yaml.SubstituteNode(newMap, val)
 	}
 
 	return toMap

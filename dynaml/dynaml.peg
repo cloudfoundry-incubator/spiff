@@ -2,29 +2,33 @@ package dynaml
 
 type DynamlGrammar Peg {}
 
-Dynaml <- ws Expression ws !.
+Dynaml <- (Prefer / Expression) !.
+Prefer <- ws 'prefer' req_ws Expression
+Expression <- ws Level4 ws
 
-Expression <- Level2
+Level4 <- Level3 ( req_ws Or )*
+Or <- '||' req_ws Level3
 
-Level2 <- Or / Level1
+Level3 <- Level2 ( Concatenation )*
+Concatenation <- req_ws Level2
 
-Or <- Level1 req_ws '||' req_ws Expression
+Level2 <-  Level1 ( req_ws ( Addition / Subtraction ) )*
+Addition <- '+' req_ws Level1
+Subtraction <- '-' req_ws Level1
 
-Level1 <- Concatenation / Addition / Subtraction / Level0
+Level1 <- Level0 ( req_ws ( Multiplication / Division / Modulo ) )*
+Multiplication <- '*' req_ws Level0
+Division <-  '/' req_ws Level0
+Modulo <-  '%' req_ws Level0
 
-Concatenation <- Level0 [ \t\n\r]+ Level1
-Addition <- Level0 req_ws '+' req_ws Level1
-Subtraction <- Level0 req_ws '-' req_ws Level1
-
-Level0 <- Grouped / Call / Boolean / Nil / String / Integer / List / Merge / Auto / Reference
+Level0 <- Grouped / Call / Boolean / Nil / String / Integer / List / Merge / Auto / Mapping / Reference
 
 Grouped <- '(' Expression ')'
 
 Call <- Name '(' Arguments ')'
-Arguments <- Expression (Comma ws Expression)*
 Name <- [a-zA-Z0-9_]+
-
-Comma <- ','
+Arguments <- Expression (NextExpression)*
+NextExpression <- ',' Expression
 
 Integer <- '-'? [0-9_]+
 
@@ -32,16 +36,24 @@ String <- '"' ('\\"' / !'"' .)* '"'
 
 Boolean <- 'true' / 'false'
 
-Nil <- 'nil'
+Nil <- 'nil' / '~'
 
 List <- '[' Contents? ']'
-Contents <- Expression (Comma ws Expression)*
+Contents <- Expression (NextExpression)*
 
-Merge <- 'merge'
+Merge <- RefMerge / SimpleMerge
+RefMerge <- 'merge' !( req_ws Required ) ( req_ws (Replace / On ))? req_ws Reference
+SimpleMerge <- 'merge' ( req_ws (Replace/Required/On) )?
+Replace <- 'replace'
+Required <- 'required'
+On <- 'on' req_ws Name
 
 Auto <- 'auto'
 
-Reference <- '.'? [a-zA-Z0-9_] [a-zA-Z0-9_\-]* ('.' [a-zA-Z0-9_] [a-zA-Z0-9_\-]* / '.' '[' [0-9]+ ']')*
+Mapping <- 'map[' Expression '|' ws Name ( ws ',' ws Name)? ws '|' ws '->' Expression ']'
+
+Reference <- '.'? Key ('.' Key / '.' '[' [0-9]+ ']')*
+Key <- [a-zA-Z0-9_] [a-zA-Z0-9_\-]* ( ':' [a-zA-Z0-9_] [a-zA-Z0-9_\-]* )?
 
 ws <- [ \t\n\r]*
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/cloudfoundry-incubator/spiff/debug"
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
@@ -12,48 +13,81 @@ type ConcatenationExpr struct {
 	B Expression
 }
 
-func (e ConcatenationExpr) Evaluate(binding Binding) (yaml.Node, bool) {
-	a, ok := e.A.Evaluate(binding)
+func (e ConcatenationExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+	resolved := true
+
+	debug.Debug("CONCAT %+v,%+v\n", e.A, e.B)
+
+	a, infoa, ok := ResolveExpressionOrPushEvaluation(&e.A, &resolved, nil, binding)
 	if !ok {
-		return nil, false
+		debug.Debug("  eval a failed\n")
+		return nil, infoa, false
 	}
 
-	b, ok := e.B.Evaluate(binding)
+	b, info, ok := ResolveExpressionOrPushEvaluation(&e.B, &resolved, &infoa, binding)
 	if !ok {
-		return nil, false
+		debug.Debug("  eval b failed\n")
+		return nil, info, false
 	}
+
+	if !resolved {
+		debug.Debug("  still unresolved operands\n")
+		return node(e), info, true
+	}
+
+	debug.Debug("CONCAT resolved %+v,%+v\n", a, b)
 
 	val, ok := concatenateStringAndInt(a, b)
 	if ok {
-		return node(val), true
+		debug.Debug("CONCAT --> string %+v\n", val)
+		return node(val), info, true
 	}
 
-	alist, aok := a.Value().([]yaml.Node)
-	blist, bok := b.Value().([]yaml.Node)
-	if aok && bok {
-		return node(append(alist, blist...)), true
+	alist, aok := a.([]yaml.Node)
+	if !aok {
+		switch a.(type) {
+		case map[string]yaml.Node:
+			info.Issue = "first argument must be list or simple value"
+		default:
+			info.Issue = "simple value can only be concatenated with simple values"
+		}
+		return nil, info, false
 	}
 
-	return nil, false
+	switch b.(type) {
+	case []yaml.Node:
+		return node(append(alist, b.([]yaml.Node)...)), info, true
+	default:
+		return node(append(alist, node(b))), info, true
+	}
 }
 
 func (e ConcatenationExpr) String() string {
 	return fmt.Sprintf("%s %s", e.A, e.B)
 }
 
-func concatenateStringAndInt(a yaml.Node, b yaml.Node) (string, bool) {
-	aString, aOk := a.Value().(string)
-	if aOk {
-		bString, bOk := b.Value().(string)
-		if bOk {
-			return aString + bString, true
-		} else {
-			bInt, bOk := b.Value().(int64)
-			if bOk {
-				return aString + strconv.FormatInt(bInt, 10), true
-			}
-		}
+func concatenateStringAndInt(a interface{}, b interface{}) (string, bool) {
+	var aString string
+
+	switch v := a.(type) {
+	case string:
+		aString = v
+	case int64:
+		aString = strconv.FormatInt(v, 10)
+	case bool:
+		aString = strconv.FormatBool(v)
+	default:
+		return "", false
 	}
 
-	return "", false
+	switch v := b.(type) {
+	case string:
+		return aString + v, true
+	case int64:
+		return aString + strconv.FormatInt(v, 10), true
+	case bool:
+		return aString + strconv.FormatBool(v), true
+	default:
+		return "", false
+	}
 }

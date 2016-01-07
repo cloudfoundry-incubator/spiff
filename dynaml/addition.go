@@ -2,6 +2,7 @@ package dynaml
 
 import (
 	"fmt"
+	"net"
 
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
@@ -11,30 +12,56 @@ type AdditionExpr struct {
 	B Expression
 }
 
-func (e AdditionExpr) Evaluate(binding Binding) (yaml.Node, bool) {
-	a, ok := e.A.Evaluate(binding)
+func (e AdditionExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+	resolved := true
+
+	a, info, ok := ResolveExpressionOrPushEvaluation(&e.A, &resolved, nil, binding)
 	if !ok {
-		return nil, false
+		return nil, info, false
 	}
 
-	b, ok := e.B.Evaluate(binding)
+	bint, info, ok := ResolveIntegerExpressionOrPushEvaluation(&e.B, &resolved, &info, binding)
 	if !ok {
-		return nil, false
+		return nil, info, false
 	}
 
-	aint, ok := a.Value().(int64)
-	if !ok {
-		return nil, false
+	if !resolved {
+		return node(e), info, true
 	}
 
-	bint, ok := b.Value().(int64)
-	if !ok {
-		return nil, false
+	aint, ok := a.(int64)
+	if ok {
+		return node(aint + bint), info, true
 	}
 
-	return node(aint + bint), true
+	str, ok := a.(string)
+	if ok {
+		ip := net.ParseIP(str)
+		if ip != nil {
+			return node(IPAdd(ip, bint).String()), info, true
+		}
+		info.Issue = "string argument for PLUS must be an IP address"
+	} else {
+		info.Issue = "first argument of PLUS must be IP address or integer"
+	}
+	return nil, info, false
 }
 
 func (e AdditionExpr) String() string {
 	return fmt.Sprintf("%s + %s", e.A, e.B)
+}
+
+func IPAdd(ip net.IP, offset int64) net.IP {
+	for j := len(ip) - 1; j >= 0; j-- {
+		tmp := offset + int64(ip[j])
+		ip[j] = byte(tmp)
+		if tmp < 0 {
+			tmp = tmp - 256
+		}
+		offset = tmp / 256
+		if offset == 0 {
+			break
+		}
+	}
+	return ip
 }

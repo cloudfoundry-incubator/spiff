@@ -1,8 +1,10 @@
 package dynaml
 
 import (
+	"fmt"
 	"strings"
 
+	"github.com/cloudfoundry-incubator/spiff/debug"
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
@@ -10,12 +12,14 @@ type ReferenceExpr struct {
 	Path []string
 }
 
-func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, bool) {
+func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	var step yaml.Node
 	var ok bool
 
+	info := DefaultInfo()
 	fromRoot := e.Path[0] == ""
 
+	debug.Debug("reference: %v\n", e.Path)
 	for i := 0; i < len(e.Path); i++ {
 		if fromRoot {
 			step, ok = binding.FindFromRoot(e.Path[1 : i+1])
@@ -23,17 +27,22 @@ func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 			step, ok = binding.FindReference(e.Path[:i+1])
 		}
 
+		debug.Debug("  %d: %v %+v\n", i, ok, step)
 		if !ok {
-			return nil, false
+			info.Issue = fmt.Sprintf("'%s' not found", strings.Join(e.Path, "."))
+			return nil, info, false
 		}
 
 		switch step.Value().(type) {
 		case Expression:
-			return node(e), true
+			return node(e), info, true
 		}
 	}
 
-	return step, true
+	if !isResolved(step) {
+		return node(e), info, true
+	}
+	return yaml.ReferencedNode(step), info, true
 }
 
 func (e ReferenceExpr) String() string {

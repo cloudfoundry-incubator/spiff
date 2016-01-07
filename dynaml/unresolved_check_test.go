@@ -1,10 +1,9 @@
-package flow
+package dynaml
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry-incubator/spiff/dynaml"
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
@@ -14,7 +13,7 @@ var _ = Describe("Reporting unresolved nodes", func() {
 			Nodes: []UnresolvedNode{
 				{
 					Node: yaml.NewNode(
-						dynaml.AutoExpr{},
+						AutoExpr{},
 						"some-file.yml",
 					),
 					Context: []string{"foo", "bar"},
@@ -22,7 +21,7 @@ var _ = Describe("Reporting unresolved nodes", func() {
 				},
 				{
 					Node: yaml.NewNode(
-						dynaml.MergeExpr{},
+						MergeExpr{},
 						"some-other-file.yml",
 					),
 					Context: []string{"fizz", "[2]", "buzz"},

@@ -6,8 +6,8 @@ import (
 
 type NilExpr struct{}
 
-func (e NilExpr) Evaluate(Binding) (yaml.Node, bool) {
-	return node(nil), true
+func (e NilExpr) Evaluate(Binding) (yaml.Node, EvaluationInfo, bool) {
+	return node(nil), DefaultInfo(), true
 }
 
 func (e NilExpr) String() string {

@@ -11,6 +11,8 @@ type Environment struct {
 	Path  []string
 
 	Stubs []yaml.Node
+
+	StubPath []string
 }
 
 func (e Environment) FindFromRoot(path []string) (yaml.Node, bool) {
@@ -52,6 +54,15 @@ func (e Environment) WithPath(step string) Environment {
 	newPath := make([]string, len(e.Path))
 	copy(newPath, e.Path)
 	e.Path = append(newPath, step)
+
+	newPath = make([]string, len(e.StubPath))
+	copy(newPath, e.StubPath)
+	e.StubPath = append(newPath, step)
+	return e
+}
+
+func (e Environment) RedirectOverwrite(path []string) Environment {
+	e.StubPath = path
 	return e
 }
 
