@@ -10,7 +10,7 @@ import (
 
 var _ = Describe("Flowing YAML", func() {
 	Context("delays resolution until merge succeeded", func() {
-		It("is a no-op", func() {
+		It("handles combination of inline merge and field merge", func() {
 			source := parseYAML(`
 ---
 properties:
@@ -32,6 +32,47 @@ properties:
   bar: bar
 foobar: 
   - foo.bar
+`)
+			Expect(source).To(FlowAs(resolved, stub))
+		})
+
+		It("handles defaulted reference to merged/overridden fields", func() {
+			source := parseYAML(`
+---
+foo:
+  <<: (( merge || nil ))
+  bar:
+    <<: (( merge || nil ))
+    alice: alice
+
+props:
+  bob: (( foo.bar.bob || "wrong" ))
+  alice: (( foo.bar.alice || "wrong" ))
+  main: (( foo.foo || "wrong" ))
+
+`)
+			stub := parseYAML(`
+---
+foo: 
+  foo: added
+  bar:
+    alice: overwritten
+    bob: added!
+
+`)
+
+			resolved := parseYAML(`
+---
+foo:
+  bar:
+    alice: overwritten
+    bob: added!
+  foo: added
+props:
+  alice: overwritten
+  bob: added!
+  main: added
+
 `)
 			Expect(source).To(FlowAs(resolved, stub))
 		})
@@ -574,6 +615,37 @@ foo:
 			Expect(source).To(FlowAs(resolved, stub))
 		})
 
+		It("resolves overwritten redirected stub fields", func() {
+			source := parseYAML(`
+---
+foo: 
+  <<: (( merge alt ))
+  bar: 42
+ref:
+  bar: (( foo.bar ))
+`)
+
+			stub := parseYAML(`
+---
+foo: 
+  alice: not merged!
+alt: 
+  bob: added!
+  bar: overwritten
+`)
+
+			resolved := parseYAML(`
+---
+foo: 
+  bob: added!
+  bar: overwritten
+ref:
+  bar: overwritten
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
+
 		It("deep overwrites redirected stub fields", func() {
 			source := parseYAML(`
 ---
@@ -791,6 +863,38 @@ foo:
 
 			Expect(source).To(FlowAs(resolved, stub))
 		})
+
+		It("resolves references to merges with redirected map", func() {
+			source := parseYAML(`
+---
+foo:
+  - <<: (( merge replace bar ))
+  - bar:
+      alice: alice
+      bob: bob
+ref: (( foo.[0].alice ))
+`)
+
+			stub := parseYAML(`
+---
+foo:
+  - not
+  - merged
+bar:
+  - alice: merged
+  - bob: merged
+`)
+
+			resolved := parseYAML(`
+---
+foo:
+  - alice: merged
+  - bob: merged
+ref: merged
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
 	})
 
 	Describe("merging field value", func() {
@@ -981,6 +1085,49 @@ properties:
 
 			Expect(source).To(FlowAs(resolved, stub))
 		})
+
+		It("merges one map over another and resolves inbound references", func() {
+			source := parseYAML(`
+---
+properties:
+  something:
+    foo:
+      <<: (( merge ))
+      key: a
+      val: b
+      some:
+        s: stuff
+        d: blah
+  refkey: (( properties.something.foo.key ))
+  refval: (( properties.something.foo.val ))
+`)
+
+			stub := parseYAML(`
+---
+properties:
+  something:
+    foo:
+      val: c
+      some:
+        go: home
+`)
+
+			resolved := parseYAML(`
+---
+properties:
+  something:
+    foo:
+      key: a
+      val: c
+      some:
+        s: stuff
+        d: blah
+  refkey: a
+  refval: c
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
 	})
 
 	Describe("list splicing", func() {
@@ -1116,6 +1263,45 @@ properties:
 				Expect(source).To(FlowAs(resolved, stub))
 			})
 
+			It("resolves existing entries replaced with matching names", func() {
+				source := parseYAML(`
+---
+properties:
+  something:
+    - name: a
+      value: 1
+    - <<: (( merge ))
+    - name: b
+      value: 2
+ref: (( properties.something.[0].value ))
+`)
+
+				stub := parseYAML(`
+---
+properties:
+  something:
+    - name: a
+      value: 10
+    - name: c
+      value: 30
+`)
+
+				resolved := parseYAML(`
+---
+properties:
+  something:
+    - name: a
+      value: 10
+    - name: c
+      value: 30
+    - name: b
+      value: 2
+ref: 10
+`)
+
+				Expect(source).To(FlowAs(resolved, stub))
+			})
+
 			It("replaces existing entries with redirected matching names", func() {
 				source := parseYAML(`
 ---
@@ -1155,6 +1341,52 @@ properties:
       value: 30
     - name: b
       value: 2
+`)
+
+				Expect(source).To(FlowAs(resolved, stub))
+			})
+
+			It("resolves existing entries replaced with redirected matching names", func() {
+				source := parseYAML(`
+---
+properties:
+  something:
+    - name: a
+      value: 1
+    - <<: (( merge alt.something ))
+    - name: b
+      value: 2
+ref: (( properties.something.a.value ))
+`)
+
+				stub := parseYAML(`
+---
+properties:
+  something:
+    - name: a
+      value: 100
+    - name: c
+      value: 300
+
+alt:
+  something:
+    - name: a
+      value: 10
+    - name: c
+      value: 30
+`)
+
+				resolved := parseYAML(`
+---
+properties:
+  something:
+    - name: a
+      value: 10
+    - name: c
+      value: 30
+    - name: b
+      value: 2
+ref: 10
 `)
 
 				Expect(source).To(FlowAs(resolved, stub))

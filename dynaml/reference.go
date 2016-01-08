@@ -33,15 +33,18 @@ func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, boo
 			return nil, info, false
 		}
 
-		switch step.Value().(type) {
-		case Expression:
+		if !isLocallyResolved(step) {
+			debug.Debug("  unresoved\n")
 			return node(e), info, true
 		}
 	}
 
 	if !isResolved(step) {
+		debug.Debug("  unresoved\n")
 		return node(e), info, true
 	}
+
+	debug.Debug("reference %v -> %+v\n", e.Path, step)
 	return yaml.ReferencedNode(step), info, true
 }
 

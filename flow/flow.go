@@ -297,7 +297,7 @@ func processMerges(orig yaml.Node, root []yaml.Node, env Environment) ([]yaml.No
 			continue
 		}
 
-		inlineNode, ok := yaml.UnresolvedMerge(val)
+		inlineNode, ok := yaml.UnresolvedListEntryMerge(val)
 		if ok {
 			debug.Debug("*** %+v\n", inlineNode.Value())
 			_, initial := inlineNode.Value().(string)
@@ -385,9 +385,9 @@ func newEntries(a []yaml.Node, b []yaml.Node, keyName string) []yaml.Node {
 	added := []yaml.Node{}
 
 	for _, val := range a {
-		name, ok := yaml.FindString(val, keyName)
+		name, ok := yaml.FindStringR(true, val, keyName)
 		if ok {
-			_, found := yaml.Find(old, name) // TODO
+			_, found := yaml.FindR(true, old, name) // TODO
 			if found {
 				continue
 			}

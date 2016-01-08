@@ -105,6 +105,24 @@ func addContext(context []string, step string) []string {
 	return append(dup, step)
 }
 
+func isLocallyResolved(node yaml.Node) bool {
+	switch v := node.Value().(type) {
+	case Expression:
+		return false
+	case map[string]yaml.Node:
+		if !yaml.IsMapResolved(v) {
+			return false
+		}
+	case []yaml.Node:
+		if !yaml.IsListResolved(v) {
+			return false
+		}
+	default:
+	}
+
+	return true
+}
+
 func isResolved(node yaml.Node) bool {
 	if node == nil {
 		return true

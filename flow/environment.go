@@ -20,7 +20,7 @@ func (e Environment) FindFromRoot(path []string) (yaml.Node, bool) {
 		return nil, false
 	}
 
-	return yaml.Find(yaml.NewNode(e.Scope[0], "scope"), path...)
+	return yaml.FindR(true, yaml.NewNode(e.Scope[0], "scope"), path...)
 }
 
 func (e Environment) FindReference(path []string) (yaml.Node, bool) {
@@ -29,7 +29,7 @@ func (e Environment) FindReference(path []string) (yaml.Node, bool) {
 		return nil, false
 	}
 
-	return yaml.Find(root, path[1:]...)
+	return yaml.FindR(true, root, path[1:]...)
 }
 
 func (e Environment) FindInStubs(path []string) (yaml.Node, bool) {
