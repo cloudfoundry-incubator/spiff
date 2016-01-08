@@ -51,6 +51,7 @@ Contents:
 		- [(( map[map|x,y|->x ":" port] ))](#-mapmapxy-x--port-) 
 	- [Operation Priorities](#operation-priorities)
 - [Structural Auto-Merge](#structural-auto-merge)
+- [Useful to Know](#useful-to-know)
 - [Error Reporting](#error-reporting)
 
 
@@ -1129,7 +1130,7 @@ list:
 
 - _Expressions are subject to be overridden as a whole_
   
-  A consequence of the behaviour describd above is that nodes described by an expession are basically overridden by a complete merged structure, instead of doing a deep merge with the structues resulting from the expression evaluation.
+  A consequence of the behaviour described above is that nodes described by an expession are basically overridden by a complete merged structure, instead of doing a deep merge with the structues resulting from the expression evaluation.
 
   For example, merging
  
@@ -1172,6 +1173,38 @@ list:
   people:
     - alice: 24
 	- bob: 24
+  ```
+
+- _Nested merge expressions use implied redirections_
+
+  `merge` expressions implicity use a redirection implied by an outer redirecting merge. In the following
+  example
+
+  ```yaml
+  meta:
+    <<: (( merge deployments.cf ))
+    properties:
+      <<: (( merge ))
+      alice: 42
+  ```
+  the merge expression in `meta.properties` is implicity redirected to the path `deployments.cf.properties`
+  implied by the outer redirecting `merge`. Therefore merging with
+
+  ```yaml
+  deployments:
+    cf:
+      properties:
+	    alice: 24
+	    bob: 42
+  ```
+
+  yields
+
+  ```yaml
+  meta:
+    properties:
+      alice: 24
+	  bob: 42
   ```
 
 # Error Reporting

@@ -25,7 +25,7 @@ type nameHelper struct {
 	name string
 }
 
-func Parse(source string, path []string) (Expression, error) {
+func Parse(source string, path []string, stubPath []string) (Expression, error) {
 	grammar := &DynamlGrammar{Buffer: source}
 	grammar.Init()
 
@@ -34,10 +34,10 @@ func Parse(source string, path []string) (Expression, error) {
 		return nil, err
 	}
 
-	return buildExpression(grammar, path), nil
+	return buildExpression(grammar, path, stubPath), nil
 }
 
-func buildExpression(grammar *DynamlGrammar, path []string) Expression {
+func buildExpression(grammar *DynamlGrammar, path []string, stubPath []string) Expression {
 	tokens := &tokenStack{}
 
 	// flags for parsing merge options in merge expression
@@ -62,7 +62,8 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 			keyName = ""
 		case ruleSimpleMerge:
 			debug.Debug("*** rule simple merge\n")
-			tokens.Push(MergeExpr{path, false, replace, replace || required, keyName})
+			redirect := !equals(path, stubPath)
+			tokens.Push(MergeExpr{stubPath, redirect, replace, replace || required || redirect, keyName})
 		case ruleRefMerge:
 			debug.Debug("*** rule ref merge\n")
 			rhs := tokens.Pop()
@@ -171,6 +172,18 @@ func buildExpression(grammar *DynamlGrammar, path []string) Expression {
 	}
 
 	panic("unreachable")
+}
+
+func equals(p1 []string, p2 []string) bool {
+	if len(p1) != len(p2) {
+		return false
+	}
+	for i := 0; i < len(p1); i++ {
+		if p1[i] != p2[i] {
+			return false
+		}
+	}
+	return true
 }
 
 type tokenStack struct {

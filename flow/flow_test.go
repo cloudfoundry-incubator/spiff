@@ -77,6 +77,50 @@ props:
 			Expect(source).To(FlowAs(resolved, stub))
 		})
 
+		It("handles defaulted reference to merged/overridden redirected fields", func() {
+			source := parseYAML(`
+---
+foo:
+  <<: (( merge alt || nil ))
+  bar:
+    <<: (( merge || nil ))
+    alice: alice
+
+props:
+  bob: (( foo.bar.bob || "wrong" ))
+  alice: (( foo.bar.alice || "wrong" ))
+  main: (( foo.foo || "wrong" ))
+
+`)
+			stub := parseYAML(`
+---
+foo:
+  bar:
+    alice: wrongly merged
+alt:
+  foo: added
+  bar:
+    alice: overwritten
+    bob: added!
+
+`)
+
+			resolved := parseYAML(`
+---
+foo:
+  bar:
+    alice: overwritten
+    bob: added!
+  foo: added
+props:
+  alice: overwritten
+  bob: added!
+  main: added
+
+`)
+			Expect(source).To(FlowAs(resolved, stub))
+		})
+		
 		It("replaces a non-merge expression node before expanding", func() {
 			source := parseYAML(`
 ---
@@ -673,6 +717,37 @@ foo:
     alice: overwritten
     bob: bob
   bob: added!
+`)
+
+			Expect(source).To(FlowAs(resolved, stub))
+		})
+
+		It("propagates redirection to subsequent merges", func() {
+			source := parseYAML(`
+---
+foo: 
+  <<: (( merge alt ))
+  bar:
+    <<: (( merge ))
+    alice: alice
+`)
+
+			stub := parseYAML(`
+---
+foo: 
+  alice: not merged!
+alt: 
+  bar:
+    alice: overwritten
+    bob: added!
+`)
+
+			resolved := parseYAML(`
+---
+foo: 
+  bar:
+    alice: overwritten
+    bob: added!
 `)
 
 			Expect(source).To(FlowAs(resolved, stub))

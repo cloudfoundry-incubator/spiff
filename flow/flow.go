@@ -265,7 +265,7 @@ func flowString(root yaml.Node, env Environment) yaml.Node {
 		return root
 	}
 	debug.Debug("dynaml: %v: %s\n", env.Path, *sub)
-	expr, err := dynaml.Parse(*sub, env.Path)
+	expr, err := dynaml.Parse(*sub, env.Path, env.StubPath)
 	if err != nil {
 		return root
 	}

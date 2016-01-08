@@ -372,7 +372,7 @@ var _ = Describe("parsing", func() {
 })
 
 func parsesAs(source string, expr Expression, path ...string) {
-	parsed, err := Parse(source, path)
+	parsed, err := Parse(source, path, path)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(parsed).To(Equal(expr))
 }
