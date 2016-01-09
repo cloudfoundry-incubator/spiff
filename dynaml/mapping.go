@@ -8,25 +8,6 @@ import (
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
-type MapContext struct {
-	Binding
-	names map[string]yaml.Node
-}
-
-func (c MapContext) FindReference(path []string) (yaml.Node, bool) {
-	for name, node := range c.names {
-		if len(path) >= 1 && path[0] == name {
-			debug.Debug("map: catch find ref: %v\n", path)
-			if len(path) == 1 {
-				return node, true
-			}
-			return yaml.Find(node, path[1:]...)
-		}
-	}
-	debug.Debug("map: forward find ref: %v\n", path)
-	return c.Binding.FindReference(path)
-}
-
 type MapExpr struct {
 	A     Expression
 	Names []string

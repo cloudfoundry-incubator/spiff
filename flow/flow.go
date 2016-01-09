@@ -58,7 +58,7 @@ func flow(root yaml.Node, env Environment, shouldOverride bool) yaml.Node {
 			return flowList(root, env)
 
 		case dynaml.Expression:
-			debug.Debug("??? eval %+v\n", val)
+			debug.Debug("??? eval %T: %+v\n", val, val)
 			result, info, ok := val.Evaluate(env)
 			if !ok {
 				root = yaml.IssueNode(root, info.Issue)

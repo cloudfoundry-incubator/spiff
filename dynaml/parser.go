@@ -20,6 +20,11 @@ type expressionListHelper struct {
 	list []Expression
 }
 
+type nameListHelper struct {
+	helperNode
+	list []string
+}
+
 type nameHelper struct {
 	helperNode
 	name string
@@ -129,22 +134,34 @@ func buildExpression(grammar *DynamlGrammar, path []string, stubPath []string) E
 			tokens.Push(ModuloExpr{A: lhs, B: rhs})
 		case ruleCall:
 			tokens.Push(CallExpr{
-				Name:      tokens.Pop().(nameHelper).name,
+				Function:  tokens.Pop(),
 				Arguments: tokens.GetExpressionList(),
 			})
 		case ruleName:
 			tokens.Push(nameHelper{name: contents})
+		case ruleNextName:
+			rhs := tokens.Pop()
+			list := tokens.PopNameList()
+			list.list = append(list.list, rhs.(nameHelper).name)
+			tokens.Push(list)
 
 		case ruleMapping:
 			rhs := tokens.Pop()
-			names := []string{tokens.Pop().(nameHelper).name}
+			names := tokens.PopNameList().list
+			reverse(names)
 			lhs := tokens.Pop()
-			name, ok := lhs.(nameHelper)
-			if ok {
-				names = append(names, name.name)
-				lhs = tokens.Pop()
-			}
 			tokens.Push(MapExpr{A: lhs, Names: names, B: rhs})
+
+		case ruleLambda:
+
+		case ruleLambdaExpr:
+			rhs := tokens.Pop()
+			names := tokens.PopNameList().list
+			tokens.Push(LambdaExpr{Names: names, E: rhs})
+
+		case ruleLambdaRef:
+			rhs := tokens.Pop()
+			tokens.Push(LambdaRefExpr{Source: rhs, Path: path, StubPath: stubPath})
 
 		case ruleList:
 			seq := tokens.GetExpressionList()
@@ -172,6 +189,12 @@ func buildExpression(grammar *DynamlGrammar, path []string, stubPath []string) E
 	}
 
 	panic("unreachable")
+}
+
+func reverse(a []string) {
+	for i := 0; i < len(a)/2; i++ {
+		a[i], a[len(a)-i-1] = a[len(a)-i-1], a[i]
+	}
 }
 
 func equals(p1 []string, p2 []string) bool {
@@ -227,4 +250,13 @@ func (s *tokenStack) GetExpressionList() []Expression {
 		return []Expression(nil)
 	}
 	return list.list
+}
+
+func (s *tokenStack) PopNameList() nameListHelper {
+	lhs := s.Pop()
+	list, ok := lhs.(nameListHelper)
+	if !ok {
+		list = nameListHelper{list: []string{lhs.(nameHelper).name}}
+	}
+	return list
 }

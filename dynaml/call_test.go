@@ -26,7 +26,7 @@ var _ = Describe("calls", func() {
 	Describe("CIDR functions", func() {
 		It("determines minimal IP", func() {
 			expr := CallExpr{
-				Name: "min_ip",
+				Function: ReferenceExpr{[]string{"min_ip"}},
 				Arguments: []Expression{
 					StringExpr{"192.168.0.1/24"},
 				},
@@ -42,7 +42,7 @@ var _ = Describe("calls", func() {
 
 		It("determines maximal IP", func() {
 			expr := CallExpr{
-				Name: "max_ip",
+				Function: ReferenceExpr{[]string{"max_ip"}},
 				Arguments: []Expression{
 					StringExpr{"192.168.0.1/24"},
 				},
@@ -59,7 +59,7 @@ var _ = Describe("calls", func() {
 
 	Describe("join(\", \"...)", func() {
 		expr := CallExpr{
-			Name: "join",
+			Function: ReferenceExpr{[]string{"join"}},
 			Arguments: []Expression{
 				StringExpr{", "},
 				ReferenceExpr{[]string{"alice"}},
@@ -122,7 +122,7 @@ var _ = Describe("calls", func() {
 
 		It("joins nothing", func() {
 			expr := CallExpr{
-				Name: "join",
+				Function: ReferenceExpr{[]string{"join"}},
 				Arguments: []Expression{
 					StringExpr{", "},
 				},
@@ -138,7 +138,7 @@ var _ = Describe("calls", func() {
 
 		It("fails for missing args", func() {
 			expr := CallExpr{
-				Name:      "join",
+				Function:  ReferenceExpr{[]string{"join"}},
 				Arguments: []Expression{},
 			}
 
@@ -147,7 +147,7 @@ var _ = Describe("calls", func() {
 
 		It("fails for wrong separator type", func() {
 			expr := CallExpr{
-				Name: "join",
+				Function: ReferenceExpr{[]string{"join"}},
 				Arguments: []Expression{
 					ListExpr{[]Expression{IntegerExpr{0}}},
 				},
@@ -159,7 +159,7 @@ var _ = Describe("calls", func() {
 
 	Describe("static_ips(ips...)", func() {
 		expr := CallExpr{
-			Name: "static_ips",
+			Function: ReferenceExpr{[]string{"static_ips"}},
 			Arguments: []Expression{
 				IntegerExpr{0},
 				IntegerExpr{4},
@@ -235,7 +235,7 @@ var _ = Describe("calls", func() {
 `)
 
 				expr := CallExpr{
-					Name: "static_ips",
+					Function: ReferenceExpr{[]string{"static_ips"}},
 					Arguments: []Expression{
 						IntegerExpr{0},
 						IntegerExpr{4},

@@ -163,4 +163,152 @@ list:
 			})
 		})
 	})
+
+	Describe("using lambda expressions", func() {
+		template := parseYAML(`
+---
+values: (( merge ))
+`)
+
+		Context("locally in a single file", func() {
+			It("defines an inline lambda value", func() {
+				source := parseYAML(`
+---
+lvalue: (( lambda |x,y|->x + y ))
+values: (( "" lvalue ))
+`)
+
+				resolved := parseYAML(`
+---
+values: lambda|x,y|->x + y
+`)
+				Expect(template).To(CascadeAs(resolved, source))
+			})
+
+			It("defines an evaluated lambda value", func() {
+				source := parseYAML(`
+---
+lvalue: (( lambda "|x,y|->x + y" ))
+values: (( "" lvalue ))
+`)
+
+				resolved := parseYAML(`
+---
+values: lambda|x,y|->x + y
+`)
+				Expect(template).To(CascadeAs(resolved, source))
+			})
+
+			It("calls a lambda value by reference", func() {
+				source := parseYAML(`
+---
+lvalue: (( lambda |x,y|->x + y ))
+values: (( .lvalue(1,2) ))
+`)
+
+				resolved := parseYAML(`
+---
+values: 3
+`)
+				Expect(template).To(CascadeAs(resolved, source))
+			})
+
+			It("calls a lambda value by reference expression", func() {
+				source := parseYAML(`
+---
+lvalue: (( lambda |x,y|->x + y ))
+values: (( (lambda lvalue)(1,2) ))
+`)
+
+				resolved := parseYAML(`
+---
+values: 3
+`)
+				Expect(template).To(CascadeAs(resolved, source))
+			})
+
+			It("calls a lambda value by string expression", func() {
+				source := parseYAML(`
+---
+values: (( (lambda "|x,y|->x + y")(1,2) ))
+`)
+
+				resolved := parseYAML(`
+---
+values: 3
+`)
+				Expect(template).To(CascadeAs(resolved, source))
+			})
+
+			It("calls a lambda value by lambda expression", func() {
+				source := parseYAML(`
+---
+values: (( (lambda |x,y|->x + y)(1,2) ))
+`)
+
+				resolved := parseYAML(`
+---
+values: 3
+`)
+				Expect(template).To(CascadeAs(resolved, source))
+			})
+
+			It("resolves references relative to caller", func() {
+				source := parseYAML(`
+---
+lvalue: (( lambda |x,y|->x + y + offset ))
+offset: 0
+values:
+  offset: 3
+  value: (( .lvalue(1,2) ))
+`)
+
+				resolved := parseYAML(`
+---
+values:
+  offset: 3
+  value: 6
+`)
+				Expect(template).To(CascadeAs(resolved, source))
+			})
+
+			It("passes lambda value as argument", func() {
+				source := parseYAML(`
+---
+lvalue: (( lambda |x,y|->x + y ))
+mod: (( lambda|x,y,m|->(lambda m)(x, y) + 3 ))
+values:
+  value: (( .mod(1,2, lvalue) ))
+`)
+
+				resolved := parseYAML(`
+---
+values:
+  value: 6
+`)
+				Expect(template).To(CascadeAs(resolved, source))
+			})
+		})
+
+		Context("cross stub", func() {
+			It("merges lambda values", func() {
+				source := parseYAML(`
+---
+lvalues: (( merge ))
+values: (( lvalues.lvalue(1,2) ))
+`)
+				stub := parseYAML(`
+---
+lvalues:
+  lvalue: (( lambda |x,y|->x + y ))
+`)
+
+				resolved := parseYAML(`
+---
+values: 3
+`)
+				Expect(template).To(CascadeAs(resolved, source, stub))
+			})
+		})
+	})
 })

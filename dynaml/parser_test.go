@@ -265,11 +265,47 @@ var _ = Describe("parsing", func() {
 	})
 
 	Describe("calls", func() {
+		It("parses simple calls for name", func() {
+			parsesAs(
+				`foo(1)`,
+				CallExpr{
+					ReferenceExpr{[]string{"foo"}},
+					[]Expression{
+						IntegerExpr{1},
+					},
+				},
+			)
+		})
+
+		It("parses call for reference", func() {
+			parsesAs(
+				`foo.bar(1)`,
+				CallExpr{
+					ReferenceExpr{[]string{"foo", "bar"}},
+					[]Expression{
+						IntegerExpr{1},
+					},
+				},
+			)
+		})
+
+		It("parses call for expression", func() {
+			parsesAs(
+				`(foo)(1)`,
+				CallExpr{
+					ReferenceExpr{[]string{"foo"}},
+					[]Expression{
+						IntegerExpr{1},
+					},
+				},
+			)
+		})
+
 		It("parses nodes in arguments to function calls", func() {
 			parsesAs(
 				`foo(1, "two", three)`,
 				CallExpr{
-					"foo",
+					ReferenceExpr{[]string{"foo"}},
 					[]Expression{
 						IntegerExpr{1},
 						StringExpr{"two"},
@@ -283,7 +319,7 @@ var _ = Describe("parsing", func() {
 			parsesAs(
 				`foo(1, [ "two", three ])`,
 				CallExpr{
-					"foo",
+					ReferenceExpr{[]string{"foo"}},
 					[]Expression{
 						IntegerExpr{1},
 						ListExpr{
@@ -301,11 +337,11 @@ var _ = Describe("parsing", func() {
 			parsesAs(
 				`foo(1, bar( "two", three ))`,
 				CallExpr{
-					"foo",
+					ReferenceExpr{[]string{"foo"}},
 					[]Expression{
 						IntegerExpr{1},
 						CallExpr{
-							"bar",
+							ReferenceExpr{[]string{"bar"}},
 							[]Expression{
 								StringExpr{"two"},
 								ReferenceExpr{[]string{"three"}},
@@ -333,7 +369,7 @@ var _ = Describe("parsing", func() {
 	})
 
 	Describe("mapping", func() {
-		It("parses simple mappinng", func() {
+		It("parses simple mapping", func() {
 			parsesAs(
 				`map[list|x|->x]`,
 				MapExpr{
@@ -344,7 +380,7 @@ var _ = Describe("parsing", func() {
 			)
 		})
 
-		It("parses key/value mappinng", func() {
+		It("parses key/value mapping", func() {
 			parsesAs(
 				`map[list|x,y|->x]`,
 				MapExpr{
@@ -355,7 +391,7 @@ var _ = Describe("parsing", func() {
 			)
 		})
 
-		It("parses complex mappinng", func() {
+		It("parses complex mapping", func() {
 			parsesAs(
 				`map[list|x|->x ".*"]`,
 				MapExpr{
@@ -366,6 +402,46 @@ var _ = Describe("parsing", func() {
 						StringExpr{".*"},
 					},
 				},
+			)
+		})
+	})
+
+	Describe("lambda expressions", func() {
+		It("parses expression with one parameter", func() {
+			parsesAs(
+				`lambda|x|->x`,
+				LambdaExpr{
+					[]string{"x"},
+					ReferenceExpr{[]string{"x"}},
+				},
+			)
+		})
+
+		It("parses expression with two parameter", func() {
+			parsesAs(
+				`lambda|x,y|->x / y`,
+				LambdaExpr{
+					[]string{"x", "y"},
+					DivisionExpr{
+						ReferenceExpr{[]string{"x"}},
+						ReferenceExpr{[]string{"y"}},
+					},
+				},
+			)
+		})
+
+		It("parses calculated expression", func() {
+			parsesAs(
+				`lambda "|x|->x+" ref`,
+				LambdaRefExpr{
+					Source: ConcatenationExpr{
+						StringExpr{"|x|->x+"},
+						ReferenceExpr{[]string{"ref"}},
+					},
+					Path:     []string{"foo", "bar"},
+					StubPath: []string{"foo", "bar"},
+				},
+				"foo", "bar",
 			)
 		})
 	})

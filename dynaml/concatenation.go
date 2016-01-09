@@ -37,7 +37,7 @@ func (e ConcatenationExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo,
 
 	debug.Debug("CONCAT resolved %+v,%+v\n", a, b)
 
-	val, ok := concatenateStringAndInt(a, b)
+	val, ok := concatenateString(a, b)
 	if ok {
 		debug.Debug("CONCAT --> string %+v\n", val)
 		return node(val), info, true
@@ -68,7 +68,7 @@ func (e ConcatenationExpr) String() string {
 	return fmt.Sprintf("%s %s", e.A, e.B)
 }
 
-func concatenateStringAndInt(a interface{}, b interface{}) (string, bool) {
+func concatenateString(a interface{}, b interface{}) (string, bool) {
 	var aString string
 
 	switch v := a.(type) {
@@ -89,6 +89,8 @@ func concatenateStringAndInt(a interface{}, b interface{}) (string, bool) {
 		return aString + strconv.FormatInt(v, 10), true
 	case bool:
 		return aString + strconv.FormatBool(v), true
+	case LambdaValue:
+		return aString + fmt.Sprintf("%s", v), true
 	default:
 		return "", false
 	}
