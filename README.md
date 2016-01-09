@@ -44,11 +44,15 @@ Contents:
 	- [(( 1 + 2 * foo ))](#-1--2--foo-)
 	- [(( "10.10.10.10" - 11 ))](#-10101010---11-)
 	- [(( join( ", ", list) ))](#-join---list-)
+	- [(( split( ",", string) ))](#-split--string-)
+	- [(( trim(string) ))](#-trimstring-)
 	- [(( exec( "command", arg1, arg2) ))](#-exec-command-arg1-arg2-)
 	- [(( static_ips(0, 1, 3) ))](#-static_ips0-1-3-)
+	- [(( lambda |x|->x ":" port ))](#-lambda-x-x--port-)
 	- [Mappings](#mappings)
 		- [(( map[list|elem|->dynaml-expr] ))](#-maplistelem-dynaml-expr-)
-		- [(( map[map|key,value|->dynaml-expr] ))](#-maplistidxelem-dynaml-expr-)
+		- [(( map[list|idx,elem|->dynaml-expr] ))](#-maplistidxelem-dynaml-expr-)
+		- [(( map[map|key,value|->dynaml-expr] ))](#-mapmapkeyvalue-dynaml-expr-)
 	- [Operation Priorities](#operation-priorities)
 - [Structural Auto-Merge](#structural-auto-merge)
 - [Useful to Know](#useful-to-know)
@@ -690,7 +694,7 @@ next: 192.168.1.0
 
 Join entries of lists or direct values to a single string value using a given separator string. The arguments to join can be dynaml expressions evaluating to lists, whose values again are strings or integers, or string or integer values.
 
-e.g.
+e.g.:
 
 ```yaml
 alice: alice
@@ -702,6 +706,43 @@ join: (( join(", ", "bob", list, alice, 10) ))
 ```
 
 yields the string value `bob, foo, bar, alice, 10` for `join`.
+
+## `(( split( ",", string) ))`
+
+Split a string for a dedicated separator. The result is a list.
+
+e.g.:
+
+```yaml
+list: (( split("," "alice, bob") ))
+```
+
+yields:
+
+```yaml
+list:
+  - alice
+  - ' bob'
+```
+
+## `(( trim(string) ))`
+
+Trim a string or all elements of a list of strings. There is an optional second string argument. It can be used to specify a set of characters that will be cut. The default cut set consists of a space and a tab character.
+
+e.g.:
+
+```yaml
+list: (( trim(split("," "alice, bob")) ))
+```
+
+yields:
+
+```yaml
+list:
+  - alice
+  - bob
+```
+
 
 ## `(( exec( "command", arg1, arg2) ))`
 
@@ -874,7 +915,57 @@ networks:
   type: manual
 ```
 
+## `(( lambda |x|->x ":" port ))`
+
+Lambda expressions can be used to define additional anonymous functions. They can be assigned to yaml nodes as values and referenced with path expressions to call the function with approriate arguments in other dynaml expressions. Since the evaluation result of a lambda expression is a regular value, it can also be passed as argument to function calls and merged as values along stub processing. For the final document they are mapped to string values.
+
+There are two forms of lambda expressions. While
+
+```yaml
+lvalue: (( lambda |x|->x ":" port ))
+```
+
+yields a function taking one argument by directly taking the elements from the dynaml expression,
+
+```yaml
+string: "|x|->x \":\" port"
+lvalue: (( lambda string ))
+```
+
+evaluates an expression to a function or a string. If the expression is evaluated to a string it parses the function from the string.
+
+A complete example could look like this:
+
+```yaml
+lvalue: (( lambda |x,y|->x + y ))
+mod: (( lambda|x,y,m|->(lambda m)(x, y) + 3 ))
+value: (( .mod(1,2, lvalue) ))
+```
+
+yields
+
+```yaml
+lvalue: lambda |x,y|->x + y
+mod: lambda|x,y,m|->(lambda m)(x, y) + 3
+value: 6
+```
+
+A lambda expression might refer to absolute or relative nodes of the actual template. Relative references are evaluated in the context of the function call. Therefore
+
+```yaml
+lvalue: (( lambda |x,y|->x + y + offset ))
+offset: 0
+values:
+  offset: 3
+  value: (( .lvalue(1,2) ))
+```
+
+yields `6` for `values.value`.
+
 ## Mappings
+
+Mappings are used to produce a new list from the entries of a _list_ or _map_ containing the entries processed by a dynaml expression. The expression is given by a [lambda function](#-lambda-x-x--port-). There are two basic forms of the mapping function: It can be inlined as in`(( map[list|x|->x ":" port] ))`, or it can be determined by a regular dynaml expression evaluating to a lambda function as in `(( map[list|mapping.expression))` (here the mapping is taken from the property `mapping.expression`, which should hold an approriate lambda function).
+
 
 ### `(( map[list|elem|->dynaml-expr] ))`
 
@@ -954,7 +1045,7 @@ ages:
 - 2. bob is 24
 ```
 
-### (( map[map|key,value|->dynaml-expr] ))
+### `(( map[map|key,value|->dynaml-expr] ))`
 
 Mapping of a map to a list using a mapping expression. The expression may have access to the key and/or the value. If two references are declared, both values are passed to the expression, the first one is provided with the key and the second one with the value for the key. If one reference is declared, only the value is provided.
 
@@ -980,7 +1071,7 @@ keys:
 - alice
 - bob
 ```
-
+ 
 ## Operation Priorities
 
 Dynaml expressions are evaluated obeying certain priority levels. This means operations with a higher priority are evaluated first. For example the expression `1 + 2 * 3` is evaluated in the order `1 + ( 2 * 3 )`. Operations with the same priority are evaluated from left to right (in contrast to version 1.0.7). This means the expression `6 - 3 - 2` is evaluated as `( 6 - 3 ) - 2`.
@@ -991,7 +1082,7 @@ The following levels are supported (from low priority to high priority)
 2. White-space separated sequence as concatenation operation (`foo bar`)
 3. `+`, `-`
 4. `*`, `/`, `%`
-5. Grouping `( )`, constants, references (`foo.bar`) and functions (`merge`, `auto`, `map[]`, `join`, `exec`, `static_ips`, `min_ip`, `max_ip`)
+5. Grouping `( )`, constants, references (`foo.bar`) and functions (`merge`, `auto`, `lambda`, `map[]`, `join`, `split`, `trim`, `exec`, `static_ips`, `min_ip`, `max_ip`)
 
 The complete grammar can be found in [dynaml.peg](dynaml/dynaml.peg).
 
