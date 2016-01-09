@@ -374,8 +374,10 @@ var _ = Describe("parsing", func() {
 				`map[list|x|->x]`,
 				MapExpr{
 					ReferenceExpr{[]string{"list"}},
-					[]string{"x"},
-					ReferenceExpr{[]string{"x"}},
+					LambdaExpr{
+						[]string{"x"},
+						ReferenceExpr{[]string{"x"}},
+					},
 				},
 			)
 		})
@@ -385,8 +387,10 @@ var _ = Describe("parsing", func() {
 				`map[list|x,y|->x]`,
 				MapExpr{
 					ReferenceExpr{[]string{"list"}},
-					[]string{"y", "x"},
-					ReferenceExpr{[]string{"x"}},
+					LambdaExpr{
+						[]string{"x", "y"},
+						ReferenceExpr{[]string{"x"}},
+					},
 				},
 			)
 		})
@@ -396,10 +400,40 @@ var _ = Describe("parsing", func() {
 				`map[list|x|->x ".*"]`,
 				MapExpr{
 					ReferenceExpr{[]string{"list"}},
-					[]string{"x"},
-					ConcatenationExpr{
-						ReferenceExpr{[]string{"x"}},
-						StringExpr{".*"},
+					LambdaExpr{
+						[]string{"x"},
+						ConcatenationExpr{
+							ReferenceExpr{[]string{"x"}},
+							StringExpr{".*"},
+						},
+					},
+				},
+			)
+		})
+
+		It("parses mapping expression", func() {
+			parsesAs(
+				`map[list|mappings.a]`,
+				MapExpr{
+					ReferenceExpr{[]string{"list"}},
+					ReferenceExpr{
+						[]string{"mappings", "a"},
+					},
+				},
+			)
+		})
+
+		It("parses complex mapping expression", func() {
+			parsesAs(
+				`map[list|lambda |x|->x ".*"]`,
+				MapExpr{
+					ReferenceExpr{[]string{"list"}},
+					LambdaExpr{
+						[]string{"x"},
+						ConcatenationExpr{
+							ReferenceExpr{[]string{"x"}},
+							StringExpr{".*"},
+						},
 					},
 				},
 			)

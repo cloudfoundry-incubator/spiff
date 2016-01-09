@@ -2454,6 +2454,28 @@ joined: failed
 `)
 				Expect(source).To(FlowAs(resolved))
 			})
+
+			It("maps with referenced expression", func() {
+				source := parseYAML(`
+---
+map: '|x|->x'
+list:
+  - alice
+  - bob
+mapped: (( map[list|lambda map] ))
+`)
+				resolved := parseYAML(`
+---
+map: '|x|->x'
+list:
+  - alice
+  - bob
+mapped:
+  - alice
+  - bob
+`)
+				Expect(source).To(FlowAs(resolved))
+			})
 		})
 
 		Context("for a map", func() {

@@ -1831,7 +1831,7 @@ func (p *DynamlGrammar) Init() {
 			position, tokenIndex, depth = position139, tokenIndex139, depth139
 			return false
 		},
-		/* 33 Mapping <- <('m' 'a' 'p' '[' Expression '|' ws Name NextName? ws '|' ws ('-' '>') Expression ']')> */
+		/* 33 Mapping <- <('m' 'a' 'p' '[' Expression (LambdaExpr / ('|' Expression)) ']')> */
 		func() bool {
 			position141, tokenIndex141, depth141 := position, tokenIndex, depth
 			{
@@ -1856,47 +1856,23 @@ func (p *DynamlGrammar) Init() {
 				if !_rules[ruleExpression]() {
 					goto l141
 				}
-				if buffer[position] != rune('|') {
-					goto l141
-				}
-				position++
-				if !_rules[rulews]() {
-					goto l141
-				}
-				if !_rules[ruleName]() {
-					goto l141
-				}
 				{
 					position143, tokenIndex143, depth143 := position, tokenIndex, depth
-					if !_rules[ruleNextName]() {
-						goto l143
+					if !_rules[ruleLambdaExpr]() {
+						goto l144
 					}
-					goto l144
-				l143:
+					goto l143
+				l144:
 					position, tokenIndex, depth = position143, tokenIndex143, depth143
+					if buffer[position] != rune('|') {
+						goto l141
+					}
+					position++
+					if !_rules[ruleExpression]() {
+						goto l141
+					}
 				}
-			l144:
-				if !_rules[rulews]() {
-					goto l141
-				}
-				if buffer[position] != rune('|') {
-					goto l141
-				}
-				position++
-				if !_rules[rulews]() {
-					goto l141
-				}
-				if buffer[position] != rune('-') {
-					goto l141
-				}
-				position++
-				if buffer[position] != rune('>') {
-					goto l141
-				}
-				position++
-				if !_rules[ruleExpression]() {
-					goto l141
-				}
+			l143:
 				if buffer[position] != rune(']') {
 					goto l141
 				}

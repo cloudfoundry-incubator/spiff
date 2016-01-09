@@ -50,7 +50,7 @@ On <- 'on' req_ws Name
 
 Auto <- 'auto'
 
-Mapping <- 'map[' Expression '|' ws Name (NextName)? ws '|' ws '->' Expression ']'
+Mapping <- 'map[' Expression ( LambdaExpr / ( '|' Expression )) ']'
 Lambda <- 'lambda' ( LambdaRef / LambdaExpr )
 LambdaRef <- req_ws Expression
 LambdaExpr <- ws '|' ws Name (NextName)* ws '|' ws '->' Expression

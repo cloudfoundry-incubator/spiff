@@ -147,10 +147,8 @@ func buildExpression(grammar *DynamlGrammar, path []string, stubPath []string) E
 
 		case ruleMapping:
 			rhs := tokens.Pop()
-			names := tokens.PopNameList().list
-			reverse(names)
 			lhs := tokens.Pop()
-			tokens.Push(MapExpr{A: lhs, Names: names, B: rhs})
+			tokens.Push(MapExpr{Lambda: rhs, A: lhs})
 
 		case ruleLambda:
 
