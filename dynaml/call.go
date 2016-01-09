@@ -62,6 +62,12 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	case "join":
 		result, sub, ok = func_join(values, binding)
 
+	case "split":
+		result, sub, ok = func_split(values, binding)
+
+	case "trim":
+		result, sub, ok = func_trim(values, binding)
+
 	case "exec":
 		result, sub, ok = func_exec(values, binding)
 

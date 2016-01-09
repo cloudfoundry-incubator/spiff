@@ -2289,6 +2289,75 @@ foo: failed
 		})
 	})
 
+	Describe("when splitting", func() {
+		It("splits single value", func() {
+			source := parseYAML(`
+---
+foo: (( split( ",", "alice") ))
+`)
+			resolved := parseYAML(`
+---
+foo:
+ - alice
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("splits multiple values", func() {
+			source := parseYAML(`
+---
+foo: (( split( ",", "alice,bob") ))
+`)
+			resolved := parseYAML(`
+---
+foo:
+ - alice
+ - bob
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+	})
+
+	Describe("when trimming", func() {
+		It("trims strings", func() {
+			source := parseYAML(`
+---
+foo: (( trim( "  alice ") ))
+`)
+			resolved := parseYAML(`
+---
+foo: alice
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("trims dedicated characters", func() {
+			source := parseYAML(`
+---
+foo: (( trim( "alice", "ae") ))
+`)
+			resolved := parseYAML(`
+---
+foo: lic
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("trims lists", func() {
+			source := parseYAML(`
+---
+foo: (( trim( split(",","alice, bob ")) ))
+`)
+			resolved := parseYAML(`
+---
+foo:
+  - alice
+  - bob
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+	})
+
 	Describe("when doing a mapping", func() {
 		Context("for a list", func() {
 			It("maps simple expression", func() {
