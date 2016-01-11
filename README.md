@@ -676,12 +676,13 @@ ip: 10.10.10.10
 range: 10.10.10.10-10.11.11.1
 ```
 
-Additionally there are functions working on CIDRs:
+Additionally there are functions working on IPv4 CIDRs:
 
 ```yaml
 cidr: 192.168.0.1/24
 range: (( min_ip(cidr) "-" max_ip(cidr) ))
 next: (( max_ip(cidr) + 1 ))
+num: (( min_ip(cidr) "+" num_ip(cidr) "=" min_ip(cidr) + num_ip(cidr) ))
 ```
 
 yields
@@ -690,6 +691,7 @@ yields
 cidr: 192.168.0.1/24
 range: 192.168.0.0-192.168.0.255
 next: 192.168.1.0
+num: 192.168.0.0+256=192.168.1.0
 ```
 
 ## Functions
@@ -1116,7 +1118,7 @@ The following levels are supported (from low priority to high priority)
 2. White-space separated sequence as concatenation operation (`foo bar`)
 3. `+`, `-`
 4. `*`, `/`, `%`
-5. Grouping `( )`, constants, references (`foo.bar`) and functions (`merge`, `auto`, `lambda`, `map[]`, `join`, `split`, `trim`, `length`, `exec`, `static_ips`, `min_ip`, `max_ip`)
+5. Grouping `( )`, constants, references (`foo.bar`) and functions (`merge`, `auto`, `lambda`, `map[]`, `join`, `split`, `trim`, `length`, `exec`, `static_ips`, `min_ip`, `max_ip`, `num_ip`)
 
 The complete grammar can be found in [dynaml.peg](dynaml/dynaml.peg).
 

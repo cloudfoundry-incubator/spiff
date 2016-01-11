@@ -80,6 +80,9 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	case "max_ip":
 		result, sub, ok = func_maxIP(values, binding)
 
+	case "num_ip":
+		result, sub, ok = func_numIP(values, binding)
+
 	default:
 		info.Issue = fmt.Sprintf("unknown function '%s'", funcName)
 		return nil, info, false

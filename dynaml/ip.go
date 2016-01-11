@@ -7,7 +7,7 @@ import (
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
-func func_ip(op func(ip net.IP, cidr *net.IPNet) net.IP, arguments []interface{}, binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func func_ip(op func(ip net.IP, cidr *net.IPNet) interface{}, arguments []interface{}, binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	info := DefaultInfo()
 
 	if len(arguments) != 1 {
@@ -28,18 +28,25 @@ func func_ip(op func(ip net.IP, cidr *net.IPNet) net.IP, arguments []interface{}
 		return nil, info, false
 	}
 
-	return node(op(ip, cidr).String()), info, true
+	return node(op(ip, cidr)), info, true
 }
 
 func func_minIP(arguments []interface{}, binding Binding) (yaml.Node, EvaluationInfo, bool) {
-	return func_ip(func(ip net.IP, cidr *net.IPNet) net.IP {
-		return ip.Mask(cidr.Mask)
+	return func_ip(func(ip net.IP, cidr *net.IPNet) interface{} {
+		return ip.Mask(cidr.Mask).String()
 	}, arguments, binding)
 }
 
 func func_maxIP(arguments []interface{}, binding Binding) (yaml.Node, EvaluationInfo, bool) {
-	return func_ip(func(ip net.IP, cidr *net.IPNet) net.IP {
-		return MaxIP(cidr)
+	return func_ip(func(ip net.IP, cidr *net.IPNet) interface{} {
+		return MaxIP(cidr).String()
+	}, arguments, binding)
+}
+
+func func_numIP(arguments []interface{}, binding Binding) (yaml.Node, EvaluationInfo, bool) {
+	return func_ip(func(ip net.IP, cidr *net.IPNet) interface{} {
+		ones, _ := cidr.Mask.Size()
+		return int64(1 << (32 - uint32(ones)))
 	}, arguments, binding)
 }
 

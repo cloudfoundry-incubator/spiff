@@ -55,6 +55,38 @@ var _ = Describe("calls", func() {
 				),
 			)
 		})
+
+		It("determines number of IPs", func() {
+			expr := CallExpr{
+				Function: ReferenceExpr{[]string{"num_ip"}},
+				Arguments: []Expression{
+					StringExpr{"192.168.0.1/24"},
+				},
+			}
+
+			Expect(expr).To(
+				EvaluateAs(
+					int64(256),
+					FakeBinding{},
+				),
+			)
+		})
+
+		It("determines number of IPs for /22", func() {
+			expr := CallExpr{
+				Function: ReferenceExpr{[]string{"num_ip"}},
+				Arguments: []Expression{
+					StringExpr{"192.168.0.1/22"},
+				},
+			}
+
+			Expect(expr).To(
+				EvaluateAs(
+					int64(1024),
+					FakeBinding{},
+				),
+			)
+		})
 	})
 
 	Describe("join(\", \"...)", func() {
