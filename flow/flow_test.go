@@ -2358,6 +2358,51 @@ foo:
 		})
 	})
 
+	Describe("calling length", func() {
+		It("calculates string length", func() {
+			source := parseYAML(`
+---
+foo: (( length( "alice") ))
+`)
+			resolved := parseYAML(`
+---
+foo: 5
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("calculates list length", func() {
+			source := parseYAML(`
+---
+foo: (( length( ["alice","bob"]) ))
+`)
+			resolved := parseYAML(`
+---
+foo: 2
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("calculates map length", func() {
+			source := parseYAML(`
+---
+map:
+  alice: 25
+  bob: 24
+
+foo: (( length( map) ))
+`)
+			resolved := parseYAML(`
+---
+map:
+  alice: 25
+  bob: 24
+foo: 2
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+	})
+
 	Describe("when doing a mapping", func() {
 		Context("for a list", func() {
 			It("maps simple expression", func() {

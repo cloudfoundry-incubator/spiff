@@ -68,6 +68,9 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	case "trim":
 		result, sub, ok = func_trim(values, binding)
 
+	case "length":
+		result, sub, ok = func_length(values, binding)
+
 	case "exec":
 		result, sub, ok = func_exec(values, binding)
 

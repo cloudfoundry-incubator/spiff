@@ -139,6 +139,17 @@ node: (( "." a ))
 		))
 	})
 
+	It("reports length", func() {
+		source := parseYAML(`
+---
+
+node: (( length( 5 ) ))
+`)
+		Expect(source).To(FlowToErr(
+			`	(( length(5) ))	in test	node	()	invalid type for function length`,
+		))
+	})
+
 	It("reports unparseable", func() {
 		source := parseYAML(`
 ---

@@ -43,11 +43,13 @@ Contents:
 	- [(( a || b ))](#-a--b-)
 	- [(( 1 + 2 * foo ))](#-1--2--foo-)
 	- [(( "10.10.10.10" - 11 ))](#-10101010---11-)
-	- [(( join( ", ", list) ))](#-join---list-)
-	- [(( split( ",", string) ))](#-split--string-)
-	- [(( trim(string) ))](#-trimstring-)
-	- [(( exec( "command", arg1, arg2) ))](#-exec-command-arg1-arg2-)
-	- [(( static_ips(0, 1, 3) ))](#-static_ips0-1-3-)
+	- [Functions](#functions)
+		- [(( join( ", ", list) ))](#-join---list-)
+		- [(( split( ",", string) ))](#-split--string-)
+		- [(( trim(string) ))](#-trimstring-)
+		- [(( length(list) ))](#-lengthlist-)
+		- [(( exec( "command", arg1, arg2) ))](#-exec-command-arg1-arg2-)
+		- [(( static_ips(0, 1, 3) ))](#-static_ips0-1-3-)
 	- [(( lambda |x|->x ":" port ))](#-lambda-x-x--port-)
 	- [Mappings](#mappings)
 		- [(( map[list|elem|->dynaml-expr] ))](#-maplistelem-dynaml-expr-)
@@ -690,7 +692,18 @@ range: 192.168.0.0-192.168.0.255
 next: 192.168.1.0
 ```
 
-## `(( join( ", ", list) ))`
+## Functions
+
+Dynaml supports a set of predefined functions. A function is generally called like
+
+```yaml
+result: (( functionname(arg, arg, ...) ))
+```
+
+Additional functions may be defined as part of the yaml document using [lambda expressions](#-lambda-x-x--port-). The function name then is either a grouped expression or the path to the node hosting the lambda expression.
+ 
+
+### `(( join( ", ", list) ))`
 
 Join entries of lists or direct values to a single string value using a given separator string. The arguments to join can be dynaml expressions evaluating to lists, whose values again are strings or integers, or string or integer values.
 
@@ -707,7 +720,7 @@ join: (( join(", ", "bob", list, alice, 10) ))
 
 yields the string value `bob, foo, bar, alice, 10` for `join`.
 
-## `(( split( ",", string) ))`
+### `(( split( ",", string) ))`
 
 Split a string for a dedicated separator. The result is a list.
 
@@ -725,7 +738,7 @@ list:
   - ' bob'
 ```
 
-## `(( trim(string) ))`
+### `(( trim(string) ))`
 
 Trim a string or all elements of a list of strings. There is an optional second string argument. It can be used to specify a set of characters that will be cut. The default cut set consists of a space and a tab character.
 
@@ -743,8 +756,29 @@ list:
   - bob
 ```
 
+### `(( length(list) ))`
 
-## `(( exec( "command", arg1, arg2) ))`
+Determine the length of a list, a map or a string value.
+
+e.g.:
+
+```yaml
+list:
+  - alice
+  - bob
+length: (( length(list) ))
+```
+
+yields:
+
+```yaml
+list:
+  - alice
+  - bob
+length: 2
+```
+
+### `(( exec( "command", arg1, arg2) ))`
 
 Execute a command. Arguments can be any dynaml expressions including reference expressions evaluated to lists or maps. Lists or maps are passed as single arguments containing a yaml document with the given fragment.
 
@@ -777,7 +811,7 @@ Alternatively `exec` can be called with a single list argument completely descri
 
 The same command will be executed once, only, even if it is used in multiple expressions.
 
-## `(( static_ips(0, 1, 3) ))`
+### `(( static_ips(0, 1, 3) ))`
 
 Generate a list of static IPs for a job.
 
@@ -1082,7 +1116,7 @@ The following levels are supported (from low priority to high priority)
 2. White-space separated sequence as concatenation operation (`foo bar`)
 3. `+`, `-`
 4. `*`, `/`, `%`
-5. Grouping `( )`, constants, references (`foo.bar`) and functions (`merge`, `auto`, `lambda`, `map[]`, `join`, `split`, `trim`, `exec`, `static_ips`, `min_ip`, `max_ip`)
+5. Grouping `( )`, constants, references (`foo.bar`) and functions (`merge`, `auto`, `lambda`, `map[]`, `join`, `split`, `trim`, `length`, `exec`, `static_ips`, `min_ip`, `max_ip`)
 
 The complete grammar can be found in [dynaml.peg](dynaml/dynaml.peg).
 
