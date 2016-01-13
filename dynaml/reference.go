@@ -34,13 +34,13 @@ func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, boo
 		}
 
 		if !isLocallyResolved(step) {
-			debug.Debug("  unresoved\n")
+			debug.Debug("  unresolved\n")
 			return node(e), info, true
 		}
 	}
 
 	if !isResolved(step) {
-		debug.Debug("  unresoved\n")
+		debug.Debug("  unresolved\n")
 		return node(e), info, true
 	}
 

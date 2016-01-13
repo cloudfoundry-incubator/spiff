@@ -1172,7 +1172,7 @@ list:
 	
   people:
     - alice: 24
-	- bob: 24
+    - bob: 24
   ```
 
 - _Nested merge expressions use implied redirections_
@@ -1194,8 +1194,8 @@ list:
   deployments:
     cf:
       properties:
-	    alice: 24
-	    bob: 42
+        alice: 24
+        bob: 42
   ```
 
   yields
@@ -1204,7 +1204,7 @@ list:
   meta:
     properties:
       alice: 24
-	  bob: 42
+      bob: 42
   ```
 
 # Error Reporting
