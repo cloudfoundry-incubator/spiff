@@ -47,9 +47,6 @@ func (e LambdaRefExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, boo
 		lambda = v
 
 	case string:
-		if len(v) > 0 && v[0] == '|' {
-			v = "lambda " + v
-		}
 		debug.Debug("LRef: parsing '%s'\n", v)
 		expr, err := Parse(v, e.Path, e.StubPath)
 		if err != nil {

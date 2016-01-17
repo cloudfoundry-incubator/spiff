@@ -4,7 +4,7 @@ type DynamlGrammar Peg {}
 
 Dynaml <- (Prefer / Expression) !.
 Prefer <- ws 'prefer' req_ws Expression
-Expression <- ws Level7 ws
+Expression <- ws ( LambdaExpr / Level7 ) ws
 
 Level7 <- Level6 ( req_ws Or )*
 Or <- '||' req_ws Level6
@@ -65,7 +65,7 @@ On <- 'on' req_ws Name
 
 Auto <- 'auto'
 
-Mapping <- 'map[' Expression ( LambdaExpr / ( '|' Expression )) ']'
+Mapping <- 'map[' Level7 ( LambdaExpr / ( '|' Expression )) ']'
 Lambda <- 'lambda' ( LambdaRef / LambdaExpr )
 LambdaRef <- req_ws Expression
 LambdaExpr <- ws '|' ws Name (NextName)* ws '|' ws '->' Expression
