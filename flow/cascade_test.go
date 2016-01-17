@@ -305,6 +305,22 @@ values:
 `)
 				Expect(template).To(CascadeAs(resolved, source))
 			})
+
+			It("supports self recursion", func() {
+				source := parseYAML(`
+---
+fibonacci: (( lambda |x|-> x <= 0 ? 0 :x == 1 ? 1 :_(x - 2) + _( x - 1 ) ))
+values:
+  value: (( .fibonacci(5) ))
+`)
+
+				resolved := parseYAML(`
+---
+values:
+  value: 5
+`)
+				Expect(template).To(CascadeAs(resolved, source))
+			})
 		})
 
 		Context("cross stub", func() {

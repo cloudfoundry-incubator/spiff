@@ -17,23 +17,17 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	resolved := true
 	funcName := ""
 	var value interface{}
-
-	values, info, ok := ResolveExpressionListOrPushEvaluation(&e.Arguments, &resolved, nil, binding)
-
-	if !ok {
-		debug.Debug("call args failed\n")
-		return nil, info, false
-	}
+	var info EvaluationInfo
 
 	ref, ok := e.Function.(ReferenceExpr)
-	if ok && len(ref.Path) == 1 && ref.Path[0] != "" {
+	if ok && len(ref.Path) == 1 && ref.Path[0] != "" && ref.Path[0] != "_" {
 		funcName = ref.Path[0]
 	} else {
 		value, info, ok = ResolveExpressionOrPushEvaluation(&e.Function, &resolved, &info, binding)
 		if ok {
 			_, ok = value.(LambdaValue)
 			if !ok {
-				debug.Debug("function no string or lambda value: %T\n", value)
+				debug.Debug("function: no string or lambda value: %T\n", value)
 				info.Issue = fmt.Sprintf("function call '%s' requires function name or lambda value", e.Function)
 			}
 		}
@@ -41,6 +35,17 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 
 	if !ok {
 		debug.Debug("failed to resolve function: %s\n", info.Issue)
+		return nil, info, false
+	}
+
+	if funcName == "defined" {
+		return e.defined(binding)
+	}
+
+	values, info, ok := ResolveExpressionListOrPushEvaluation(&e.Arguments, &resolved, nil, binding)
+
+	if !ok {
+		debug.Debug("call args failed\n")
 		return nil, info, false
 	}
 

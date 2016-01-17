@@ -13,28 +13,38 @@ type ReferenceExpr struct {
 }
 
 func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+	fromRoot := e.Path[0] == ""
+
+	debug.Debug("reference: %v\n", e.Path)
+	return e.find(func(end int, path []string) (yaml.Node, bool) {
+		if fromRoot {
+			return binding.FindFromRoot(path[1 : end+1])
+		} else {
+			return binding.FindReference(path[:end+1])
+		}
+	})
+}
+
+func (e ReferenceExpr) String() string {
+	return strings.Join(e.Path, ".")
+}
+
+func (e ReferenceExpr) find(f func(int, []string) (yaml.Node, bool)) (yaml.Node, EvaluationInfo, bool) {
 	var step yaml.Node
 	var ok bool
 
 	info := DefaultInfo()
-	fromRoot := e.Path[0] == ""
-
-	debug.Debug("reference: %v\n", e.Path)
 	for i := 0; i < len(e.Path); i++ {
-		if fromRoot {
-			step, ok = binding.FindFromRoot(e.Path[1 : i+1])
-		} else {
-			step, ok = binding.FindReference(e.Path[:i+1])
-		}
+		step, ok = f(i, e.Path)
 
-		debug.Debug("  %d: %v %+v\n", i, ok, step)
+		debug.Debug("  %d: %v %#v\n", i, ok, step)
 		if !ok {
 			info.Issue = fmt.Sprintf("'%s' not found", strings.Join(e.Path, "."))
 			return nil, info, false
 		}
 
 		if !isLocallyResolved(step) {
-			debug.Debug("  unresolved\n")
+			debug.Debug("  locally unresolved\n")
 			return node(e), info, true
 		}
 	}
@@ -46,8 +56,4 @@ func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, boo
 
 	debug.Debug("reference %v -> %+v\n", e.Path, step)
 	return yaml.ReferencedNode(step), info, true
-}
-
-func (e ReferenceExpr) String() string {
-	return strings.Join(e.Path, ".")
 }

@@ -4,13 +4,24 @@ type DynamlGrammar Peg {}
 
 Dynaml <- (Prefer / Expression) !.
 Prefer <- ws 'prefer' req_ws Expression
-Expression <- ws Level4 ws
+Expression <- ws Level7 ws
 
-Level4 <- Level3 ( req_ws Or )*
-Or <- '||' req_ws Level3
+Level7 <- Level6 ( req_ws Or )*
+Or <- '||' req_ws Level6
 
-Level3 <- Level2 ( Concatenation )*
-Concatenation <- req_ws Level2
+Level6 <- Conditional / Level5
+Conditional <- Level5 ws '?' Expression ':' Expression
+
+Level5 <- Level4 ( Concatenation )*
+Concatenation <- req_ws Level4
+
+Level4 <- Level3 ( req_ws ( LogOr / LogAnd ) )*
+LogOr <- '-or' req_ws Level3
+LogAnd <- '-and' req_ws Level3
+
+Level3 <- Level2 ( req_ws Comparison )*
+Comparison <- CompareOp req_ws Level2
+CompareOp <- '==' / '!=' / '<=' / '>=' / '>' / '<' / '>'
 
 Level2 <-  Level1 ( req_ws ( Addition / Subtraction ) )*
 Addition <- '+' req_ws Level1
@@ -21,9 +32,13 @@ Multiplication <- '*' req_ws Level0
 Division <-  '/' req_ws Level0
 Modulo <-  '%' req_ws Level0
 
-Level0 <- Call / Grouped / Boolean / Nil / String / Integer / List / Merge / Auto / Mapping / Lambda / Reference
+Level0 <- QualifiedExpression / Not / Call / Grouped / Boolean / Nil / 
+          String / Integer / List / Range / Merge / Auto / Mapping / Lambda / Reference
 
+QualifiedExpression <- ( Call / Grouped / List / Range ) '.' FollowUpRef
+Not <- '!' ws Level0
 Grouped <- '(' Expression ')'
+Range <- '[' Expression '..' Expression ']'
 
 Call <- ( Reference / Grouped ) '(' Arguments ')'
 Name <- [a-zA-Z0-9_]+
@@ -56,8 +71,11 @@ LambdaRef <- req_ws Expression
 LambdaExpr <- ws '|' ws Name (NextName)* ws '|' ws '->' Expression
 NextName <- ws ',' ws Name
 
-Reference <- '.'? Key ('.' Key / '.' '[' [0-9]+ ']')*
+Reference <- '.'? Key ( '.' ( Key / Index) )*
+FollowUpRef <- ( Key / Index) ( '.' ( Key / Index) )*
+
 Key <- [a-zA-Z0-9_] [a-zA-Z0-9_\-]* ( ':' [a-zA-Z0-9_] [a-zA-Z0-9_\-]* )?
+Index <- '[' [0-9]+ ']'
 
 ws <- [ \t\n\r]*
 

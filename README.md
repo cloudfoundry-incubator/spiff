@@ -22,6 +22,7 @@ Contents:
 	- [(( foo ))](#-foo-)
 	- [(( foo.bar.[1].baz ))](#-foobar1baz-)
 	- [(( "foo" ))](#-foo--1)
+	- [(( [ 1, 2, 3 ] ))](#--1-2-3--)
 	- [(( foo bar ))](#-foo-bar-)
 		- [(( "foo" bar ))](#-foo-bar--1)
 		- [(( [1,2] bar ))](#-12-bar-)
@@ -43,11 +44,14 @@ Contents:
 	- [(( a || b ))](#-a--b-)
 	- [(( 1 + 2 * foo ))](#-1--2--foo-)
 	- [(( "10.10.10.10" - 11 ))](#-10101010---11-)
+	- [(( a > 1 ? foo :bar ))](#-a--1--foo-bar-)
+	- [(( 5 -or 6 ))](#-5--or-6-)
 	- [Functions](#functions)
 		- [(( join( ", ", list) ))](#-join---list-)
 		- [(( split( ",", string) ))](#-split--string-)
 		- [(( trim(string) ))](#-trimstring-)
 		- [(( length(list) ))](#-lengthlist-)
+		- [(( defined(foobar) ))](#-definedfoobar-)
 		- [(( exec( "command", arg1, arg2) ))](#-exec-command-arg1-arg2-)
 		- [(( static_ips(0, 1, 3) ))](#-static_ips0-1-3-)
 	- [(( lambda |x|->x ":" port ))](#-lambda-x-x--port-)
@@ -208,6 +212,25 @@ can be referenced by using the path `list.alice.age`, instead of `list[0].age`.
 ## `(( "foo" ))`
 
 String literal. The only escape character handled currently is '"'.
+
+## `(( [ 1, 2, 3 ] ))`
+
+List literal. The list elements might again be expressions. There is a special list literal `[1 .. -1]`, that can be used to resolve an increasing or descreasing number range to a list. 
+
+e.g.:
+
+```yaml
+list: (( [ 1 .. -1 ] ))
+```
+
+yields
+
+```yaml
+list:
+  - 1
+  - 0
+  - -1
+```
 
 ## `(( foo bar ))`
 
@@ -694,6 +717,38 @@ next: 192.168.1.0
 num: 192.168.0.0+256=192.168.1.0
 ```
 
+## `(( a > 1 ? foo :bar ))`
+
+Dynaml supports the comparison operators `<`, `<=`, `==`, `!=`, `>=` and `>`. The comparison operators work on
+integer values. The check for equality also works on lists and maps. The result is always a boolean value.
+
+Additionally there is the ternary conditional operator `?:`, that can be used to evaluate expressions depending on a condition. The first operand is used as condition. The expression is evaluated to the second operand, if the condition is true, and to the third one, otherwise.
+
+e.g.:
+
+```yaml
+foo: alice
+bar: bob
+age: 24
+name: (( age > 24 ? foo :bar ))
+```
+
+yields the value `bob` for the property `name`.
+
+**Remark**
+
+The use of the symbol `:` may collide with the yaml syntax, if the complete expression is not a quoated string value.
+
+The operators `-or` and `-and` can be used to combine comparison operators to compose more complex conditions.
+
+**Remark:**
+
+The more traditional operator symbol `||` (and `&&`) cannot be used here, because the operator `||` has already exists in dynam with a different semantic, that does not work for logical operations. The expression `false || true` evaluates to `false`, because it yields the first operand, if it is defined, regardless of its value. To be as compatible as possible this cannot be changed and the bare symbols `or` and `and` cannot be be used, because this would invalidate the concatenation of references with such names. 
+
+## `(( 5 -or 6 ))`
+
+If both sides of an `-or` or `-and` operator evaluates to an integer value, a bit-wise operation is executed and the result is again an integer. Therefore the expression `5 -or 6` evaluates to `7`.
+
 ## Functions
 
 Dynaml supports a set of predefined functions. A function is generally called like
@@ -779,6 +834,30 @@ list:
   - bob
 length: 2
 ```
+
+### `(( defined(foobar) ))`
+
+The function `defined` checks whether an expression can successfully be evaluated. It yields the boolean value `true`, if the expression can be evaluated, and `false` otherwise.
+
+e.g.:
+
+```yaml
+zero: 0
+div_ok: (( defined(1 / zero ) ))
+zero_def: (( defined( zero ) ))
+null_def: (( defined( null ) ))
+```
+
+evaluates to
+
+```yaml
+zero: 0
+div_ok: false
+zero_def: true
+null_def: false
+```
+
+This function can be used in combination of the [conditional operator](#-a--1--foo-bar-) to evaluate expressions depending on the resolvability of another expression.
 
 ### `(( exec( "command", arg1, arg2) ))`
 
@@ -953,7 +1032,7 @@ networks:
 
 ## `(( lambda |x|->x ":" port ))`
 
-Lambda expressions can be used to define additional anonymous functions. They can be assigned to yaml nodes as values and referenced with path expressions to call the function with approriate arguments in other dynaml expressions. Since the evaluation result of a lambda expression is a regular value, it can also be passed as argument to function calls and merged as values along stub processing. For the final document they are mapped to string values.
+Lambda expressions can be used to define additional anonymous functions. They can be assigned to yaml nodes as values and referenced with path expressions to call the function with approriate arguments in other dynaml expressions. For the final document they are mapped to string values.
 
 There are two forms of lambda expressions. While
 
@@ -969,6 +1048,8 @@ lvalue: (( lambda string ))
 ```
 
 evaluates an expression to a function or a string. If the expression is evaluated to a string it parses the function from the string.
+
+Since the evaluation result of a lambda expression is a regular value, it can also be passed as argument to function calls and merged as value along stub processing.
 
 A complete example could look like this:
 
@@ -997,6 +1078,17 @@ values:
 ```
 
 yields `6` for `values.value`.
+
+Besides the specified parameters, there is an implicit name (`_`), that can be used to refer to the function itself. It can be used to define self recursive function. Together with the logical and conditional operators a fibunacci function can be defined:
+
+```yaml
+fibonacci: (( lambda |x|-> x <= 0 ? 0 :x == 1 ? 1 :_(x - 2) + _( x - 1 ) ))
+value: (( .fibonacci(5) ))
+```
+
+yields the value `8` for the `value` property.
+
+If a complete expression is a lambda expression the keyword `lambda` can be omitted.
 
 ## Mappings
 
@@ -1116,9 +1208,11 @@ The following levels are supported (from low priority to high priority)
 
 1. `||`
 2. White-space separated sequence as concatenation operation (`foo bar`)
-3. `+`, `-`
-4. `*`, `/`, `%`
-5. Grouping `( )`, constants, references (`foo.bar`) and functions (`merge`, `auto`, `lambda`, `map[]`, `join`, `split`, `trim`, `length`, `exec`, `static_ips`, `min_ip`, `max_ip`, `num_ip`)
+3. `-or`, `-and`
+4. `==`, `!=`, `<=`, `<`, `>`, `>=`
+5. `+`, `-`
+6. `*`, `/`, `%`
+7. Grouping `( )`, `!`, constants, references (`foo.bar`), `merge`, `auto`, `lambda`, `map[]`, and [functions](#functions)
 
 The complete grammar can be found in [dynaml.peg](dynaml/dynaml.peg).
 
@@ -1365,6 +1459,19 @@ by the template.
       bob: 42
   ```
 
+- _Functions and mappings can freely be nested_
+
+  e.g.:
+
+  ```yaml
+  pot: (( lambda |x,y|-> y == 0 ? 1 :(|m|->m * m)(_(x, y / 2)) * ( 1 + ( y % 2 ) * ( x - 1 ) ) ))
+  seq: (( lambda |b,l|->map[l|x|-> .pot(b,x)] ))
+  values: (( .seq(2,[ 0..4 ]) ))
+  ```
+
+  yields the list `[ 1,2,4,8,16 ]` for the property `values`.
+
+ 
 # Error Reporting
 
 The evaluation of dynaml expressions may fail because of several reasons:

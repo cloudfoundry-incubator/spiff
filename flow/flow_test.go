@@ -2007,6 +2007,198 @@ foo: "1515"
 		})
 	})
 
+	Describe("for logical expressions", func() {
+		It("evaluates not", func() {
+			source := parseYAML(`
+---
+foo: (( 5 ))
+bar: (( !foo ))
+`)
+			resolved := parseYAML(`
+---
+foo: 5
+bar: false
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("evaluates and", func() {
+			source := parseYAML(`
+---
+foo: (( 0 ))
+bar: (( !foo -and true))
+`)
+			resolved := parseYAML(`
+---
+foo: 0
+bar: true
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("evaluates or", func() {
+			source := parseYAML(`
+---
+foo: (( 5 ))
+bar: (( !foo -or true))
+`)
+			resolved := parseYAML(`
+---
+foo: 5
+bar: true
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("evaluates <=", func() {
+			source := parseYAML(`
+---
+foo: (( 5 ))
+bar: (( foo <= 5))
+`)
+			resolved := parseYAML(`
+---
+foo: 5
+bar: true
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("evaluates <", func() {
+			source := parseYAML(`
+---
+foo: (( 5 ))
+bar: (( foo < 5))
+`)
+			resolved := parseYAML(`
+---
+foo: 5
+bar: false
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("evaluates >=", func() {
+			source := parseYAML(`
+---
+foo: (( 5 ))
+bar: (( foo >= 5))
+`)
+			resolved := parseYAML(`
+---
+foo: 5
+bar: true
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("evaluates >", func() {
+			source := parseYAML(`
+---
+foo: (( 5 ))
+bar: (( foo > 5))
+`)
+			resolved := parseYAML(`
+---
+foo: 5
+bar: false
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("evaluates ==", func() {
+			source := parseYAML(`
+---
+foo: (( 5 ))
+bar: (( foo == 5))
+`)
+			resolved := parseYAML(`
+---
+foo: 5
+bar: true
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("evaluates == of lists", func() {
+			source := parseYAML(`
+---
+foo: 
+  - alice
+  - bob
+bar: (( foo == [ "alice","bob" ] ))
+`)
+			resolved := parseYAML(`
+---
+foo: 
+  - alice
+  - bob
+bar: true
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("evaluates == of lists to false", func() {
+			source := parseYAML(`
+---
+foo: 
+  - alice
+  - bob
+bar: (( foo == [ "alice","paul" ] ))
+`)
+			resolved := parseYAML(`
+---
+foo: 
+  - alice
+  - bob
+bar: false
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("evaluates == of maps", func() {
+			source := parseYAML(`
+---
+foo: 
+  a: 1
+  b: 2
+
+comp:
+  a: 1
+  b: 2
+
+bar: (( foo == comp ))
+`)
+			resolved := parseYAML(`
+---
+foo: 
+  a: 1
+  b: 2
+
+comp:
+  a: 1
+  b: 2
+
+bar: true
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("evaluates !=", func() {
+			source := parseYAML(`
+---
+foo: (( 5 ))
+bar: (( foo != 5))
+`)
+			resolved := parseYAML(`
+---
+foo: 5
+bar: false
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+	})
+
 	Describe("when concatenating a list", func() {
 		Context("with incremental expression resolution", func() {
 			It("evaluates in case of successfully completed operand resolution", func() {
