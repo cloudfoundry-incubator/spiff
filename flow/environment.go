@@ -15,6 +15,10 @@ type Environment struct {
 	StubPath []string
 }
 
+func (e Environment) GetLocalBinding() map[string]yaml.Node {
+	return map[string]yaml.Node{}
+}
+
 func (e Environment) FindFromRoot(path []string) (yaml.Node, bool) {
 	if len(e.Scope) == 0 {
 		return nil, false

@@ -12,6 +12,10 @@ type FakeBinding struct {
 	FoundInStubs    map[string]yaml.Node
 }
 
+func (c FakeBinding) GetLocalBinding() map[string]yaml.Node {
+	return map[string]yaml.Node{}
+}
+
 func (c FakeBinding) FindFromRoot(path []string) (yaml.Node, bool) {
 	p := strings.Join(path, ".")
 	if len(path) == 0 {

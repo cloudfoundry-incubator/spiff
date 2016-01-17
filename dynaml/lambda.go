@@ -14,7 +14,7 @@ type LambdaExpr struct {
 
 func (e LambdaExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	info := DefaultInfo()
-	return node(LambdaValue{e}), info, true
+	return node(LambdaValue{e, binding.GetLocalBinding()}), info, true
 }
 
 func (e LambdaExpr) String() string {
@@ -63,7 +63,7 @@ func (e LambdaRefExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, boo
 			info.Issue = fmt.Sprintf("'%s' is no lambda expression", v)
 			return nil, info, false
 		}
-		lambda = LambdaValue{lexpr}
+		lambda = LambdaValue{lexpr, binding.GetLocalBinding()}
 
 	default:
 		info.Issue = "lambda reference must resolve to lambda value or string"
@@ -77,7 +77,8 @@ func (e LambdaRefExpr) String() string {
 }
 
 type LambdaValue struct {
-	lambda LambdaExpr
+	lambda  LambdaExpr
+	binding map[string]yaml.Node
 }
 
 func (e LambdaValue) String() string {
@@ -95,9 +96,15 @@ func (e LambdaValue) Evaluate(args []interface{}, binding Binding) (yaml.Node, E
 		return nil, info, false
 	}
 	inp := map[string]yaml.Node{}
+	for n, v := range e.binding {
+		inp[n] = v
+	}
+	debug.Debug("LAMBDA CALL: inherit binding %+v\n", inp)
+	inp["_"] = node(e)
 	for i, name := range e.lambda.Names {
 		inp[name] = node(args[i])
 	}
+	debug.Debug("LAMBDA CALL: effective binding %+v\n", inp)
 	ctx := MapContext{binding, inp}
 	return e.lambda.E.Evaluate(ctx)
 }
@@ -105,6 +112,10 @@ func (e LambdaValue) Evaluate(args []interface{}, binding Binding) (yaml.Node, E
 type MapContext struct {
 	Binding
 	names map[string]yaml.Node
+}
+
+func (c MapContext) GetLocalBinding() map[string]yaml.Node {
+	return c.names
 }
 
 func (c MapContext) FindReference(path []string) (yaml.Node, bool) {

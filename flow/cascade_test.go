@@ -288,6 +288,23 @@ values:
 `)
 				Expect(template).To(CascadeAs(resolved, source))
 			})
+
+			It("passes binding to nested lambda expressions", func() {
+				source := parseYAML(`
+---
+mult: (( lambda |x|-> lambda |y|-> x * y ))
+mult2: (( .mult(2) ))
+values:
+  value: (( .mult2(3) ))
+`)
+
+				resolved := parseYAML(`
+---
+values:
+  value: 6
+`)
+				Expect(template).To(CascadeAs(resolved, source))
+			})
 		})
 
 		Context("cross stub", func() {

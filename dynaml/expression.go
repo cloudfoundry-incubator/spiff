@@ -5,6 +5,7 @@ import (
 )
 
 type Binding interface {
+	GetLocalBinding() map[string]yaml.Node
 	FindFromRoot([]string) (yaml.Node, bool)
 	FindReference([]string) (yaml.Node, bool)
 	FindInStubs([]string) (yaml.Node, bool)
