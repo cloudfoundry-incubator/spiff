@@ -321,6 +321,56 @@ values:
 `)
 				Expect(template).To(CascadeAs(resolved, source))
 			})
+
+			It("supports currying", func() {
+				source := parseYAML(`
+---
+mult: (( lambda |x,y|-> x * y ))
+mult2: (( .mult(2) ))
+values:
+  value: (( .mult2(5) ))
+`)
+
+				resolved := parseYAML(`
+---
+values:
+  value: 10
+`)
+				Expect(template).To(CascadeAs(resolved, source))
+			})
+
+			It("supports call chaining", func() {
+				source := parseYAML(`
+---
+mult: (( lambda |x,y|-> x * y ))
+values:
+  value: (( .mult(2)(5) ))
+`)
+
+				resolved := parseYAML(`
+---
+values:
+  value: 10
+`)
+				Expect(template).To(CascadeAs(resolved, source))
+			})
+			
+			It("supports chained references", func() {
+				source := parseYAML(`
+---
+func:
+  mult: (( lambda |x,y|-> x * y ))
+values:
+  value: (( (|x|->x)(func).mult(2,5) ))
+`)
+
+				resolved := parseYAML(`
+---
+values:
+  value: 10
+`)
+				Expect(template).To(CascadeAs(resolved, source))
+			})
 		})
 
 		Context("cross stub", func() {

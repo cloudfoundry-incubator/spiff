@@ -88,11 +88,18 @@ func buildExpression(grammar *DynamlGrammar, path []string, stubPath []string) E
 		case ruleReference, ruleFollowUpRef:
 			tokens.Push(ReferenceExpr{strings.Split(contents, ".")})
 
-		case ruleQualifiedExpression:
+		case ruleChained:
+		case ruleChainedQualifiedExpression:
 			ref := tokens.Pop()
 			expr := tokens.Pop()
 			tokens.Push(QualifiedExpr{expr, ref.(ReferenceExpr)})
-
+			
+		case ruleChainedCall:
+			tokens.Push(CallExpr{
+				Function:  tokens.Pop(),
+				Arguments: tokens.GetExpressionList(),
+			})
+			
 		case ruleInteger:
 			val, err := strconv.ParseInt(contents, 10, 64)
 			if err != nil {
@@ -176,11 +183,7 @@ func buildExpression(grammar *DynamlGrammar, path []string, stubPath []string) E
 			lhs := tokens.Pop()
 
 			tokens.Push(ModuloExpr{A: lhs, B: rhs})
-		case ruleCall:
-			tokens.Push(CallExpr{
-				Function:  tokens.Pop(),
-				Arguments: tokens.GetExpressionList(),
-			})
+			
 		case ruleName:
 			tokens.Push(nameHelper{name: contents})
 		case ruleNextName:

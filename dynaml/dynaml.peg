@@ -32,25 +32,22 @@ Multiplication <- '*' req_ws Level0
 Division <-  '/' req_ws Level0
 Modulo <-  '%' req_ws Level0
 
-Level0 <- QualifiedExpression / Not / Call / Grouped / Boolean / Nil / 
-          String / Integer / List / Range / Merge / Auto / Mapping / Lambda / Reference
+Level0 <- String / Integer / Boolean / Nil / Not /
+          Merge / Auto / Lambda / Chained 
 
-QualifiedExpression <- ( Call / Grouped / List / Range ) '.' FollowUpRef
+Chained <- (( Mapping / List / Range / ( Grouped / Reference ) ChainedCall* ) ) ( ChainedQualifiedExpression ChainedCall+)* ChainedQualifiedExpression?
+ChainedQualifiedExpression <- '.' FollowUpRef 
+ChainedCall <- '(' Arguments ')'
+Arguments <- Expression (NextExpression)*
+NextExpression <- ',' Expression
+
 Not <- '!' ws Level0
 Grouped <- '(' Expression ')'
 Range <- '[' Expression '..' Expression ']'
 
-Call <- ( Reference / Grouped ) '(' Arguments ')'
-Name <- [a-zA-Z0-9_]+
-Arguments <- Expression (NextExpression)*
-NextExpression <- ',' Expression
-
-Integer <- '-'? [0-9_]+
-
+Integer <- '-'? [0-9] [0-9_]*
 String <- '"' ('\\"' / !'"' .)* '"'
-
 Boolean <- 'true' / 'false'
-
 Nil <- 'nil' / '~'
 
 List <- '[' Contents? ']'
@@ -70,6 +67,7 @@ Lambda <- 'lambda' ( LambdaRef / LambdaExpr )
 LambdaRef <- req_ws Expression
 LambdaExpr <- ws '|' ws Name (NextName)* ws '|' ws '->' Expression
 NextName <- ws ',' ws Name
+Name <- [a-zA-Z0-9_]+
 
 Reference <- '.'? Key ( '.' ( Key / Index) )*
 FollowUpRef <- ( Key / Index) ( '.' ( Key / Index) )*

@@ -1088,6 +1088,28 @@ value: (( .fibonacci(5) ))
 
 yields the value `8` for the `value` property.
 
+Inner lambda expressions remember the local binding of outer lambda expressions. This can be used to return functions based an arguments of the outer function.
+
+e.g.:
+
+```yaml
+mult: (( lambda |x|-> lambda |y|-> x * y ))
+mult2: (( .mult(2) ))
+value: (( .mult2(3) ))
+```
+
+yields `6` for property `value`.
+
+If a lambda function is called with less arguments than expected, the result is a new function taking the missing arguments (currying).
+
+e.g.:
+
+```yaml
+mult: (( lambda |x,y|-> x * y ))
+mult2: (( .mult(2) ))
+value: (( .mult2(3) ))
+```
+
 If a complete expression is a lambda expression the keyword `lambda` can be omitted.
 
 ## Mappings

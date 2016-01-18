@@ -79,7 +79,17 @@ type LambdaValue struct {
 }
 
 func (e LambdaValue) String() string {
-	return fmt.Sprintf("%s", e.lambda)
+	binding := ""
+	if len(e.binding) > 0 {
+		binding = "{"
+		for n, v := range e.binding {
+			if n != "_" {
+				binding += fmt.Sprintf("%s: %v,", n, v.Value())
+			}
+		}
+		binding += "}"
+	}
+	return fmt.Sprintf("%s%s", binding, e.lambda)
 }
 
 func (e LambdaValue) MarshalYAML() (tag string, value interface{}) {
@@ -88,7 +98,8 @@ func (e LambdaValue) MarshalYAML() (tag string, value interface{}) {
 
 func (e LambdaValue) Evaluate(args []interface{}, binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	info := DefaultInfo()
-	if len(args) != len(e.lambda.Names) {
+
+	if len(args) > len(e.lambda.Names) {
 		info.Issue = fmt.Sprintf("found %d argument(s), but expects %d", len(args), len(e.lambda.Names))
 		return nil, info, false
 	}
@@ -98,10 +109,16 @@ func (e LambdaValue) Evaluate(args []interface{}, binding Binding) (yaml.Node, E
 	}
 	debug.Debug("LAMBDA CALL: inherit binding %+v\n", inp)
 	inp["_"] = node(e)
-	for i, name := range e.lambda.Names {
-		inp[name] = node(args[i])
+	for i, v := range args {
+		inp[e.lambda.Names[i]] = node(v)
 	}
 	debug.Debug("LAMBDA CALL: effective binding %+v\n", inp)
+
+	if len(args) < len(e.lambda.Names) {
+		rest := e.lambda.Names[len(args):]
+		return node(LambdaValue{LambdaExpr{rest, e.lambda.E}, inp}), DefaultInfo(), true
+	}
+
 	ctx := MapContext{binding, inp}
 	return e.lambda.E.Evaluate(ctx)
 }

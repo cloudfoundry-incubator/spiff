@@ -479,6 +479,88 @@ var _ = Describe("parsing", func() {
 			)
 		})
 	})
+	
+	Describe("chained calls and references", func() {
+		It("parses reference based chains", func() {
+			parsesAs(
+				`a.b(1)(2).c(3).e.f(4).g`,
+				QualifiedExpr{
+					CallExpr{
+						QualifiedExpr{
+							CallExpr{
+								QualifiedExpr{
+									CallExpr{
+										CallExpr{
+											ReferenceExpr{[]string{"a","b"}},
+											[]Expression{
+												IntegerExpr{1},
+											},
+										},
+										[]Expression{
+											IntegerExpr{2},
+										},
+									},
+									ReferenceExpr{[]string{"c"}},
+								},
+								[]Expression{
+									IntegerExpr{3},
+								},
+							},
+							ReferenceExpr{[]string{"e","f"}},
+						},
+						[]Expression{
+							IntegerExpr{4},
+						},
+					},
+					ReferenceExpr{[]string{"g"}},
+				},
+			)
+		})
+		
+		It("parses list based chains", func() {
+			parsesAs(
+				`[1,2].a(1)(2).c(3).e.f(4).g`,
+				QualifiedExpr{
+					CallExpr{
+						QualifiedExpr{
+							CallExpr{
+								QualifiedExpr{
+									CallExpr{
+										CallExpr{
+											QualifiedExpr{
+												ListExpr{
+													[]Expression{
+														IntegerExpr{1},
+														IntegerExpr{2},
+													},
+												},
+												ReferenceExpr{[]string{"a"}},
+											},
+											[]Expression{
+												IntegerExpr{1},
+											},
+										},
+										[]Expression{
+											IntegerExpr{2},
+										},
+									},
+									ReferenceExpr{[]string{"c"}},
+								},
+								[]Expression{
+									IntegerExpr{3},
+								},
+							},
+							ReferenceExpr{[]string{"e","f"}},
+						},
+						[]Expression{
+							IntegerExpr{4},
+						},
+					},
+					ReferenceExpr{[]string{"g"}},
+				},
+			)
+		})
+	})
 })
 
 func parsesAs(source string, expr Expression, path ...string) {
