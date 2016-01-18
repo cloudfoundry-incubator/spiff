@@ -13,7 +13,11 @@ type FakeBinding struct {
 }
 
 func (c FakeBinding) FindFromRoot(path []string) (yaml.Node, bool) {
-	val, found := c.FoundFromRoot[strings.Join(path, ".")]
+	p := strings.Join(path, ".")
+	if len(path) == 0 {
+		p = ""
+	}
+	val, found := c.FoundFromRoot[p]
 	return val, found
 }
 

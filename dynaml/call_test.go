@@ -7,6 +7,21 @@ import (
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
+func newNetworkFakeBinding(subnets yaml.Node, instances interface{}) Binding {
+	return FakeBinding{
+		FoundReferences: map[string]yaml.Node{
+			"name":      node("cf1"),
+			"instances": node(instances),
+		},
+		FoundFromRoot: map[string]yaml.Node{
+			"":                     node("dummy"),
+			"networks":             node("dummy"),
+			"networks.cf1":         node("dummy"),
+			"networks.cf1.subnets": subnets,
+		},
+	}
+}
+
 var _ = Describe("calls", func() {
 	Describe("CIDR functions", func() {
 		It("determines minimal IP", func() {
@@ -158,16 +173,7 @@ var _ = Describe("calls", func() {
 - static:
     - 10.10.16.11 - 10.10.16.254
 `)
-
-			binding := FakeBinding{
-				FoundReferences: map[string]yaml.Node{
-					"name":      node("cf1"),
-					"instances": node(2),
-				},
-				FoundFromRoot: map[string]yaml.Node{
-					"networks.cf1.subnets": subnets,
-				},
-			}
+			binding := newNetworkFakeBinding(subnets, 2)
 
 			Expect(expr).To(
 				EvaluateAs(
@@ -183,15 +189,7 @@ var _ = Describe("calls", func() {
     - 10.10.16.10 - 10.10.16.254
 `)
 
-			binding := FakeBinding{
-				FoundReferences: map[string]yaml.Node{
-					"name":      node("cf1"),
-					"instances": node(1),
-				},
-				FoundFromRoot: map[string]yaml.Node{
-					"networks.cf1.subnets": subnets,
-				},
-			}
+			binding := newNetworkFakeBinding(subnets, 1)
 
 			Expect(expr).To(
 				EvaluateAs(
@@ -208,15 +206,7 @@ var _ = Describe("calls", func() {
     - 10.10.16.10 - 10.10.16.254
 `)
 
-				binding := FakeBinding{
-					FoundReferences: map[string]yaml.Node{
-						"name":      node("cf1"),
-						"instances": node(MergeExpr{}),
-					},
-					FoundFromRoot: map[string]yaml.Node{
-						"networks.cf1.subnets": subnets,
-					},
-				}
+				binding := newNetworkFakeBinding(subnets, MergeExpr{})
 
 				Expect(expr).To(FailToEvaluate(binding))
 			})
@@ -229,15 +219,7 @@ var _ = Describe("calls", func() {
     - 10.10.16.10 - 10.10.16.32
 `)
 
-				binding := FakeBinding{
-					FoundReferences: map[string]yaml.Node{
-						"name":      node("cf1"),
-						"instances": node(42),
-					},
-					FoundFromRoot: map[string]yaml.Node{
-						"networks.cf1.subnets": subnets,
-					},
-				}
+				binding := newNetworkFakeBinding(subnets, 42)
 
 				Expect(expr).To(FailToEvaluate(binding))
 			})
@@ -261,15 +243,7 @@ var _ = Describe("calls", func() {
 					},
 				}
 
-				binding := FakeBinding{
-					FoundReferences: map[string]yaml.Node{
-						"name":      node("cf1"),
-						"instances": node(3),
-					},
-					FoundFromRoot: map[string]yaml.Node{
-						"networks.cf1.subnets": subnets,
-					},
-				}
+				binding := newNetworkFakeBinding(subnets, 3)
 
 				Expect(expr).To(
 					EvaluateAs(

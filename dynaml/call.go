@@ -47,6 +47,9 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 		return nil, info, false
 	}
 
+	if ok && result == nil {
+		return node(e), info, true
+	}
 	return result, sub.Join(info), ok
 }
 
