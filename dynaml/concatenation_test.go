@@ -106,6 +106,22 @@ var _ = Describe("concatenation", func() {
 					Expect(expr).To(EvaluateAs([]yaml.Node{node("two"), node(map[string]yaml.Node{"bar": node(42)})}, binding))
 				})
 			})
+
+			Context("and the right-hand side is nil", func() {
+				It("keeps the lists", func() {
+					expr := ConcatenationExpr{
+						ListExpr{[]Expression{StringExpr{"two"}}},
+						NilExpr{},
+					}
+
+					binding := FakeBinding{
+						FoundReferences: map[string]yaml.Node{
+							"foo": node(map[string]yaml.Node{"bar": node(42)}),
+						},
+					}
+					Expect(expr).To(EvaluateAs([]yaml.Node{node("two")}, binding))
+				})
+			})
 		})
 	})
 })

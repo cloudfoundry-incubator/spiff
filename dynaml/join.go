@@ -42,6 +42,7 @@ func func_join(arguments []interface{}, binding Binding) (yaml.Node, EvaluationI
 					return nil, info, false
 				}
 			}
+		case nil:
 		default:
 			info.Issue = fmt.Sprintf("argument %d to join must be simple value or list", i)
 			return nil, info, false

@@ -83,7 +83,7 @@ func getArg(i int, value interface{}) (string, bool) {
 	case int64:
 		return strconv.FormatInt(value.(int64), 10), true
 	default:
-		if i == 0 {
+		if i == 0 || value == nil {
 			return "", false
 		}
 		yaml, err := candiedyaml.Marshal(node(value))

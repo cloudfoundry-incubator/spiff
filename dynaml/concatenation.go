@@ -57,6 +57,8 @@ func (e ConcatenationExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo,
 	switch b.(type) {
 	case []yaml.Node:
 		return node(append(alist, b.([]yaml.Node)...)), info, true
+	case nil:
+		return node(a), info, true
 	default:
 		return node(append(alist, node(b))), info, true
 	}
