@@ -120,7 +120,7 @@ props:
 `)
 			Expect(source).To(FlowAs(resolved, stub))
 		})
-		
+
 		It("replaces a non-merge expression node before expanding", func() {
 			source := parseYAML(`
 ---
@@ -261,10 +261,10 @@ foo: (( auto ))
 			Expect(err).To(Equal(dynaml.UnresolvedNodes{
 				Nodes: []dynaml.UnresolvedNode{
 					{
-						Node: yaml.NewNode(
+						Node: yaml.IssueNode(yaml.NewNode(
 							dynaml.AutoExpr{Path: []string{"foo"}},
 							"test",
-						),
+						), "auto only allowed for size entry in resource pools"),
 						Context: []string{"foo"},
 						Path:    []string{"foo"},
 					},
@@ -1091,6 +1091,70 @@ jobs:
 
 			resolved := parseYAML(`
 ---
+networks:
+  some_network:
+    type: manual
+    subnets:
+      - range: 10.10.16.0/20
+        name: default_unused
+        reserved:
+          - 10.10.16.2 - 10.10.16.9
+          - 10.10.16.255 - 10.10.16.255
+        static:
+          - 10.10.16.10 - 10.10.16.254
+        gateway: 10.10.16.1
+        dns:
+          - 10.10.0.2
+
+jobs:
+- name: some_job
+  resource_pool: some_pool
+  instances: 2
+  networks:
+  - name: some_network
+    static_ips:
+    - 10.10.16.10
+    - 10.10.16.14
+`)
+
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("evaluates the node with indirection combined with default", func() {
+			source := parseYAML(`
+---
+meta:
+  net: "10.10"
+
+networks:
+  some_network:
+    type: manual
+    subnets:
+      - range: (( meta.net ".16.0/20" ))
+        name: default_unused
+        reserved:
+          - (( meta.net ".16.2 - " meta.net ".16.9" ))
+          - (( meta.net ".16.255 - " meta.net ".16.255" ))
+        static:
+          - (( meta.net ".16.10 - " meta.net ".16.254" ))
+        gateway: (( meta.net ".16.1" ))
+        dns:
+          - (( meta.net ".0.2" ))
+
+jobs:
+- name: some_job
+  resource_pool: some_pool
+  instances: 2
+  networks:
+  - name: some_network
+    static_ips: (( static_ips(0, 4) || nil ))
+`)
+
+			resolved := parseYAML(`
+---
+meta:
+  net: "10.10"
+
 networks:
   some_network:
     type: manual

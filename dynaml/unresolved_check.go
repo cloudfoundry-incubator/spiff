@@ -105,6 +105,14 @@ func addContext(context []string, step string) []string {
 	return append(dup, step)
 }
 
+func isExpression(node yaml.Node) bool {
+	if node == nil {
+		return false
+	}
+	_, ok := node.Value().(Expression)
+	return ok
+}
+
 func isLocallyResolved(node yaml.Node) bool {
 	switch v := node.Value().(type) {
 	case Expression:

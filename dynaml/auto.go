@@ -4,6 +4,10 @@ import (
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
+var (
+	refJobs = ReferenceExpr{[]string{"", "jobs"}}
+)
+
 type AutoExpr struct {
 	Path []string
 }
@@ -12,8 +16,9 @@ func (e AutoExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	info := DefaultInfo()
 
 	if len(e.Path) == 3 && e.Path[0] == "resource_pools" && e.Path[2] == "size" {
-		jobs, found := binding.FindFromRoot([]string{"jobs"})
+		jobs, info, found := refJobs.Evaluate(binding)
 		if !found {
+			info.Issue = "no jobs found"
 			return nil, info, false
 		}
 
@@ -22,6 +27,7 @@ func (e AutoExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 		}
 		jobsList, ok := jobs.Value().([]yaml.Node)
 		if !ok {
+			info.Issue = "jobs must be a list"
 			return nil, info, false
 		}
 
@@ -48,6 +54,7 @@ func (e AutoExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 		return node(size), info, true
 	}
 
+	info.Issue = "auto only allowed for size entry in resource pools"
 	return nil, info, false
 }
 

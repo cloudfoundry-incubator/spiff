@@ -1,10 +1,16 @@
 package dynaml
 
 import (
+	"fmt"
 	"net"
 	"strings"
 
 	"github.com/cloudfoundry-incubator/spiff/yaml"
+)
+
+var (
+	refName      = ReferenceExpr{[]string{"name"}}
+	refInstances = ReferenceExpr{[]string{"instances"}}
 )
 
 func func_static_ips(arguments []Expression, binding Binding) (yaml.Node, EvaluationInfo, bool) {
@@ -33,16 +39,16 @@ func generateStaticIPs(binding Binding, indices []int) (yaml.Node, EvaluationInf
 		return nil, info, false
 	}
 
-	ranges, ok := findStaticIPRanges(binding)
-	if !ok {
-		return nil, info, false
+	ranges, info, ok := findStaticIPRanges(binding)
+	if !ok || ranges == nil {
+		return nil, info, ok
 	}
 
-	instanceCount, ok := findInstanceCount(binding)
-	if !ok {
-		return nil, info, false
+	instanceCountP, info, ok := findInstanceCount(binding)
+	if !ok || instanceCountP == nil {
+		return nil, info, ok
 	}
-
+	instanceCount := int(*instanceCountP)
 	ipPool, ok := staticIPPool(ranges)
 	if !ok {
 		return nil, info, false
@@ -58,44 +64,49 @@ func generateStaticIPs(binding Binding, indices []int) (yaml.Node, EvaluationInf
 	}
 
 	if len(ips) < instanceCount {
+		info.Issue = fmt.Sprintf("too less static IPs for %d instances", instanceCount)
 		return nil, info, false
 	}
 
 	return node(ips[:instanceCount]), info, true
 }
 
-func findInstanceCount(binding Binding) (int, bool) {
-	nearestInstances, found := binding.FindReference([]string{"instances"})
-	if !found {
-		return 0, false
+func findInstanceCount(binding Binding) (*int64, EvaluationInfo, bool) {
+	nearestInstances, info, found := refInstances.Evaluate(binding)
+	if !found || isExpression(nearestInstances) {
+		return nil, info, false
 	}
 
 	instances, ok := nearestInstances.Value().(int64)
-	return int(instances), ok
+	return &instances, info, ok
 }
 
-func findStaticIPRanges(binding Binding) ([]string, bool) {
-	nearestNetworkName, found := binding.FindReference([]string{"name"})
-	if !found {
-		return nil, false
+func findStaticIPRanges(binding Binding) ([]string, EvaluationInfo, bool) {
+	nearestNetworkName, info, found := refName.Evaluate(binding)
+	if !found || isExpression(nearestNetworkName) {
+		return nil, info, found
 	}
 
 	networkName, ok := nearestNetworkName.Value().(string)
 	if !ok {
-		return nil, false
+		info.Issue = "name field must be string"
+		return nil, info, false
 	}
 
-	subnets, found := binding.FindFromRoot(
-		[]string{"networks", networkName, "subnets"},
-	)
+	subnetsRef := ReferenceExpr{[]string{"", "networks", networkName, "subnets"}}
+	subnets, info, found := subnetsRef.Evaluate(binding)
 
 	if !found {
-		return nil, false
+		return nil, info, false
+	}
+	if isExpression(subnets) {
+		return nil, info, true
 	}
 
 	subnetsList, ok := subnets.Value().([]yaml.Node)
 	if !ok {
-		return nil, false
+		info.Issue = "subnets field must be a list"
+		return nil, info, false
 	}
 
 	allRanges := []string{}
@@ -103,18 +114,21 @@ func findStaticIPRanges(binding Binding) ([]string, bool) {
 	for _, subnet := range subnetsList {
 		subnetMap, ok := subnet.Value().(map[string]yaml.Node)
 		if !ok {
-			return nil, false
+			info.Issue = "subnet must be a map"
+			return nil, info, false
 		}
 
 		static, ok := subnetMap["static"]
 
 		if !ok {
-			return nil, false
+			info.Issue = fmt.Sprintf("no static ips for network %s", networkName)
+			return nil, info, false
 		}
 
 		staticList, ok := static.Value().([]yaml.Node)
 		if !ok {
-			return nil, false
+			info.Issue = fmt.Sprintf("static ips for network %s must be a list", networkName)
+			return nil, info, false
 		}
 
 		ranges := make([]string, len(staticList))
@@ -122,7 +136,8 @@ func findStaticIPRanges(binding Binding) ([]string, bool) {
 		for i, r := range staticList {
 			ipsString, ok := r.Value().(string)
 			if !ok {
-				return nil, false
+				info.Issue = fmt.Sprintf("invalid entry for static ips for network %s", networkName)
+				return nil, info, false
 			}
 
 			ranges[i] = ipsString
@@ -131,7 +146,7 @@ func findStaticIPRanges(binding Binding) ([]string, bool) {
 		allRanges = append(allRanges, ranges...)
 	}
 
-	return allRanges, true
+	return allRanges, info, true
 }
 
 func staticIPPool(ranges []string) ([]net.IP, bool) {
