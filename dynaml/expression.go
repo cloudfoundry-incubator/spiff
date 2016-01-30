@@ -26,11 +26,11 @@ type EvaluationInfo struct {
 	Merged       bool
 	Preferred    bool
 	KeyName      string
-	Issue        string
+	Issue        yaml.Issue
 }
 
 func DefaultInfo() EvaluationInfo {
-	return EvaluationInfo{nil, false, false, false, "", ""}
+	return EvaluationInfo{nil, false, false, false, "", yaml.Issue{}}
 }
 
 type Expression interface {
@@ -47,7 +47,7 @@ func (i EvaluationInfo) Join(o EvaluationInfo) EvaluationInfo {
 	if o.KeyName != "" {
 		i.KeyName = o.KeyName
 	}
-	if o.Issue != "" {
+	if o.Issue.Issue != "" {
 		i.Issue = o.Issue
 	}
 	return i
@@ -83,7 +83,7 @@ func ResolveIntegerExpressionOrPushEvaluation(e *Expression, resolved *bool, inf
 	if ok {
 		return i, infoe, true
 	} else {
-		infoe.Issue = "integer operand required"
+		infoe.Issue = yaml.NewIssue("integer operand required")
 		return 0, infoe, false
 	}
 }

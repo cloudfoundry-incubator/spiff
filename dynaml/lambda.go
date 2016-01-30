@@ -51,19 +51,19 @@ func (e LambdaRefExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, boo
 		expr, err := Parse(v, e.Path, e.StubPath)
 		if err != nil {
 			debug.Debug("cannot parse: %s\n", err.Error())
-			info.Issue = fmt.Sprintf("cannot parse lamba expression '%s'", v)
+			info.Issue = yaml.NewIssue("cannot parse lamba expression '%s'", v)
 			return nil, info, false
 		}
 		lexpr, ok := expr.(LambdaExpr)
 		if !ok {
 			debug.Debug("no lambda expression: %T\n", expr)
-			info.Issue = fmt.Sprintf("'%s' is no lambda expression", v)
+			info.Issue = yaml.NewIssue("'%s' is no lambda expression", v)
 			return nil, info, false
 		}
 		lambda = LambdaValue{lexpr, binding.GetLocalBinding()}
 
 	default:
-		info.Issue = "lambda reference must resolve to lambda value or string"
+		info.Issue = yaml.NewIssue("lambda reference must resolve to lambda value or string")
 	}
 	debug.Debug("found lambda: %s\n", lambda)
 	return node(lambda), info, true
@@ -100,7 +100,7 @@ func (e LambdaValue) Evaluate(args []interface{}, binding Binding) (yaml.Node, E
 	info := DefaultInfo()
 
 	if len(args) > len(e.lambda.Names) {
-		info.Issue = fmt.Sprintf("found %d argument(s), but expects %d", len(args), len(e.lambda.Names))
+		info.Issue = yaml.NewIssue("found %d argument(s), but expects %d", len(args), len(e.lambda.Names))
 		return nil, info, false
 	}
 	inp := map[string]yaml.Node{}

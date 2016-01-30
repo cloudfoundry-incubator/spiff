@@ -18,7 +18,7 @@ func (e AutoExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	if len(e.Path) == 3 && e.Path[0] == "resource_pools" && e.Path[2] == "size" {
 		jobs, info, found := refJobs.Evaluate(binding)
 		if !found {
-			info.Issue = "no jobs found"
+			info.Issue = yaml.NewIssue("no jobs found")
 			return nil, info, false
 		}
 
@@ -27,7 +27,7 @@ func (e AutoExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 		}
 		jobsList, ok := jobs.Value().([]yaml.Node)
 		if !ok {
-			info.Issue = "jobs must be a list"
+			info.Issue = yaml.NewIssue("jobs must be a list")
 			return nil, info, false
 		}
 
@@ -54,7 +54,7 @@ func (e AutoExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 		return node(size), info, true
 	}
 
-	info.Issue = "auto only allowed for size entry in resource pools"
+	info.Issue = yaml.NewIssue("auto only allowed for size entry in resource pools")
 	return nil, info, false
 }
 

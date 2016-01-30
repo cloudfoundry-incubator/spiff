@@ -40,9 +40,9 @@ func (e SubtractionExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, b
 		if ip != nil {
 			return node(IPAdd(ip, -bint).String()), info, true
 		}
-		info.Issue = "string argument for MINUS must be an IP address"
+		info.Issue = yaml.NewIssue("string argument for MINUS must be an IP address")
 	} else {
-		info.Issue = "first argument of MINUS must be IP address or integer"
+		info.Issue = yaml.NewIssue("first argument of MINUS must be IP address or integer")
 	}
 	return nil, info, false
 }

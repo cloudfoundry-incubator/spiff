@@ -1,7 +1,6 @@
 package dynaml
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/cloudfoundry-incubator/spiff/debug"
@@ -39,7 +38,7 @@ func (e ReferenceExpr) find(f func(int, []string) (yaml.Node, bool)) (yaml.Node,
 
 		debug.Debug("  %d: %v %#v\n", i, ok, step)
 		if !ok {
-			info.Issue = fmt.Sprintf("'%s' not found", strings.Join(e.Path, "."))
+			info.Issue = yaml.NewIssue("'%s' not found", strings.Join(e.Path, "."))
 			return nil, info, false
 		}
 

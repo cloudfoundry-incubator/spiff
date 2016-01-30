@@ -1,7 +1,6 @@
 package dynaml
 
 import (
-	"fmt"
 	"net"
 	"strings"
 
@@ -64,7 +63,7 @@ func generateStaticIPs(binding Binding, indices []int) (yaml.Node, EvaluationInf
 	}
 
 	if len(ips) < instanceCount {
-		info.Issue = fmt.Sprintf("too less static IPs for %d instances", instanceCount)
+		info.Issue = yaml.NewIssue("too less static IPs for %d instances", instanceCount)
 		return nil, info, false
 	}
 
@@ -89,7 +88,7 @@ func findStaticIPRanges(binding Binding) ([]string, EvaluationInfo, bool) {
 
 	networkName, ok := nearestNetworkName.Value().(string)
 	if !ok {
-		info.Issue = "name field must be string"
+		info.Issue = yaml.NewIssue("name field must be string")
 		return nil, info, false
 	}
 
@@ -105,7 +104,7 @@ func findStaticIPRanges(binding Binding) ([]string, EvaluationInfo, bool) {
 
 	subnetsList, ok := subnets.Value().([]yaml.Node)
 	if !ok {
-		info.Issue = "subnets field must be a list"
+		info.Issue = yaml.NewIssue("subnets field must be a list")
 		return nil, info, false
 	}
 
@@ -114,20 +113,20 @@ func findStaticIPRanges(binding Binding) ([]string, EvaluationInfo, bool) {
 	for _, subnet := range subnetsList {
 		subnetMap, ok := subnet.Value().(map[string]yaml.Node)
 		if !ok {
-			info.Issue = "subnet must be a map"
+			info.Issue = yaml.NewIssue("subnet must be a map")
 			return nil, info, false
 		}
 
 		static, ok := subnetMap["static"]
 
 		if !ok {
-			info.Issue = fmt.Sprintf("no static ips for network %s", networkName)
+			info.Issue = yaml.NewIssue("no static ips for network %s", networkName)
 			return nil, info, false
 		}
 
 		staticList, ok := static.Value().([]yaml.Node)
 		if !ok {
-			info.Issue = fmt.Sprintf("static ips for network %s must be a list", networkName)
+			info.Issue = yaml.NewIssue("static ips for network %s must be a list", networkName)
 			return nil, info, false
 		}
 
@@ -136,7 +135,7 @@ func findStaticIPRanges(binding Binding) ([]string, EvaluationInfo, bool) {
 		for i, r := range staticList {
 			ipsString, ok := r.Value().(string)
 			if !ok {
-				info.Issue = fmt.Sprintf("invalid entry for static ips for network %s", networkName)
+				info.Issue = yaml.NewIssue("invalid entry for static ips for network %s", networkName)
 				return nil, info, false
 			}
 

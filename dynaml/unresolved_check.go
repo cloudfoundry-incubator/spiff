@@ -18,14 +18,45 @@ type UnresolvedNode struct {
 	Path    []string
 }
 
+func (e UnresolvedNodes) Issue(message string) yaml.Issue {
+	result := yaml.NewIssue(message)
+	format := ""
+
+	for _, node := range e.Nodes {
+		issue := node.Issue()
+		msg := issue.Issue
+		if msg != "" {
+			msg = "\t" + msg
+		}
+		switch node.Value().(type) {
+		case Expression:
+			format = "\t(( %s ))\tin %s\t%s\t(%s)%s"
+		default:
+			format = "\t%s\tin %s\t%s\t(%s)%s"
+		}
+		message = fmt.Sprintf(
+			format,
+			node.Value(),
+			node.SourceName(),
+			strings.Join(node.Context, "."),
+			strings.Join(node.Path, "."),
+			message,
+		)
+		issue.Issue = message
+		result.Nested = append(result.Nested, issue)
+	}
+	return result
+}
+
 func (e UnresolvedNodes) Error() string {
 	message := "unresolved nodes:"
 	format := ""
 
 	for _, node := range e.Nodes {
 		issue := node.Issue()
-		if issue != "" {
-			issue = "\t" + issue
+		msg := issue.Issue
+		if msg != "" {
+			msg = "\t" + msg
 		}
 		switch node.Value().(type) {
 		case Expression:
@@ -40,10 +71,22 @@ func (e UnresolvedNodes) Error() string {
 			node.SourceName(),
 			strings.Join(node.Context, "."),
 			strings.Join(node.Path, "."),
-			issue,
+			msg,
 		)
+		message += nestedIssues("\t", issue)
 	}
 
+	return message
+}
+
+func nestedIssues(gap string, issue yaml.Issue) string {
+	message := ""
+	if issue.Nested != nil {
+		for _, sub := range issue.Nested {
+			message = message + "\n" + gap + sub.Issue
+			message += nestedIssues(gap+"\t", sub)
+		}
+	}
 	return message
 }
 
@@ -89,7 +132,7 @@ func FindUnresolvedNodes(root yaml.Node, context ...string) (nodes []UnresolvedN
 	case string:
 		if yaml.EmbeddedDynaml(root) != nil {
 			nodes = append(nodes, UnresolvedNode{
-				Node:    yaml.IssueNode(root, "unparseable expression"),
+				Node:    yaml.IssueNode(root, yaml.Issue{Issue: "unparseable expression"}),
 				Context: context,
 				Path:    []string{},
 			})

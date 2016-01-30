@@ -9,7 +9,7 @@ func func_length(arguments []interface{}, binding Binding) (yaml.Node, Evaluatio
 	info := DefaultInfo()
 
 	if len(arguments) != 1 {
-		info.Issue = "lebgth takes exactly 1 arguments"
+		info.Issue = yaml.NewIssue("length takes exactly 1 arguments")
 		return nil, info, false
 	}
 
@@ -21,7 +21,7 @@ func func_length(arguments []interface{}, binding Binding) (yaml.Node, Evaluatio
 	case string:
 		result = len(v)
 	default:
-		info.Issue = "invalid type for function length"
+		info.Issue = yaml.NewIssue("invalid type for function length")
 		return nil, info, false
 
 	}

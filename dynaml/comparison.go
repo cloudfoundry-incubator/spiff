@@ -51,12 +51,12 @@ func (e ComparisonExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bo
 		var va, vb int64
 		va, ok = a.(int64)
 		if !ok {
-			infor.Issue = fmt.Sprintf("comparision %s only for integers", e.Op)
+			infor.Issue = yaml.NewIssue("comparision %s only for integers", e.Op)
 			break
 		}
 		vb, ok = b.(int64)
 		if !ok {
-			infor.Issue = fmt.Sprintf("comparision %s only for integers", e.Op)
+			infor.Issue = yaml.NewIssue("comparision %s only for integers", e.Op)
 			break
 		}
 		switch e.Op {
@@ -100,7 +100,7 @@ func compareEquals(a, b interface{}) (bool, EvaluationInfo, bool) {
 		case bool:
 			vb = strconv.FormatBool(v)
 		default:
-			info.Issue = "types uncomparable"
+			info.Issue = yaml.NewIssue("types uncomparable")
 			return false, info, false
 		}
 		return va == vb, info, true
@@ -123,7 +123,7 @@ func compareEquals(a, b interface{}) (bool, EvaluationInfo, bool) {
 				vb = 0
 			}
 		default:
-			info.Issue = "types uncomparable"
+			info.Issue = yaml.NewIssue("types uncomparable")
 			return false, info, false
 		}
 		return va == vb, info, true
@@ -135,7 +135,7 @@ func compareEquals(a, b interface{}) (bool, EvaluationInfo, bool) {
 		case LambdaValue:
 			return reflect.DeepEqual(va, v), info, true
 		default:
-			info.Issue = "types uncomparable"
+			info.Issue = yaml.NewIssue("types uncomparable")
 			return false, info, false
 		}
 

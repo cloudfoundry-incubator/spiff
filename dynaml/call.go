@@ -28,7 +28,7 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 			_, ok = value.(LambdaValue)
 			if !ok {
 				debug.Debug("function: no string or lambda value: %T\n", value)
-				info.Issue = fmt.Sprintf("function call '%s' requires function name or lambda value", e.Function)
+				info.Issue = yaml.NewIssue("function call '%s' requires function name or lambda value", e.Function)
 			}
 		}
 	}
@@ -89,7 +89,7 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 		result, sub, ok = func_numIP(values, binding)
 
 	default:
-		info.Issue = fmt.Sprintf("unknown function '%s'", funcName)
+		info.Issue = yaml.NewIssue("unknown function '%s'", funcName)
 		return nil, info, false
 	}
 

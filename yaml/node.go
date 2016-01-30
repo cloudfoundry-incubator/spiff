@@ -1,6 +1,7 @@
 package yaml
 
 import (
+	"fmt"
 	"reflect"
 	"regexp"
 
@@ -17,7 +18,7 @@ type Node interface {
 	Preferred() bool
 	Merged() bool
 	KeyName() string
-	Issue() string
+	Issue() Issue
 
 	GetAnnotation() Annotation
 	EquivalentToNode(Node) bool
@@ -29,13 +30,22 @@ type AnnotatedNode struct {
 	Annotation
 }
 
+type Issue struct {
+	Issue  string
+	Nested []Issue
+}
+
+func NewIssue(msg string, args ...interface{}) Issue {
+	return Issue{fmt.Sprintf(msg, args...), []Issue{}}
+}
+
 type Annotation struct {
 	redirectPath []string
 	replace      bool
 	preferred    bool
 	merged       bool
 	keyName      string
-	issue        string
+	issue        Issue
 }
 
 func NewNode(value interface{}, sourcePath string) Node {
@@ -70,7 +80,7 @@ func KeyNameNode(node Node, keyName string) Node {
 	return AnnotatedNode{node.Value(), node.SourceName(), node.GetAnnotation().AddKeyName(keyName)}
 }
 
-func IssueNode(node Node, issue string) Node {
+func IssueNode(node Node, issue Issue) Node {
 	return AnnotatedNode{node.Value(), node.SourceName(), node.GetAnnotation().AddIssue(issue)}
 }
 
@@ -83,7 +93,7 @@ func massageType(value interface{}) interface{} {
 }
 
 func EmptyAnnotation() Annotation {
-	return Annotation{nil, false, false, false, "", ""}
+	return Annotation{nil, false, false, false, "", Issue{}}
 }
 
 func NewReferencedAnnotation(node Node) Annotation {
@@ -110,7 +120,7 @@ func (n Annotation) KeyName() string {
 	return n.keyName
 }
 
-func (n Annotation) Issue() string {
+func (n Annotation) Issue() Issue {
 	return n.issue
 }
 
@@ -141,8 +151,8 @@ func (n Annotation) AddKeyName(keyName string) Annotation {
 	return n
 }
 
-func (n Annotation) AddIssue(issue string) Annotation {
-	if issue != "" {
+func (n Annotation) AddIssue(issue Issue) Annotation {
+	if issue.Issue != "" {
 		n.issue = issue
 	}
 	return n

@@ -31,19 +31,19 @@ func func_exec(arguments []interface{}, binding Binding) (yaml.Node, EvaluationI
 				for j, arg := range list {
 					v, ok := getArg(j, arg.Value())
 					if !ok {
-						info.Issue = "command argument must be string"
+						info.Issue = yaml.NewIssue("command argument must be string")
 						return nil, info, false
 					}
 					args = append(args, v)
 				}
 			} else {
-				info.Issue = "list not allowed for command argument"
+				info.Issue = yaml.NewIssue("list not allowed for command argument")
 				return nil, info, false
 			}
 		} else {
 			v, ok := getArg(i, arg)
 			if !ok {
-				info.Issue = "command argument must be string"
+				info.Issue = yaml.NewIssue("command argument must be string")
 				return nil, info, false
 			}
 			args = append(args, v)
@@ -51,7 +51,7 @@ func func_exec(arguments []interface{}, binding Binding) (yaml.Node, EvaluationI
 	}
 	result, err := cachedExecute(args)
 	if err != nil {
-		info.Issue = "execution '" + args[0] + "' failed"
+		info.Issue = yaml.NewIssue("execution '%s' failed", args[0])
 		// expression set to undefined
 		return nil, info, false
 	}

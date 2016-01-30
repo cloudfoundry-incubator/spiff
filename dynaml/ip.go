@@ -11,20 +11,20 @@ func func_ip(op func(ip net.IP, cidr *net.IPNet) interface{}, arguments []interf
 	info := DefaultInfo()
 
 	if len(arguments) != 1 {
-		info.Issue = "only one argument expected for CIDR function"
+		info.Issue = yaml.NewIssue("only one argument expected for CIDR function")
 		return nil, info, false
 	}
 
 	str, ok := arguments[0].(string)
 	if !ok {
-		info.Issue = "CIDR argument required"
+		info.Issue = yaml.NewIssue("CIDR argument required")
 		return nil, info, false
 	}
 
 	ip, cidr, err := net.ParseCIDR(str)
 
 	if err != nil {
-		info.Issue = "CIDR argument required"
+		info.Issue = yaml.NewIssue("CIDR argument required")
 		return nil, info, false
 	}
 

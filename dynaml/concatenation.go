@@ -47,9 +47,9 @@ func (e ConcatenationExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo,
 	if !aok {
 		switch a.(type) {
 		case map[string]yaml.Node:
-			info.Issue = "first argument must be list or simple value"
+			info.Issue = yaml.NewIssue("first argument must be list or simple value")
 		default:
-			info.Issue = "simple value can only be concatenated with simple values"
+			info.Issue = yaml.NewIssue("simple value can only be concatenated with simple values")
 		}
 		return nil, info, false
 	}
