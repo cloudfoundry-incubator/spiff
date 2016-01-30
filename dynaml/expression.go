@@ -9,6 +9,15 @@ type Binding interface {
 	FindFromRoot([]string) (yaml.Node, bool)
 	FindReference([]string) (yaml.Node, bool)
 	FindInStubs([]string) (yaml.Node, bool)
+
+	WithScope(step map[string]yaml.Node) Binding
+	WithPath(step string) Binding
+	RedirectOverwrite(path []string) Binding
+
+	Path() []string
+	StubPath() []string
+
+	Flow(source yaml.Node, shouldOverride bool) (yaml.Node, error)
 }
 
 type EvaluationInfo struct {

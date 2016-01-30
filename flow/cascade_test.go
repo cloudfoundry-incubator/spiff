@@ -354,7 +354,7 @@ values:
 `)
 				Expect(template).To(CascadeAs(resolved, source))
 			})
-			
+
 			It("supports chained references", func() {
 				source := parseYAML(`
 ---

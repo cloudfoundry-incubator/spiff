@@ -119,19 +119,23 @@ func (e LambdaValue) Evaluate(args []interface{}, binding Binding) (yaml.Node, E
 		return node(LambdaValue{LambdaExpr{rest, e.lambda.E}, inp}), DefaultInfo(), true
 	}
 
-	ctx := MapContext{binding, inp}
-	return e.lambda.E.Evaluate(ctx)
+	return e.lambda.E.Evaluate(newCallBinding(inp, binding))
 }
 
-type MapContext struct {
+type CallBinding struct {
 	Binding
 	names map[string]yaml.Node
 }
 
-func (c MapContext) GetLocalBinding() map[string]yaml.Node {
+func (c CallBinding) GetLocalBinding() map[string]yaml.Node {
 	return c.names
 }
 
+func newCallBinding(names map[string]yaml.Node, binding Binding) Binding {
+	return CallBinding{binding.WithScope(names), names}
+}
+
+/*
 func (c MapContext) FindReference(path []string) (yaml.Node, bool) {
 	for name, node := range c.names {
 		if len(path) >= 1 && path[0] == name {
@@ -145,3 +149,4 @@ func (c MapContext) FindReference(path []string) (yaml.Node, bool) {
 	debug.Debug("lambda: forward find ref: %v\n", path)
 	return c.Binding.FindReference(path)
 }
+*/

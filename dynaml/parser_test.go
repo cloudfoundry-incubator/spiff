@@ -479,7 +479,7 @@ var _ = Describe("parsing", func() {
 			)
 		})
 	})
-	
+
 	Describe("chained calls and references", func() {
 		It("parses reference based chains", func() {
 			parsesAs(
@@ -491,7 +491,7 @@ var _ = Describe("parsing", func() {
 								QualifiedExpr{
 									CallExpr{
 										CallExpr{
-											ReferenceExpr{[]string{"a","b"}},
+											ReferenceExpr{[]string{"a", "b"}},
 											[]Expression{
 												IntegerExpr{1},
 											},
@@ -506,7 +506,7 @@ var _ = Describe("parsing", func() {
 									IntegerExpr{3},
 								},
 							},
-							ReferenceExpr{[]string{"e","f"}},
+							ReferenceExpr{[]string{"e", "f"}},
 						},
 						[]Expression{
 							IntegerExpr{4},
@@ -516,7 +516,7 @@ var _ = Describe("parsing", func() {
 				},
 			)
 		})
-		
+
 		It("parses list based chains", func() {
 			parsesAs(
 				`[1,2].a(1)(2).c(3).e.f(4).g`,
@@ -550,7 +550,7 @@ var _ = Describe("parsing", func() {
 									IntegerExpr{3},
 								},
 							},
-							ReferenceExpr{[]string{"e","f"}},
+							ReferenceExpr{[]string{"e", "f"}},
 						},
 						[]Expression{
 							IntegerExpr{4},
