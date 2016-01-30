@@ -62,6 +62,8 @@ func buildExpression(grammar *DynamlGrammar, path []string, stubPath []string) E
 		switch token.pegRule {
 		case ruleDynaml:
 			return tokens.Pop()
+		case ruleTemplate:
+			return TemplateExpr{}
 		case rulePrefer:
 			tokens.Push(PreferExpr{tokens.Pop()})
 		case ruleAuto:
@@ -114,6 +116,9 @@ func buildExpression(grammar *DynamlGrammar, path []string, stubPath []string) E
 		case ruleString:
 			val := strings.Replace(contents[1:len(contents)-1], `\"`, `"`, -1)
 			tokens.Push(StringExpr{val})
+
+		case ruleSubstitution:
+			tokens.Push(SubstitutionExpr{Template: tokens.Pop()})
 
 		case ruleConditional:
 			fhs := tokens.Pop()

@@ -40,7 +40,7 @@ func (e UnresolvedNodes) Issue(message string) yaml.Issue {
 			node.SourceName(),
 			strings.Join(node.Context, "."),
 			strings.Join(node.Path, "."),
-			message,
+			msg,
 		)
 		issue.Issue = message
 		result.Nested = append(result.Nested, issue)

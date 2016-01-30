@@ -2827,6 +2827,84 @@ mapped:
 		})
 	})
 
+	Describe("using templates", func() {
+		Context("direct usage", func() {
+			It("uses usage context", func() {
+				source := parseYAML(`
+---
+verb: hates
+
+foo:
+  bar:
+    <<: (( &template ))
+    alice: alice
+    bob: (( verb " " alice ))
+
+
+use:
+  verb: loves
+  subst: (( *foo.bar ))
+`)
+				resolved, _ := Flow(parseYAML(`
+---
+foo:
+  bar:
+    <<: (( &template ))
+    alice: alice
+    bob: (( verb " " alice ))
+use:
+  subst:
+    alice: alice
+    bob: loves alice
+  verb: loves
+verb: hates
+`))
+				Expect(source).To(FlowAs(resolved))
+			})
+
+			It("handles independent usage", func() {
+				source := parseYAML(`
+---
+verb: hates
+
+foo:
+  bar:
+    <<: (( &template ))
+    alice: alice
+    bob: (( verb " " alice ))
+
+
+use1:
+  verb: loves
+  subst: (( *foo.bar ))
+use2:
+  verb: works with
+  subst: (( *foo.bar ))
+`)
+				resolved, _ := Flow(parseYAML(`
+---
+foo:
+  bar:
+    <<: (( &template ))
+    alice: alice
+    bob: (( verb " " alice ))
+use1:
+  subst:
+    alice: alice
+    bob: loves alice
+  verb: loves
+use2:
+  subst:
+    alice: alice
+    bob: works with alice
+  verb: works with
+verb: hates
+`))
+				Expect(source).To(FlowAs(resolved))
+			})
+		})
+	})
+
 	Describe("merging lists with specified key", func() {
 		Context("no merge", func() {
 			It("clean up key tag", func() {

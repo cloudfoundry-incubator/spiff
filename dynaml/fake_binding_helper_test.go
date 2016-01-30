@@ -1,7 +1,6 @@
 package dynaml
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/cloudfoundry-incubator/spiff/yaml"
@@ -66,6 +65,6 @@ func (c FakeBinding) FindInStubs(path []string) (yaml.Node, bool) {
 	return val, found
 }
 
-func (c FakeBinding) Flow(source yaml.Node, shouldOverride bool) (yaml.Node, error) {
-	return nil, fmt.Errorf("not implemented")
+func (c FakeBinding) Flow(source yaml.Node, shouldOverride bool) (yaml.Node, Status) {
+	return nil, nil
 }

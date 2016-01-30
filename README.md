@@ -59,6 +59,9 @@ Contents:
 		- [(( map[list|elem|->dynaml-expr] ))](#-maplistelem-dynaml-expr-)
 		- [(( map[list|idx,elem|->dynaml-expr] ))](#-maplistidxelem-dynaml-expr-)
 		- [(( map[map|key,value|->dynaml-expr] ))](#-mapmapkeyvalue-dynaml-expr-)
+	- [Templates](#templates)
+		- [<<: (( &template ))](#--template-)
+		- [(( *foo.bar ))](#-foobar-)
 	- [Operation Priorities](#operation-priorities)
 - [Structural Auto-Merge](#structural-auto-merge)
 - [Useful to Know](#useful-to-know)
@@ -1221,7 +1224,69 @@ keys:
 - alice
 - bob
 ```
- 
+
+## Templates
+
+A map can be tagged by a dynaml expression to be used as template. Dynaml expressions in a template are not evaluated at its definition location in the document, but can be inserted at other locations using dynaml.
+At every usage location it is evaluated separately.
+
+### `<<: (( &template ))`
+
+The dynaml expression `&template` can be used to tag a map node as template:
+
+i.g.:
+
+```yaml
+foo:
+  bar:
+    <<: (( &template ))
+    alice: alice
+    bob: (( verb " " alice ))
+```
+
+The template will be the value of the node `foo.bar`. As such it can be overwritten as a whole by settings in a stub during the merge process. Dynaml expressions in the template are not evaluated.
+
+### `(( *foo.bar ))`
+
+The dynaml expression `*<refernce expression>` can be used to evaluate a template somewhere in the yaml document.
+Dynaml expressions in the template are evaluated in the context of this expression.
+
+e.g.:
+
+```yaml
+foo:
+  bar:
+    <<: (( &template ))
+    alice: alice
+    bob: (( verb " " alice ))
+
+
+use:
+  subst: (( *foo.bar ))
+  verb: loves
+
+verb: hates
+```
+
+evaluates to
+
+```yaml
+foo:
+  bar:
+    <<: (( &template ))
+    alice: alice
+    bob: (( verb " " alice ))
+	
+use:
+  subst:
+    alice: alice
+    bob: loves alice
+  verb: loves
+
+verb: hates
+```
+
+
 ## Operation Priorities
 
 Dynaml expressions are evaluated obeying certain priority levels. This means operations with a higher priority are evaluated first. For example the expression `1 + 2 * 3` is evaluated in the order `1 + ( 2 * 3 )`. Operations with the same priority are evaluated from left to right (in contrast to version 1.0.7). This means the expression `6 - 3 - 2` is evaluated as `( 6 - 3 ) - 2`.
@@ -1493,6 +1558,35 @@ by the template.
 
   yields the list `[ 1,2,4,8,16 ]` for the property `values`.
 
+- _Functions can be used to parameterize templates_
+
+  The combination of functions with templates can be use to provide functions yielding complex structures.
+  The parameters of a function are part of the scope used to resolve reference expressions in a template used in the function body.
+
+  e.g.:
+
+  ```yaml
+  relation:
+    template:
+      <<: (( &template ))
+      bob: (( x " " y ))
+    relate: (( |x,y|->*relation.template ))
+
+  banda: (( relation.relate("loves","alice") ))
+  ```
+
+  evaluates to
+
+  ```yaml
+  relation:
+    relate: lambda|x,y|->*(relation.template)
+    template:
+      <<: (( &template ))
+      bob: (( x " " y ))
+	
+	banda:
+      bob: loves alice
+  ```
  
 # Error Reporting
 

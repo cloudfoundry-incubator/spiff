@@ -2,8 +2,9 @@ package dynaml
 
 type DynamlGrammar Peg {}
 
-Dynaml <- (Prefer / Expression) !.
+Dynaml <- (Prefer / Template / Expression) !.
 Prefer <- ws 'prefer' req_ws Expression
+Template <- ws '&template' ws
 Expression <- ws ( LambdaExpr / Level7 ) ws
 
 Level7 <- Level6 ( req_ws Or )*
@@ -33,7 +34,7 @@ Division <-  '/' req_ws Level0
 Modulo <-  '%' req_ws Level0
 
 Level0 <- String / Integer / Boolean / Nil / Not /
-          Merge / Auto / Lambda / Chained 
+          Substitution / Merge / Auto / Lambda / Chained 
 
 Chained <- (( Mapping / List / Range / ( Grouped / Reference ) ChainedCall* ) ) ( ChainedQualifiedExpression ChainedCall+)* ChainedQualifiedExpression?
 ChainedQualifiedExpression <- '.' FollowUpRef 
@@ -41,6 +42,7 @@ ChainedCall <- '(' Arguments ')'
 Arguments <- Expression (NextExpression)*
 NextExpression <- ',' Expression
 
+Substitution <- '*' Level0
 Not <- '!' ws Level0
 Grouped <- '(' Expression ')'
 Range <- '[' Expression '..' Expression ']'

@@ -4,6 +4,11 @@ import (
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
+type Status interface {
+	error
+	Issue(string) yaml.Issue
+}
+
 type Binding interface {
 	GetLocalBinding() map[string]yaml.Node
 	FindFromRoot([]string) (yaml.Node, bool)
@@ -17,7 +22,7 @@ type Binding interface {
 	Path() []string
 	StubPath() []string
 
-	Flow(source yaml.Node, shouldOverride bool) (yaml.Node, error)
+	Flow(source yaml.Node, shouldOverride bool) (yaml.Node, Status)
 }
 
 type EvaluationInfo struct {

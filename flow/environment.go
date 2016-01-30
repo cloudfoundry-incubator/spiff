@@ -94,7 +94,7 @@ func (e DefaultEnvironment) RedirectOverwrite(path []string) dynaml.Binding {
 	return e
 }
 
-func (e DefaultEnvironment) Flow(source yaml.Node, shouldOverride bool) (yaml.Node, error) {
+func (e DefaultEnvironment) Flow(source yaml.Node, shouldOverride bool) (yaml.Node, dynaml.Status) {
 	result := source
 
 	for {

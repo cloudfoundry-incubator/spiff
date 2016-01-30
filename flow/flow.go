@@ -40,6 +40,7 @@ func flow(root yaml.Node, env dynaml.Binding, shouldOverride bool) yaml.Node {
 		case dynaml.Expression:
 			debug.Debug("??? eval %T: %+v\n", val, val)
 			result, info, ok := val.Evaluate(env)
+			debug.Debug("??? ---> %+v\n", result)
 			if !ok {
 				root = yaml.IssueNode(root, info.Issue)
 				debug.Debug("??? failed ---> KEEP\n")
@@ -55,6 +56,9 @@ func flow(root yaml.Node, env dynaml.Binding, shouldOverride bool) yaml.Node {
 				}
 				_, expr := result.Value().(dynaml.Expression)
 
+				if len(info.Issue.Issue) != 0 {
+					result = yaml.IssueNode(result, info.Issue)
+				}
 				// preserve accumulated node attributes
 				if preferred || info.Preferred {
 					debug.Debug("   PREFERRED")
@@ -87,7 +91,7 @@ func flow(root yaml.Node, env dynaml.Binding, shouldOverride bool) yaml.Node {
 					debug.Debug("??? ---> %+v\n", result)
 					return result
 				}
-				debug.Debug("???   try override")
+				debug.Debug("???   try override\n")
 				replace = result.ReplaceFlag()
 				root = result
 			}
@@ -143,6 +147,7 @@ func simpleMergeCompatibilityCheck(initial bool, node yaml.Node) bool {
 
 func flowMap(root yaml.Node, env dynaml.Binding) yaml.Node {
 	processed := true
+	template := false
 	rootMap := root.Value().(map[string]yaml.Node)
 
 	env = env.WithScope(rootMap)
@@ -163,12 +168,20 @@ func flowMap(root yaml.Node, env dynaml.Binding) yaml.Node {
 		if key == "<<" {
 			_, initial := val.Value().(string)
 			base := flow(val, env, false)
+			debug.Debug("flow to %#v\n", base.Value())
 			_, ok := base.Value().(dynaml.Expression)
 			if ok {
-				if simpleMergeCompatibilityCheck(initial, base) {
+				_, ok := base.Value().(dynaml.TemplateExpr)
+				if ok {
+					debug.Debug("found template declaration\n")
+					template = true
 					continue
+				} else {
+					if simpleMergeCompatibilityCheck(initial, base) {
+						continue
+					}
+					val = base
 				}
-				val = base
 				processed = false
 			} else {
 				baseMap, ok := base.Value().(map[string]yaml.Node)
@@ -198,10 +211,17 @@ func flowMap(root yaml.Node, env dynaml.Binding) yaml.Node {
 	}
 
 	debug.Debug("MAP DONE %v\n", env.Path())
-	if replace {
-		return yaml.ReplaceNode(newMap, root, redirect)
+	var result interface{}
+	if template {
+		debug.Debug(" as template\n")
+		result = dynaml.TemplateValue{yaml.NewNode(newMap, root.SourceName()), root}
+	} else {
+		result = newMap
 	}
-	return yaml.RedirectNode(newMap, root, redirect)
+	if replace {
+		return yaml.ReplaceNode(result, root, redirect)
+	}
+	return yaml.RedirectNode(result, root, redirect)
 }
 
 func flowList(root yaml.Node, env dynaml.Binding) yaml.Node {
