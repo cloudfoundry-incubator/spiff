@@ -66,6 +66,7 @@ Contents:
 		- [(( *foo.bar ))](#-foobar-)
 	- [Operation Priorities](#operation-priorities)
 - [Structural Auto-Merge](#structural-auto-merge)
+- [Bringing it all together](#bringing-it-all-together)
 - [Useful to Know](#useful-to-know)
 - [Error Reporting](#error-reporting)
 
@@ -1428,6 +1429,144 @@ field exist in a list element, then this element can only be targeted by this
 name. When the selector is defeated, the resulting value is the one provided
 by the template.
 
+## Bringing it all together
+
+Merging the following files in the given order
+
+**deployment.yml**
+```yaml
+networks: (( merge ))
+```
+
+**cf.yml**
+```yaml
+utils: (( merge )) 
+network: (( merge ))
+meta: (( merge ))
+
+networks:
+  - name: cf1
+    <<: (( utils.defNet(network.base.z1,meta.deployment_no,30) ))
+  - name: cf2
+    <<: (( utils.defNet(network.base.z2,meta.deployment_no,30) ))
+```
+
+**infrastructure.yml**
+```yaml
+network:
+  size: 16
+  block_size: 256
+  base:
+    z1: 10.0.0.0
+    z2: 10.1.0.0
+```
+
+**rules.yml**
+```yaml
+utils:
+  defNet: (( |b,n,s|->(*.utils.network).net ))
+  network:
+    <<: (( &template ))
+    start: (( b + n * .network.block_size ))
+    first: (( start + ( n == 0 ? 2 :0 ) ))
+    lower: (( n == 0 ? [] :b " - " start - 1 ))
+    upper: (( start + .network.block_size " - " max_ip(net.subnets.[0].range) ))
+    net:
+      subnets:
+      - range: (( b "/" .network.size ))
+        reserved: (( [] lower upper ))
+        static_ips:
+          - (( first " - " first + s - 1 ))
+```
+
+**instance.yml**
+```yaml
+meta:
+  deployment_no: 1
+  
+```
+
+will yield a network setting for a dedicated deployment
+
+```yaml
+networks:
+- name: cf1
+  subnets:
+  - range: 10.0.0.0/16
+    reserved:
+    - 10.0.0.0 - 10.0.0.255
+    - 10.0.2.0 - 10.0.255.255
+    static_ips:
+    - 10.0.1.0 - 10.0.1.29
+- name: cf2
+  subnets:
+  - range: 10.1.0.0/16
+    reserved:
+    - 10.1.0.0 - 10.1.0.255
+    - 10.1.2.0 - 10.1.255.255
+    static_ips:
+    - 10.1.1.0 - 10.1.1.29
+```
+
+Using the same config for another deployment of the same type just requires the replacement of the `instance.yml`.
+Using a different `instance.yml`
+
+```yaml
+meta:
+  deployment_no: 0
+  
+```
+
+will yield a network setting for a second deployment providing the appropriate settings for a unique other IP block.
+
+```yaml
+networks:
+- name: cf1
+  subnets:
+  - range: 10.0.0.0/16
+    reserved:
+    - 10.0.1.0 - 10.0.255.255
+    static_ips:
+    - 10.0.0.2 - 10.0.0.31
+- name: cf2
+  subnets:
+  - range: 10.1.0.0/16
+    reserved:
+    - 10.1.1.0 - 10.1.255.255
+    static_ips:
+    - 10.1.0.2 - 10.1.0.31
+```
+
+If you move to another infrastructure you might want to change the basic IP layout. You can do it just by adapting the `infrastructure.yml`
+
+```yaml
+network:
+  size: 17
+  block_size: 128
+  base:
+    z1: 10.0.0.0
+    z2: 10.0.128.0
+```
+
+Without any change to your other settings you'll get
+
+```yaml
+networks:
+- name: cf1
+  subnets:
+  - range: 10.0.0.0/17
+    reserved:
+    - 10.0.0.128 - 10.0.127.255
+    static_ips:
+    - 10.0.0.2 - 10.0.0.31
+- name: cf2
+  subnets:
+  - range: 10.0.128.0/17
+    reserved:
+    - 10.0.128.128 - 10.0.255.255
+    static_ips:
+    - 10.0.128.2 - 10.0.128.31
+```
 
 ## Useful to Know
 
