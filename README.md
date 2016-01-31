@@ -747,11 +747,11 @@ The operators `-or` and `-and` can be used to combine comparison operators to co
 
 **Remark:**
 
-The more traditional operator symbol `||` (and `&&`) cannot be used here, because the operator `||` has already exists in dynam with a different semantic, that does not work for logical operations. The expression `false || true` evaluates to `false`, because it yields the first operand, if it is defined, regardless of its value. To be as compatible as possible this cannot be changed and the bare symbols `or` and `and` cannot be be used, because this would invalidate the concatenation of references with such names. 
+The more traditional operator symbol `||` (and `&&`) cannot be used here, because the operator `||` already exists in dynam with a different semantic, that does not hold for logical operations. The expression `false || true` evaluates to `false`, because it yields the first operand, if it is defined, regardless of its value. To be as compatible as possible this cannot be changed and the bare symbols `or` and `and` cannot be be used, because this would invalidate the concatenation of references with such names. 
 
 ## `(( 5 -or 6 ))`
 
-If both sides of an `-or` or `-and` operator evaluates to an integer value, a bit-wise operation is executed and the result is again an integer. Therefore the expression `5 -or 6` evaluates to `7`.
+If both sides of an `-or` or `-and` operator evaluate to integer values, a bit-wise operation is executed and the result is again an integer. Therefore the expression `5 -or 6` evaluates to `7`.
 
 ## Functions
 
