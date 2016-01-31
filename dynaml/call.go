@@ -82,6 +82,12 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	case "eval":
 		result, sub, ok = func_eval(values, binding)
 
+	case "format":
+		result, sub, ok = func_format(values, binding)
+
+	case "error":
+		result, sub, ok = func_error(values, binding)
+
 	case "min_ip":
 		result, sub, ok = func_minIP(values, binding)
 

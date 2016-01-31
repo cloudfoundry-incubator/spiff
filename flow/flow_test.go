@@ -2643,6 +2643,61 @@ status: failed
 		})
 	})
 
+	Describe("when formatting a string", func() {
+		It("formats strings and integers", func() {
+			source := parseYAML(`
+---
+int: 5
+str: string
+msg: (( format("%s %d", str, int) ))
+`)
+			resolved := parseYAML(`
+---
+int: 5
+str: string
+msg: string 5
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("formats maps", func() {
+			source := parseYAML(`
+---
+map:
+  alice: 25
+msg: (( format("%s", map) ))
+`)
+			resolved := parseYAML(`
+---
+map:
+  alice: 25
+msg: |+
+  alice: 25
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("formats lists", func() {
+			source := parseYAML(`
+---
+list:
+  - alice
+  - bob
+msg: (( format("%s", list) ))
+`)
+			resolved := parseYAML(`
+---
+list:
+  - alice
+  - bob
+msg: |+
+  - alice
+  - bob
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+	})
+
 	Describe("when doing a mapping", func() {
 		Context("for a list", func() {
 			It("maps simple expression", func() {

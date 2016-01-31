@@ -47,6 +47,7 @@ Contents:
 	- [(( a > 1 ? foo :bar ))](#-a--1--foo-bar-)
 	- [(( 5 -or 6 ))](#-5--or-6-)
 	- [Functions](#functions)
+		- [(( format( "%s %d", alice, 25) ))](#-format-s-d-alice-25-)
 		- [(( join( ", ", list) ))](#-join---list-)
 		- [(( split( ",", string) ))](#-split--string-)
 		- [(( trim(string) ))](#-trimstring-)
@@ -763,6 +764,10 @@ result: (( functionname(arg, arg, ...) ))
 
 Additional functions may be defined as part of the yaml document using [lambda expressions](#-lambda-x-x--port-). The function name then is either a grouped expression or the path to the node hosting the lambda expression.
  
+### `(( format( "%s %d", alice, 25) ))`
+
+Format a string based on arguments given by dynaml expressions. There is a second flavor of this function: `error` formats an error message and sets the evaluation to failed.
+  
 
 ### `(( join( ", ", list) ))`
 
