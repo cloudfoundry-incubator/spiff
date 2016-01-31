@@ -2595,6 +2595,54 @@ foo: 2
 		})
 	})
 
+	Describe("when reevaluating an expression", func() {
+		It("resolves indirect fields", func() {
+			source := parseYAML(`
+---
+alice:
+  bob: married
+
+foo: alice
+bar: bob
+
+status: (( eval( foo "." bar ) ))
+`)
+			resolved := parseYAML(`
+---
+alice:
+  bob: married
+
+foo: alice
+bar: bob
+
+status: married
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("defaults evaluation errors", func() {
+			source := parseYAML(`
+---
+alice:
+  bob: married
+
+foo: alice
+
+status: (( eval( foo "." bar ) || "failed" ))
+`)
+			resolved := parseYAML(`
+---
+alice:
+  bob: married
+
+foo: alice
+
+status: failed
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+	})
+
 	Describe("when doing a mapping", func() {
 		Context("for a list", func() {
 			It("maps simple expression", func() {

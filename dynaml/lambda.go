@@ -51,7 +51,7 @@ func (e LambdaRefExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, boo
 		expr, err := Parse(v, e.Path, e.StubPath)
 		if err != nil {
 			debug.Debug("cannot parse: %s\n", err.Error())
-			info.Issue = yaml.NewIssue("cannot parse lamba expression '%s'", v)
+			info.Issue = yaml.NewIssue("cannot parse lamba expression '%s'")
 			return nil, info, false
 		}
 		lexpr, ok := expr.(LambdaExpr)

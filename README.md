@@ -53,6 +53,7 @@ Contents:
 		- [(( length(list) ))](#-lengthlist-)
 		- [(( defined(foobar) ))](#-definedfoobar-)
 		- [(( exec( "command", arg1, arg2) ))](#-exec-command-arg1-arg2-)
+		- [(( eval( foo "." bar ) ))](#-eval-foo--bar--)
 		- [(( static_ips(0, 1, 3) ))](#-static_ips0-1-3-)
 	- [(( lambda |x|->x ":" port ))](#-lambda-x-x--port-)
 	- [Mappings](#mappings)
@@ -894,6 +895,34 @@ string: a
 Alternatively `exec` can be called with a single list argument completely describing the command line.
 
 The same command will be executed once, only, even if it is used in multiple expressions.
+
+### `(( eval( foo "." bar ) ))`
+
+Evaluate the evaluation result of a string expression again as dynaml expression. This can, for example, be used to realize indirections.
+
+e.g.: the expression in
+
+```yaml
+alice:
+  bob: married
+
+foo: alice
+bar: bob
+
+status: (( eval( foo "." bar ) ))
+```
+
+calculates the path to a field, which is then evaluated again to yield the value of this composed field:
+
+```yaml
+alice:
+  bob: married
+
+foo: alice
+bar: bob
+
+status: married
+```
 
 ### `(( static_ips(0, 1, 3) ))`
 
