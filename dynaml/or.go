@@ -3,8 +3,6 @@ package dynaml
 import (
 	"fmt"
 	"reflect"
-
-	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
 type OrExpr struct {
@@ -12,13 +10,12 @@ type OrExpr struct {
 	B Expression
 }
 
-func (e OrExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func (e OrExpr) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) {
 	a, infoa, ok := e.A.Evaluate(binding)
 	if ok {
-		if reflect.DeepEqual(a.Value(), e.A) {
+		if reflect.DeepEqual(a, e.A) {
 			return nil, infoa, false
 		}
-
 		return a, infoa, true
 	}
 

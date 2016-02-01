@@ -11,7 +11,7 @@ type DivisionExpr struct {
 	B Expression
 }
 
-func (e DivisionExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func (e DivisionExpr) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) {
 	resolved := true
 
 	aint, info, ok := ResolveIntegerExpressionOrPushEvaluation(&e.A, &resolved, nil, binding)
@@ -25,14 +25,14 @@ func (e DivisionExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool
 	}
 
 	if !resolved {
-		return node(e), info, true
+		return e, info, true
 	}
 
 	if bint == 0 {
 		info.Issue = yaml.NewIssue("division by zero")
 		return nil, info, false
 	}
-	return node(aint / bint), info, true
+	return aint / bint, info, true
 }
 
 func (e DivisionExpr) String() string {

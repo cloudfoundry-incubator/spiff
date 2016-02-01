@@ -11,7 +11,7 @@ type ReferenceExpr struct {
 	Path []string
 }
 
-func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func (e ReferenceExpr) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) {
 	fromRoot := e.Path[0] == ""
 
 	debug.Debug("reference: %v\n", e.Path)
@@ -21,14 +21,14 @@ func (e ReferenceExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, boo
 		} else {
 			return binding.FindReference(path[:end+1])
 		}
-	})
+	}, binding)
 }
 
 func (e ReferenceExpr) String() string {
 	return strings.Join(e.Path, ".")
 }
 
-func (e ReferenceExpr) find(f func(int, []string) (yaml.Node, bool)) (yaml.Node, EvaluationInfo, bool) {
+func (e ReferenceExpr) find(f func(int, []string) (node yaml.Node, x bool), binding Binding) (interface{}, EvaluationInfo, bool) {
 	var step yaml.Node
 	var ok bool
 
@@ -44,15 +44,15 @@ func (e ReferenceExpr) find(f func(int, []string) (yaml.Node, bool)) (yaml.Node,
 
 		if !isLocallyResolved(step) {
 			debug.Debug("  locally unresolved\n")
-			return node(e), info, true
+			return e, info, true
 		}
 	}
 
-	if !isResolved(step) {
+	if !isResolvedValue(step.Value()) {
 		debug.Debug("  unresolved\n")
-		return node(e), info, true
+		return e, info, true
 	}
 
 	debug.Debug("reference %v -> %+v\n", e.Path, step)
-	return yaml.ReferencedNode(step), info, true
+	return value(yaml.ReferencedNode(step)), info, true
 }

@@ -14,8 +14,8 @@ var _ = Describe("references", func() {
 
 			binding := FakeBinding{
 				FoundReferences: map[string]yaml.Node{
-					"foo":     node(nil),
-					"foo.bar": node(42),
+					"foo":     node(nil, nil),
+					"foo.bar": node(42, nil),
 				},
 			}
 
@@ -28,7 +28,7 @@ var _ = Describe("references", func() {
 
 				binding := FakeBinding{
 					FoundReferences: map[string]yaml.Node{
-						"foo": node(MergeExpr{}),
+						"foo": node(MergeExpr{}, nil),
 					},
 				}
 

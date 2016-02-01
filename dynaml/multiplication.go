@@ -2,8 +2,6 @@ package dynaml
 
 import (
 	"fmt"
-
-	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
 type MultiplicationExpr struct {
@@ -11,7 +9,7 @@ type MultiplicationExpr struct {
 	B Expression
 }
 
-func (e MultiplicationExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func (e MultiplicationExpr) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) {
 	resolved := true
 
 	aint, info, ok := ResolveIntegerExpressionOrPushEvaluation(&e.A, &resolved, nil, binding)
@@ -25,9 +23,9 @@ func (e MultiplicationExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo
 	}
 
 	if !resolved {
-		return node(e), info, true
+		return e, info, true
 	}
-	return node(aint * bint), info, true
+	return aint * bint, info, true
 }
 
 func (e MultiplicationExpr) String() string {

@@ -4,7 +4,7 @@ import (
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
-func func_length(arguments []interface{}, binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func func_length(arguments []interface{}, binding Binding) (interface{}, EvaluationInfo, bool) {
 	var result interface{}
 	info := DefaultInfo()
 
@@ -25,5 +25,5 @@ func func_length(arguments []interface{}, binding Binding) (yaml.Node, Evaluatio
 		return nil, info, false
 
 	}
-	return node(result), info, true
+	return result, info, true
 }

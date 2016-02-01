@@ -11,7 +11,7 @@ import (
 )
 
 func Flow(source yaml.Node, stubs ...yaml.Node) (yaml.Node, error) {
-	return NewEnvironment(stubs).Flow(source, true)
+	return NewEnvironment(stubs, source.SourceName()).Flow(source, true)
 }
 
 func flow(root yaml.Node, env dynaml.Binding, shouldOverride bool) yaml.Node {
@@ -24,6 +24,7 @@ func flow(root yaml.Node, env dynaml.Binding, shouldOverride bool) yaml.Node {
 	preferred := root.Preferred()
 	merged := root.Merged()
 	keyName := root.KeyName()
+	source := root.SourceName()
 
 	if redirect != nil {
 		env = env.RedirectOverwrite(redirect)
@@ -39,8 +40,12 @@ func flow(root yaml.Node, env dynaml.Binding, shouldOverride bool) yaml.Node {
 
 		case dynaml.Expression:
 			debug.Debug("??? eval %T: %+v\n", val, val)
-			result, info, ok := val.Evaluate(env)
-			debug.Debug("??? ---> %+v\n", result)
+			env := env
+			if root.SourceName() != env.SourceName() {
+				env = env.WithSource(root.SourceName())
+			}
+			eval, info, ok := val.Evaluate(env)
+			debug.Debug("??? ---> %+v\n", eval)
 			if !ok {
 				root = yaml.IssueNode(root, info.Issue)
 				debug.Debug("??? failed ---> KEEP\n")
@@ -49,7 +54,11 @@ func flow(root yaml.Node, env dynaml.Binding, shouldOverride bool) yaml.Node {
 				}
 				replace = replace || info.Replace
 			} else {
-				_, ok = result.Value().(string)
+				if info.SourceName() != "" {
+					source = info.SourceName()
+				}
+				result := yaml.NewNode(eval, source)
+				_, ok = eval.(string)
 				if ok {
 					// map result to potential expression
 					result = flowString(result, env)

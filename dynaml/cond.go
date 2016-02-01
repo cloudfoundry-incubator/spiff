@@ -12,17 +12,17 @@ type CondExpr struct {
 	F Expression
 }
 
-func (e CondExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func (e CondExpr) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) {
 	resolved := true
 	info := DefaultInfo()
-	var result yaml.Node
+	var result interface{}
 
 	a, info, ok := ResolveExpressionOrPushEvaluation(&e.C, &resolved, &info, binding)
 	if !ok {
 		return nil, info, false
 	}
 	if !resolved {
-		return node(e), info, true
+		return e, info, true
 	}
 	if toBool(a) {
 		result, info, ok = e.T.Evaluate(binding)

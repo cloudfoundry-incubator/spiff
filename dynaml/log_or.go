@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/cloudfoundry-incubator/spiff/debug"
-	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
 const (
@@ -16,20 +15,21 @@ type LogOrExpr struct {
 	B Expression
 }
 
-func (e LogOrExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func (e LogOrExpr) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) {
 	a, b, info, resolved, ok := resolveLOperands(e.A, e.B, binding)
 	if !ok {
+		debug.Debug("OR: failed %#v, %#v\n", e.A, e.B)
 		return nil, info, false
 	}
 	if !resolved {
-		return node(e), info, true
+		return e, info, true
 	}
 	debug.Debug("OR: %#v, %#v\n", a, b)
 	inta, ok := a.(int64)
 	if ok {
-		return node(inta | b.(int64)), info, true
+		return inta | b.(int64), info, true
 	}
-	return node(toBool(a) || toBool(b)), info, true
+	return (toBool(a) || toBool(b)), info, true
 }
 
 func (e LogOrExpr) String() string {
@@ -37,7 +37,7 @@ func (e LogOrExpr) String() string {
 }
 
 func resolveLOperands(a, b Expression, binding Binding) (eff_a, eff_b interface{}, info EvaluationInfo, resolved bool, ok bool) {
-	var va, vb yaml.Node
+	var va, vb interface{}
 	var infoa, infob EvaluationInfo
 
 	va, infoa, ok = a.Evaluate(binding)
@@ -57,14 +57,14 @@ func resolveLOperands(a, b Expression, binding Binding) (eff_a, eff_b interface{
 		}
 
 		resolved = true
-		eff_a, ok = va.Value().(int64)
+		eff_a, ok = va.(int64)
 		if ok {
-			eff_b, ok = vb.Value().(int64)
+			eff_b, ok = vb.(int64)
 			if ok {
 				return
 			}
 		}
-		return toBool(va.Value()), toBool(vb.Value()), info, true, true
+		return toBool(va), toBool(vb), info, true, true
 	}
 
 	return nil, nil, info, false, false

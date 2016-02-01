@@ -12,7 +12,7 @@ var (
 	refInstances = ReferenceExpr{[]string{"instances"}}
 )
 
-func func_static_ips(arguments []Expression, binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func func_static_ips(arguments []Expression, binding Binding) (interface{}, EvaluationInfo, bool) {
 
 	indices := make([]int, len(arguments))
 	for i, arg := range arguments {
@@ -21,7 +21,7 @@ func func_static_ips(arguments []Expression, binding Binding) (yaml.Node, Evalua
 			return nil, info, false
 		}
 
-		index64, ok := index.Value().(int64)
+		index64, ok := index.(int64)
 		if !ok {
 			return nil, info, false
 		}
@@ -31,7 +31,7 @@ func func_static_ips(arguments []Expression, binding Binding) (yaml.Node, Evalua
 	return generateStaticIPs(binding, indices)
 }
 
-func generateStaticIPs(binding Binding, indices []int) (yaml.Node, EvaluationInfo, bool) {
+func generateStaticIPs(binding Binding, indices []int) (interface{}, EvaluationInfo, bool) {
 	info := DefaultInfo()
 
 	if len(indices) == 0 {
@@ -59,7 +59,7 @@ func generateStaticIPs(binding Binding, indices []int) (yaml.Node, EvaluationInf
 			return nil, info, false
 		}
 
-		ips = append(ips, node(ipPool[i].String()))
+		ips = append(ips, node(ipPool[i].String(), binding))
 	}
 
 	if len(ips) < instanceCount {
@@ -67,7 +67,7 @@ func generateStaticIPs(binding Binding, indices []int) (yaml.Node, EvaluationInf
 		return nil, info, false
 	}
 
-	return node(ips[:instanceCount]), info, true
+	return ips[:instanceCount], info, true
 }
 
 func findInstanceCount(binding Binding) (*int64, EvaluationInfo, bool) {
@@ -76,7 +76,7 @@ func findInstanceCount(binding Binding) (*int64, EvaluationInfo, bool) {
 		return nil, info, false
 	}
 
-	instances, ok := nearestInstances.Value().(int64)
+	instances, ok := nearestInstances.(int64)
 	return &instances, info, ok
 }
 
@@ -86,7 +86,7 @@ func findStaticIPRanges(binding Binding) ([]string, EvaluationInfo, bool) {
 		return nil, info, found
 	}
 
-	networkName, ok := nearestNetworkName.Value().(string)
+	networkName, ok := nearestNetworkName.(string)
 	if !ok {
 		info.Issue = yaml.NewIssue("name field must be string")
 		return nil, info, false
@@ -102,7 +102,7 @@ func findStaticIPRanges(binding Binding) ([]string, EvaluationInfo, bool) {
 		return nil, info, true
 	}
 
-	subnetsList, ok := subnets.Value().([]yaml.Node)
+	subnetsList, ok := subnets.([]yaml.Node)
 	if !ok {
 		info.Issue = yaml.NewIssue("subnets field must be a list")
 		return nil, info, false

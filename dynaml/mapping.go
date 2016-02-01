@@ -13,7 +13,7 @@ type MapExpr struct {
 	Lambda Expression
 }
 
-func (e MapExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func (e MapExpr) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) {
 	resolved := true
 
 	debug.Debug("evaluate mapping\n")
@@ -27,7 +27,7 @@ func (e MapExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	}
 
 	if !resolved {
-		return node(e), info.Join(infoe), ok
+		return e, info.Join(infoe), ok
 	}
 
 	lambda, ok := lvalue.(LambdaValue)
@@ -53,10 +53,10 @@ func (e MapExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 		return nil, info, false
 	}
 	if result == nil {
-		return node(e), info, true
+		return e, info, true
 	}
 	debug.Debug("map: --> %+v\n", result)
-	return node(result), info, true
+	return result, info, true
 }
 
 func (e MapExpr) String() string {
@@ -87,13 +87,13 @@ func mapList(source []yaml.Node, e LambdaValue, binding Binding) ([]yaml.Node, E
 			return nil, info, false
 		}
 
-		_, ok = mapped.Value().(Expression)
+		_, ok = mapped.(Expression)
 		if ok {
 			debug.Debug("map:  %d unresolved  -> KEEP\n")
 			return nil, info, true
 		}
 		debug.Debug("map:  %d --> %+v\n", i, mapped)
-		result = append(result, mapped)
+		result = append(result, node(mapped, info))
 	}
 	return result, info, true
 }
@@ -115,13 +115,13 @@ func mapMap(source map[string]yaml.Node, e LambdaValue, binding Binding) ([]yaml
 			return nil, info, false
 		}
 
-		_, ok = mapped.Value().(Expression)
+		_, ok = mapped.(Expression)
 		if ok {
 			debug.Debug("map:  %d unresolved  -> KEEP\n")
 			return nil, info, true
 		}
 		debug.Debug("map:  %s --> %+v\n", k, mapped)
-		result = append(result, mapped)
+		result = append(result, node(mapped, info))
 	}
 	return result, info, true
 }

@@ -23,11 +23,19 @@ func (c FakeBinding) StubPath() []string {
 	return c.stubPath
 }
 
+func (c FakeBinding) SourceName() string {
+	return "test"
+}
+
 func (c FakeBinding) RedirectOverwrite([]string) Binding {
 	return c
 }
 
 func (c FakeBinding) WithScope(map[string]yaml.Node) Binding {
+	return c
+}
+
+func (c FakeBinding) WithLocalScope(map[string]yaml.Node) Binding {
 	return c
 }
 
@@ -39,6 +47,10 @@ func (c FakeBinding) WithPath(step string) Binding {
 	newPath = make([]string, len(c.stubPath))
 	copy(newPath, c.stubPath)
 	c.stubPath = append(newPath, step)
+	return c
+}
+
+func (c FakeBinding) WithSource(source string) Binding {
 	return c
 }
 

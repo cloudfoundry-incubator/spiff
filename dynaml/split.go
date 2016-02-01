@@ -6,7 +6,7 @@ import (
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
-func func_split(arguments []interface{}, binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func func_split(arguments []interface{}, binding Binding) (interface{}, EvaluationInfo, bool) {
 	info := DefaultInfo()
 
 	if len(arguments) != 2 {
@@ -28,7 +28,7 @@ func func_split(arguments []interface{}, binding Binding) (yaml.Node, Evaluation
 	array := strings.Split(str, sep)
 	result := make([]yaml.Node, len(array))
 	for i, e := range array {
-		result[i] = node(e)
+		result[i] = node(e, binding)
 	}
-	return node(result), info, true
+	return result, info, true
 }

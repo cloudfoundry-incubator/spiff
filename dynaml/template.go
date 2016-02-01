@@ -10,7 +10,7 @@ import (
 type TemplateExpr struct {
 }
 
-func (e TemplateExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func (e TemplateExpr) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) {
 	info := DefaultInfo()
 	info.Issue = yaml.NewIssue("&template only usable to declare templates")
 	return nil, info, false
@@ -25,14 +25,14 @@ type SubstitutionExpr struct {
 	Node     yaml.Node
 }
 
-func (e SubstitutionExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func (e SubstitutionExpr) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) {
 	if e.Node == nil {
 		debug.Debug("evaluating expression to determine template\n")
 		n, info, ok := e.Template.Evaluate(binding)
-		if !ok || isExpression((n)) {
-			return node(e), info, ok
+		if !ok || isExpression(n) {
+			return e, info, ok
 		}
-		val, ok := n.Value().(TemplateValue)
+		val, ok := n.(TemplateValue)
 		if !ok {
 			info.Issue = yaml.NewIssue("template value required")
 			return nil, info, false
@@ -46,10 +46,11 @@ func (e SubstitutionExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, 
 	if state != nil {
 		debug.Debug("resolving template failed: " + state.Error())
 		info.Issue = state.Issue("template resolution failed")
-		return node(e), info, true
+		return e, info, true
 	}
 	debug.Debug("resolving template succeeded")
-	return result, info, true
+	info.Source = result.SourceName()
+	return result.Value(), info, true
 }
 
 func (e SubstitutionExpr) String() string {

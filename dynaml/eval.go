@@ -4,7 +4,7 @@ import (
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
-func func_eval(arguments []interface{}, binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func func_eval(arguments []interface{}, binding Binding) (interface{}, EvaluationInfo, bool) {
 	info := DefaultInfo()
 
 	if len(arguments) != 1 {

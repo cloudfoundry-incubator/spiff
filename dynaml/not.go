@@ -4,25 +4,24 @@ import (
 	"fmt"
 
 	"github.com/cloudfoundry-incubator/spiff/debug"
-	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
 type NotExpr struct {
 	Expr Expression
 }
 
-func (e NotExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func (e NotExpr) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) {
 	resolved := true
 	v, info, ok := ResolveExpressionOrPushEvaluation(&e.Expr, &resolved, nil, binding)
 	if !ok {
 		return nil, info, false
 	}
 	if !resolved {
-		return node(e), info, true
+		return e, info, true
 	}
 
 	debug.Debug("NOT: %#v\n", v)
-	return node(!toBool(v)), info, true
+	return !toBool(v), info, true
 }
 
 func (e NotExpr) String() string {

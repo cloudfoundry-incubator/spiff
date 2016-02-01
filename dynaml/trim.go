@@ -6,7 +6,7 @@ import (
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
-func func_trim(arguments []interface{}, binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func func_trim(arguments []interface{}, binding Binding) (interface{}, EvaluationInfo, bool) {
 	info := DefaultInfo()
 	ok := true
 
@@ -36,7 +36,7 @@ func func_trim(arguments []interface{}, binding Binding) (yaml.Node, EvaluationI
 				return nil, info, false
 			}
 			t = strings.Trim(t, cutset)
-			list[i] = node(t)
+			list[i] = node(t, binding)
 		}
 		result = list
 	default:
@@ -44,5 +44,5 @@ func func_trim(arguments []interface{}, binding Binding) (yaml.Node, EvaluationI
 		return nil, info, false
 	}
 
-	return node(result), info, true
+	return result, info, true
 }

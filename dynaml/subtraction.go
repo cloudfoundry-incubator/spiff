@@ -12,7 +12,7 @@ type SubtractionExpr struct {
 	B Expression
 }
 
-func (e SubtractionExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func (e SubtractionExpr) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) {
 	resolved := true
 
 	a, info, ok := ResolveExpressionOrPushEvaluation(&e.A, &resolved, nil, binding)
@@ -26,19 +26,19 @@ func (e SubtractionExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, b
 	}
 
 	if !resolved {
-		return node(e), info, true
+		return e, info, true
 	}
 
 	aint, ok := a.(int64)
 	if ok {
-		return node(aint - bint), info, true
+		return aint - bint, info, true
 	}
 
 	str, ok := a.(string)
 	if ok {
 		ip := net.ParseIP(str)
 		if ip != nil {
-			return node(IPAdd(ip, -bint).String()), info, true
+			return IPAdd(ip, -bint).String(), info, true
 		}
 		info.Issue = yaml.NewIssue("string argument for MINUS must be an IP address")
 	} else {

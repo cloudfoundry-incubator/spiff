@@ -6,12 +6,11 @@ import (
 	"strings"
 
 	"github.com/cloudfoundry-incubator/spiff/debug"
-	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
 type helperNode struct{}
 
-func (e helperNode) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func (e helperNode) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) {
 	panic("not intended to be evaluated")
 }
 

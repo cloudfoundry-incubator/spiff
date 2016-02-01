@@ -14,7 +14,7 @@ var _ = Describe("integer range", func() {
 			IntegerExpr{3},
 		}
 
-		Expect(expr).To(EvaluateAs([]yaml.Node{node(1), node(2), node(3)}, FakeBinding{}))
+		Expect(expr).To(EvaluateAs([]yaml.Node{node(1, nil), node(2, nil), node(3, nil)}, FakeBinding{}))
 	})
 
 	It("evaluates a decreasing range", func() {
@@ -23,7 +23,7 @@ var _ = Describe("integer range", func() {
 			IntegerExpr{-1},
 		}
 
-		Expect(expr).To(EvaluateAs([]yaml.Node{node(1), node(0), node(-1)}, FakeBinding{}))
+		Expect(expr).To(EvaluateAs([]yaml.Node{node(1, nil), node(0, nil), node(-1, nil)}, FakeBinding{}))
 	})
 
 	It("evaluates a single element range", func() {
@@ -32,7 +32,7 @@ var _ = Describe("integer range", func() {
 			IntegerExpr{1},
 		}
 
-		Expect(expr).To(EvaluateAs([]yaml.Node{node(1)}, FakeBinding{}))
+		Expect(expr).To(EvaluateAs([]yaml.Node{node(1, nil)}, FakeBinding{}))
 	})
 
 	It("evaluates to failure", func() {

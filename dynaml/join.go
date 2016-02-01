@@ -7,7 +7,7 @@ import (
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
-func func_join(arguments []interface{}, binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func func_join(arguments []interface{}, binding Binding) (interface{}, EvaluationInfo, bool) {
 	info := DefaultInfo()
 
 	if len(arguments) < 1 {
@@ -48,5 +48,5 @@ func func_join(arguments []interface{}, binding Binding) (yaml.Node, EvaluationI
 		}
 	}
 
-	return node(strings.Join(args[1:], args[0])), info, true
+	return strings.Join(args[1:], args[0]), info, true
 }

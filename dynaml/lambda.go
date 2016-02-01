@@ -12,9 +12,9 @@ type LambdaExpr struct {
 	E     Expression
 }
 
-func (e LambdaExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func (e LambdaExpr) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) {
 	info := DefaultInfo()
-	return node(LambdaValue{e, binding.GetLocalBinding()}), info, true
+	return LambdaValue{e, binding.GetLocalBinding()}, info, true
 }
 
 func (e LambdaExpr) String() string {
@@ -31,7 +31,7 @@ type LambdaRefExpr struct {
 	StubPath []string
 }
 
-func (e LambdaRefExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func (e LambdaRefExpr) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) {
 	var lambda LambdaValue
 	resolved := true
 	value, info, ok := ResolveExpressionOrPushEvaluation(&e.Source, &resolved, nil, binding)
@@ -39,7 +39,7 @@ func (e LambdaRefExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, boo
 		return nil, info, false
 	}
 	if !resolved {
-		return node(e), info, false
+		return e, info, false
 	}
 
 	switch v := value.(type) {
@@ -66,7 +66,7 @@ func (e LambdaRefExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, boo
 		info.Issue = yaml.NewIssue("lambda reference must resolve to lambda value or string")
 	}
 	debug.Debug("found lambda: %s\n", lambda)
-	return node(lambda), info, true
+	return lambda, info, true
 }
 
 func (e LambdaRefExpr) String() string {
@@ -96,7 +96,7 @@ func (e LambdaValue) MarshalYAML() (tag string, value interface{}) {
 	return "", e.String()
 }
 
-func (e LambdaValue) Evaluate(args []interface{}, binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func (e LambdaValue) Evaluate(args []interface{}, binding Binding) (interface{}, EvaluationInfo, bool) {
 	info := DefaultInfo()
 
 	if len(args) > len(e.lambda.Names) {
@@ -108,45 +108,16 @@ func (e LambdaValue) Evaluate(args []interface{}, binding Binding) (yaml.Node, E
 		inp[n] = v
 	}
 	debug.Debug("LAMBDA CALL: inherit binding %+v\n", inp)
-	inp["_"] = node(e)
+	inp["_"] = node(e, binding)
 	for i, v := range args {
-		inp[e.lambda.Names[i]] = node(v)
+		inp[e.lambda.Names[i]] = node(v, binding)
 	}
 	debug.Debug("LAMBDA CALL: effective binding %+v\n", inp)
 
 	if len(args) < len(e.lambda.Names) {
 		rest := e.lambda.Names[len(args):]
-		return node(LambdaValue{LambdaExpr{rest, e.lambda.E}, inp}), DefaultInfo(), true
+		return LambdaValue{LambdaExpr{rest, e.lambda.E}, inp}, DefaultInfo(), true
 	}
 
-	return e.lambda.E.Evaluate(newCallBinding(inp, binding))
+	return e.lambda.E.Evaluate(binding.WithLocalScope(inp))
 }
-
-type CallBinding struct {
-	Binding
-	names map[string]yaml.Node
-}
-
-func (c CallBinding) GetLocalBinding() map[string]yaml.Node {
-	return c.names
-}
-
-func newCallBinding(names map[string]yaml.Node, binding Binding) Binding {
-	return CallBinding{binding.WithScope(names), names}
-}
-
-/*
-func (c MapContext) FindReference(path []string) (yaml.Node, bool) {
-	for name, node := range c.names {
-		if len(path) >= 1 && path[0] == name {
-			debug.Debug("lambda: catch find ref: %v\n", path)
-			if len(path) == 1 {
-				return node, true
-			}
-			return yaml.Find(node, path[1:]...)
-		}
-	}
-	debug.Debug("lambda: forward find ref: %v\n", path)
-	return c.Binding.FindReference(path)
-}
-*/

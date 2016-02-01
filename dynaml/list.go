@@ -11,7 +11,7 @@ type ListExpr struct {
 	Contents []Expression
 }
 
-func (e ListExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func (e ListExpr) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) {
 	resolved := true
 
 	values, info, ok := ResolveExpressionListOrPushEvaluation(&e.Contents, &resolved, nil, binding)
@@ -20,14 +20,14 @@ func (e ListExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 		return nil, info, false
 	}
 	if !resolved {
-		return node(e), info, true
+		return e, info, true
 	}
 
 	nodes := []yaml.Node{}
 	for i, _ := range values {
-		nodes = append(nodes, node(values[i]))
+		nodes = append(nodes, node(values[i], binding))
 	}
-	return node(nodes), info, true
+	return nodes, info, true
 }
 
 func (e ListExpr) String() string {

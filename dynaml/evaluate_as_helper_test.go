@@ -2,18 +2,16 @@ package dynaml
 
 import (
 	"fmt"
-
-	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
 func EvaluateAs(expected interface{}, binding Binding) *EvaluateAsMatcher {
-	return &EvaluateAsMatcher{Expected: node(expected), Binding: binding}
+	return &EvaluateAsMatcher{Expected: expected, Binding: binding}
 }
 
 type EvaluateAsMatcher struct {
-	Expected yaml.Node
+	Expected interface{}
 	Binding  Binding
-	actual   yaml.Node
+	actual   interface{}
 }
 
 func (matcher *EvaluateAsMatcher) Match(source interface{}) (success bool, err error) {
@@ -27,11 +25,11 @@ func (matcher *EvaluateAsMatcher) Match(source interface{}) (success bool, err e
 	}
 
 	matcher.actual, _, ok = expr.Evaluate(matcher.Binding)
-	if matcher.actual == nil || !ok {
+	if !ok {
 		return false, fmt.Errorf("Node failed to evaluate.")
 	}
 
-	if matcher.actual.EquivalentToNode(matcher.Expected) {
+	if node(matcher.actual, nil).EquivalentToNode(node(matcher.Expected, nil)) {
 		return true, nil
 	} else {
 		return false, nil

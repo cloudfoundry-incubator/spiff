@@ -13,7 +13,7 @@ type CallExpr struct {
 	Arguments []Expression
 }
 
-func (e CallExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func (e CallExpr) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) {
 	resolved := true
 	funcName := ""
 	var value interface{}
@@ -50,10 +50,10 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	}
 
 	if !resolved {
-		return node(e), info, true
+		return e, info, true
 	}
 
-	var result yaml.Node
+	var result interface{}
 	var sub EvaluationInfo
 
 	switch funcName {
@@ -103,7 +103,7 @@ func (e CallExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 	}
 
 	if ok && (result == nil || isExpression(result)) {
-		return node(e), sub.Join(info), true
+		return e, sub.Join(info), true
 	}
 	return result, sub.Join(info), ok
 }

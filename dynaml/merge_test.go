@@ -22,7 +22,7 @@ var _ = Describe("merges", func() {
 
 			binding := FakeBinding{
 				FoundInStubs: map[string]yaml.Node{
-					"foo.bar": node(referencedNode),
+					"foo.bar": node(referencedNode, nil),
 				},
 			}
 
@@ -44,7 +44,7 @@ var _ = Describe("merges", func() {
 
 			binding := FakeBinding{
 				FoundInStubs: map[string]yaml.Node{
-					"foo.bar": node(referencedNode),
+					"foo.bar": node(referencedNode, nil),
 				},
 			}
 

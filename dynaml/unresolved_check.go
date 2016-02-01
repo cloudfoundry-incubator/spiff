@@ -148,11 +148,11 @@ func addContext(context []string, step string) []string {
 	return append(dup, step)
 }
 
-func isExpression(node yaml.Node) bool {
-	if node == nil {
+func isExpression(val interface{}) bool {
+	if val == nil {
 		return false
 	}
-	_, ok := node.Value().(Expression)
+	_, ok := val.(Expression)
 	return ok
 }
 
@@ -175,21 +175,25 @@ func isLocallyResolved(node yaml.Node) bool {
 }
 
 func isResolved(node yaml.Node) bool {
-	if node == nil {
+	return node == nil || isResolvedValue(node.Value())
+}
+
+func isResolvedValue(val interface{}) bool {
+	if val == nil {
 		return true
 	}
-	switch node.Value().(type) {
+	switch v := val.(type) {
 	case Expression:
 		return false
 	case []yaml.Node:
-		for _, n := range node.Value().([]yaml.Node) {
+		for _, n := range v {
 			if !isResolved(n) {
 				return false
 			}
 		}
 		return true
 	case map[string]yaml.Node:
-		for _, n := range node.Value().(map[string]yaml.Node) {
+		for _, n := range v {
 			if !isResolved(n) {
 				return false
 			}
@@ -197,7 +201,7 @@ func isResolved(node yaml.Node) bool {
 		return true
 
 	case string:
-		if yaml.EmbeddedDynaml(node) != nil {
+		if yaml.EmbeddedDynaml(node(val, nil)) != nil {
 			return false
 		}
 		return true

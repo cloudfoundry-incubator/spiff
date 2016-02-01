@@ -15,7 +15,7 @@ type ComparisonExpr struct {
 	B  Expression
 }
 
-func (e ComparisonExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func (e ComparisonExpr) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) {
 	resolved := true
 
 	a, info, ok := ResolveExpressionOrPushEvaluation(&e.A, &resolved, nil, binding)
@@ -29,7 +29,7 @@ func (e ComparisonExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bo
 	}
 
 	if !resolved {
-		return node(e), info, true
+		return e, info, true
 	}
 
 	var result bool
@@ -75,7 +75,7 @@ func (e ComparisonExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bo
 	if !ok {
 		return nil, infor, false
 	}
-	return node(result), infor, true
+	return result, infor, true
 }
 
 func (e ComparisonExpr) String() string {

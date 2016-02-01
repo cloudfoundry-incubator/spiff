@@ -12,20 +12,20 @@ type QualifiedExpr struct {
 	Reference  ReferenceExpr
 }
 
-func (e QualifiedExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func (e QualifiedExpr) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) {
 
 	root, info, ok := e.Expression.Evaluate(binding)
 	if !ok {
 		return nil, info, false
 	}
-	if !isResolved(root) {
-		return node(e), info, true
+	if !isResolvedValue(root) {
+		return e, info, true
 	}
 
 	debug.Debug("qualified reference: %v\n", e.Reference.Path)
 	return e.Reference.find(func(end int, path []string) (yaml.Node, bool) {
-		return yaml.Find(root, e.Reference.Path[0:end+1]...)
-	})
+		return yaml.Find(node(root, nil), e.Reference.Path[0:end+1]...)
+	}, binding)
 }
 
 func (e QualifiedExpr) String() string {

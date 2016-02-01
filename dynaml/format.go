@@ -9,11 +9,11 @@ import (
 	"github.com/cloudfoundry-incubator/candiedyaml"
 )
 
-func func_format(arguments []interface{}, binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func func_format(arguments []interface{}, binding Binding) (interface{}, EvaluationInfo, bool) {
 	return format("format", arguments, binding)
 }
 
-func format(name string, arguments []interface{}, binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func format(name string, arguments []interface{}, binding Binding) (interface{}, EvaluationInfo, bool) {
 	info := DefaultInfo()
 
 	if len(arguments) < 1 {
@@ -25,13 +25,13 @@ func format(name string, arguments []interface{}, binding Binding) (yaml.Node, E
 	for i, arg := range arguments {
 		switch v := arg.(type) {
 		case []yaml.Node:
-			yaml, err := candiedyaml.Marshal(node(v))
+			yaml, err := candiedyaml.Marshal(node(v, nil))
 			if err != nil {
 				log.Fatalln("error marshalling yaml fragment:", err)
 			}
 			args[i] = string(yaml)
 		case map[string]yaml.Node:
-			yaml, err := candiedyaml.Marshal(node(v))
+			yaml, err := candiedyaml.Marshal(node(v, nil))
 			if err != nil {
 				log.Fatalln("error marshalling yaml fragment:", err)
 			}
@@ -54,5 +54,5 @@ func format(name string, arguments []interface{}, binding Binding) (yaml.Node, E
 		info.Issue = yaml.NewIssue("%s: format must be string", format)
 		return nil, info, false
 	}
-	return node(fmt.Sprintf(f, args[1:]...)), info, true
+	return fmt.Sprintf(f, args[1:]...), info, true
 }

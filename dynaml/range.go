@@ -11,7 +11,7 @@ type RangeExpr struct {
 	End   Expression
 }
 
-func (e RangeExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
+func (e RangeExpr) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) {
 	resolved := true
 
 	start, info, ok := ResolveIntegerExpressionOrPushEvaluation(&e.Start, &resolved, nil, binding)
@@ -23,7 +23,7 @@ func (e RangeExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 		return nil, info, false
 	}
 	if !resolved {
-		return node(e), info, true
+		return e, info, true
 	}
 
 	nodes := []yaml.Node{}
@@ -32,10 +32,10 @@ func (e RangeExpr) Evaluate(binding Binding) (yaml.Node, EvaluationInfo, bool) {
 		delta = -1
 	}
 	for i := start; i*delta <= end*delta; i += delta {
-		nodes = append(nodes, node(i))
+		nodes = append(nodes, node(i, binding))
 	}
 
-	return node(nodes), info, true
+	return nodes, info, true
 }
 
 func (e RangeExpr) String() string {
