@@ -55,6 +55,7 @@ Contents:
 		- [(( defined(foobar) ))](#-definedfoobar-)
 		- [(( exec( "command", arg1, arg2) ))](#-exec-command-arg1-arg2-)
 		- [(( eval( foo "." bar ) ))](#-eval-foo--bar--)
+		- [(( read("file.yml") ))](#-readfileyml-)
 		- [(( static_ips(0, 1, 3) ))](#-static_ips0-1-3-)
 	- [(( lambda |x|->x ":" port ))](#-lambda-x-x--port-)
 	- [Mappings](#mappings)
@@ -929,6 +930,20 @@ bar: bob
 
 status: married
 ```
+
+### `(( read("file.yml") ))` 
+
+Read a file and return its content. There is support for two content types: `yaml` files and `text` files.
+If the file suffix is `.yml`, by default the yaml type is used. An optional second parameter can be used
+to explicitly specifiy the desired return type: `yaml` or `text`.
+
+#### yaml documents
+A yaml document will be parsed and the tree is returned. The  elements of the tree can be accessed by regular dynaml expressions.
+
+Additionally the yaml file may again contain dynaml expressions. All included dynaml expressions will be evaluated in the context of the reading expression. This means that the same file included at different places in a yaml document may result in different sub trees, depending on the used dynaml expressions. 
+
+#### text documents
+A text document will be returned as single string.
 
 ### `(( static_ips(0, 1, 3) ))`
 
