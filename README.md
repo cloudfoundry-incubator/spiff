@@ -893,13 +893,13 @@ mapped: (( map[hosts|x|->x ":" port] ))
 yields
 
 ```yaml
+port: 4711
 hosts:
 - alice
 - bob
 mapped:
 - alice:4711
 - bob:4711
-port: 4711
 ```
 
 This expression can be combined with others, for example:
