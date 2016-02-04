@@ -724,12 +724,12 @@ yields
 
 ```yaml
 arg:
-- alice
-- bob
+- a
+- b
 list:
-- alice
-- bob
-string: alice
+- a
+- b
+string: a
 ```
 
 Alternatively `exec` can be called with a single list argument completely describing the command line.
@@ -755,7 +755,7 @@ This will create 3 IPs from `mynetwork`s subnet, and return two entries, as
 there are only two instances. The two entries will be the 0th and 3rd offsets
 from the static IP ranges defined by the network.
 
-For example, given the file bye.yml:
+For example, given the file **bye.yml**:
 
 ```yaml
 networks: (( merge ))
@@ -768,7 +768,7 @@ jobs:
       static_ips: (( static_ips(0,3,60) ))
 ```
 
-and file hi.yml:
+and file **hi.yml**:
 
 ```yaml
 networks:
@@ -827,7 +827,7 @@ networks:
 ```
 .
 
-If bye.yml was instead
+If **bye.yml** was instead
 
 ```yaml
 networks: (( merge ))
@@ -876,7 +876,7 @@ networks:
 
 ## Mappings
 
-### `(( map[list|x|->x ":" port] ))`
+### `(( map[list|elem|->dynaml-expr] ))`
 
 Execute a mapping expression on members of a list to produce a new (mapped) list. The first expression (`list`) must resolve to a list. The last expression (`x ":" port`) defines the mapping expression used to map all members of the given list. Inside this expression an arbitrarily declared simple reference name (here `x`) can be used to access the actually processed list element.
 
@@ -893,13 +893,13 @@ mapped: (( map[hosts|x|->x ":" port] ))
 yields
 
 ```yaml
-port: 4711
-list:
-  - alice
-  - bob
+hosts:
+- alice
+- bob
 mapped:
-  - alice:4711
-  - bob:4711
+- alice:4711
+- bob:4711
+port: 4711
 ```
 
 This expression can be combined with others, for example:
@@ -923,7 +923,10 @@ list:
 joined: alice:4711, bob:4711
 ```
 
-There is a two reference form available, also. In this case the first one is provided with the index and the second one with the value for the index.
+### `(( map[list|idx,elem|->dynaml-expr] ))`
+
+In this variant, the first argument `idx` is provided with the index and the
+second `elem` with the value for the index.
 
 e.g.
 
@@ -951,7 +954,7 @@ ages:
 - 2. bob is 24
 ```
 
-### (( map[map|x,y|->x ":" port] ))
+### (( map[map|key,value|->dynaml-expr] ))
 
 Mapping of a map to a list using a mapping expression. The expression may have access to the key and/or the value. If two references are declared, both values are passed to the expression, the first one is provided with the key and the second one with the value for the key. If one reference is declared, only the value is provided.
 
@@ -983,11 +986,12 @@ keys:
 Dynaml expressions are evaluated obeying certain priority levels. This means operations with a higher priority are evaluated first. For example the expression `1 + 2 * 3` is evaluated in the order `1 + ( 2 * 3 )`. Operations with the same priority are evaluated from left to right (in contrast to version 1.0.7). This means the expression `6 - 3 - 2` is evaluated as `( 6 - 3 ) - 2`.
 
 The following levels are supported (from low priority to high priority)
-- `||`
-- White-space separated sequence as concatenation operation (`foo bar`)
-- `+`, `-`
-- `*`, `/`, `%`
-- Grouping `( )`, constants, references (`foo.bar`) and functions (`merge`, `auto`, `map[]`, `join`, `exec`, `static_ips`, `min_ip`, `max_ip`)
+
+1. `||`
+2. White-space separated sequence as concatenation operation (`foo bar`)
+3. `+`, `-`
+4. `*`, `/`, `%`
+5. Grouping `( )`, constants, references (`foo.bar`) and functions (`merge`, `auto`, `map[]`, `join`, `exec`, `static_ips`, `min_ip`, `max_ip`)
 
 The complete grammar can be found in [dynaml.peg](dynaml/dynaml.peg).
 
@@ -997,11 +1001,16 @@ By default `spiff` performs a deep structural merge of its first argument, the t
 
 Structural merge means, that besides explicit dynaml `merge` expressions, values will be overridden by values of equivalent nodes found in right-most stub files. In general, flat value lists are not merged. Only lists of maps can be merged by entries in a stub with a matching index. 
 
-There is a special support for the auto-merge of lists containing maps, if the maps contain a `name` field. Hereby the list is handled like a map with entries according to the value of the list entries' name field. If another key field than `name` should be used, the key field of one list entry can be tagged with the prefix `key:` to indicate the indended key name. Such tags will be removed for the processed output.
+There is a special support for the auto-merge of lists containing maps, if the
+maps contain a `name` field. Hereby the list is handled like a map with
+entries according to the value of the list entries' `name` field. If another
+key field than `name` should be used, the key field of one list entry can be
+tagged with the prefix `key:` to indicate the indended key name. Such tags
+will be removed for the processed output.
 
 In general the resolution of matching nodes in stubs is done using the same rules that apply for the reference expressions [(( foo.bar.[1].baz ))](#-foobar1baz-).
 
-For example, given the file template.yml:
+For example, given the file **template.yml**:
 
 ```yaml
 foo:
@@ -1010,20 +1019,30 @@ foo:
   - name: bob
     bar: template
 
+plip:
+  - id: 1
+    plop: template
+  - id: 2
+    plop: template
+
 bar:
   - foo: template
 
 list:
-  - alice
-  - bob
+  - a
+  - b
 ```
 
-and file stub.yml:
+and file **stub.yml**:
 
 ```yaml
 foo: 
-  bob: 
+  - name: bob
     bar: stub
+
+plip:
+  - key:id: 1
+    plop: stub
 
 bar:
   - foo: stub
@@ -1042,10 +1061,16 @@ returns
 
 ```yaml
 foo:
-- name: alice
-  bar: template
-- name: bob
-  bar: stub
+- bar: template
+  name: alice
+- bar: stub
+  name: bob
+
+plip:
+- id: 1
+  plop: stub
+- id: 2
+  plop: template
 
 bar:
 - foo: stub
@@ -1053,8 +1078,14 @@ bar:
 list:
 - a
 - b
-
 ```
+
+Be careful that any `name:` key in the template for the first element of the
+`plip` list will defeat the `key:id: 1` selector from the stub. When a `name`
+field exist in a list element, then this element can only be targeted by this
+name. When the selector is defeated, the resulting value is the one provided
+by the template.
+
 
 ## Useful to Know
 
