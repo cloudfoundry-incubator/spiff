@@ -67,13 +67,13 @@ Some of spiff's dependencies have changed since the last official release, and s
 
 Merge a bunch of stub files into one template manifest, printing it out.
 
-By default in Spiff, “merge” means that a stub feeds its values in to the
-rigid structure of a template. This basic behavior can be tweaked with all
+By default in Spiff, “merge” means that a “stub” feeds its values in to the
+rigid structure of a “template”. This basic behavior can be tweaked with all
 sorts of [dynaml expressions](#dynaml-templating-language) that are detailed
 in the following sections.
 
-The following major rules are worth knowing to understand how spiff performs
-its merge process.
+Some major rules are worth knowing to understand how spiff performs its merge
+process.
 
 1. Spiff iterates on stubs from _right to left_ as follows:
 
@@ -98,7 +98,7 @@ its merge process.
 
 As a result of this process, values defined by rightmost stubs are meant to
 override similar values defined by any stubs on their left. But for this to
-happen, those values must be "transmitted" by all intermediate stubs before
+happen, those values must be “transmitted” by all intermediate stubs before
 they arrive in the final leftmost template.
 
 Example:
