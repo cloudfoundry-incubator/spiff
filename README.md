@@ -63,17 +63,52 @@ Some of spiff's dependencies have changed since the last official release, and s
 
 # Usage
 
-### `spiff merge template.yml [template2.ymll ...]`
+### `spiff merge template.yml [stubN.yml ... stub3.yml stub2.yml stub1.yml]`
 
-Merge a bunch of template files into one manifest, printing it out.
+Merge a bunch of stub files into one template manifest, printing it out.
 
-See 'dynaml templating language' for details of the template file, or examples/ subdir for more complicated examples.
+By default in Spiff, “merge” means that a stub feeds its values in to the
+rigid structure of a template. This basic behavior can be tweaked with all
+sorts of [dynaml expressions](#dynaml-templating-language) that are detailed
+in the following sections.
+
+The following major rules are worth knowing to understand how spiff performs
+its merge process.
+
+1. Spiff iterates on stubs from _right to left_ as follows:
+
+   a. First, `stub1.yml` feeds its values into the structure of `stub2.yml`,
+      as if `stub2.yml` was a template.
+
+   b. Then the result is treated as a stub and feeds its resolved values into
+      the structure of `stub3.yml` as if `stub3.yml` was a template. This step
+      is repeated for all intermediate stubs in the right-to-left iteration.
+
+   c. When all stubs are merged as above, the resulting stub feeds its values
+      into the structure of `template.yml`.
+
+2. A deep merge of maps is made, with the default intent that the structure of
+   the template is meant to be kept. By default, a stub never creates any new
+   nodes into a template.
+
+3. Lists are not merged, excepted certain lists of maps.
+   See “[Structural Auto-Merge](#structural-auto-merge)” for more details.
+
+4. At each steps of the process, all dynaml expressions must be resolvable.
+
+As a result of this process, values defined by rightmost stubs are meant to
+override similar values defined by any stubs on their left. But for this to
+happen, those values must be "transmitted" by all intermediate stubs before
+they arrive in the final leftmost template.
 
 Example:
 
 ```
 spiff merge cf-release/templates/cf-deployment.yml my-cloud-stub.yml
 ```
+
+More complicated examples can be found in the [examples](./examples) subdir.
+
 
 ### `spiff diff manifest.yml other-manifest.yml`
 
@@ -755,7 +790,7 @@ This will create 3 IPs from `mynetwork`s subnet, and return two entries, as
 there are only two instances. The two entries will be the 0th and 3rd offsets
 from the static IP ranges defined by the network.
 
-For example, given the file **bye.yml**:
+For example, given the file **template.yml**:
 
 ```yaml
 networks: (( merge ))
@@ -768,7 +803,7 @@ jobs:
       static_ips: (( static_ips(0,3,60) ))
 ```
 
-and file **hi.yml**:
+and file **stub.yml**:
 
 ```yaml
 networks:
@@ -791,7 +826,7 @@ networks:
 ```
 
 ```
-spiff merge bye.yml hi.yml
+spiff merge template.yml stub.yml
 ```
 
 returns
