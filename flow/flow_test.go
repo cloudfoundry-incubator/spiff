@@ -1,6 +1,8 @@
 package flow
 
 import (
+	"os"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -2638,6 +2640,70 @@ alice:
 foo: alice
 
 status: failed
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+	})
+
+	Describe("when resing from the environment", func() {
+		os.Setenv("TEST1", "alice")
+		os.Setenv("TEST2", "bob")
+		dynaml.ReloadEnv()
+
+		It("resolves a single variable", func() {
+			source := parseYAML(`
+---
+alice: (( env("TEST1") ))
+`)
+			resolved := parseYAML(`
+---
+alice: alice
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("defaults a non-existing single variable", func() {
+			source := parseYAML(`
+---
+alice: (( env("TEST3") || "default" ))
+`)
+			resolved := parseYAML(`
+---
+alice: default
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("resolves a two variables to a map", func() {
+			source := parseYAML(`
+---
+env: (( env("TEST1","TEST2") ))
+`)
+			resolved := parseYAML(`
+---
+env:
+  TEST1: alice
+  TEST2: bob
+`)
+			Expect(source).To(FlowAs(resolved))
+		})
+
+		It("resolves a list to a map", func() {
+			source := parseYAML(`
+---
+list:
+  - TEST1
+  - TEST2
+env: (( env(list) ))
+`)
+			resolved := parseYAML(`
+---
+list:
+  - TEST1
+  - TEST2
+env:
+  TEST1: alice
+  TEST2: bob
 `)
 			Expect(source).To(FlowAs(resolved))
 		})

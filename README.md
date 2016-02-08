@@ -55,6 +55,7 @@ Contents:
 		- [(( defined(foobar) ))](#-definedfoobar-)
 		- [(( exec( "command", arg1, arg2) ))](#-exec-command-arg1-arg2-)
 		- [(( eval( foo "." bar ) ))](#-eval-foo--bar--)
+		- [(( env( "HOME" ) ))](#-env-HOME--)
 		- [(( read("file.yml") ))](#-readfileyml-)
 		- [(( static_ips(0, 1, 3) ))](#-static_ips0-1-3-)
 	- [(( lambda |x|->x ":" port ))](#-lambda-x-x--port-)
@@ -931,6 +932,12 @@ bar: bob
 status: married
 ```
 
+### `(( env( "HOME" ) ))`
+
+Read the value of an environment variable whose name is given as dynaml expression. If the environment variable is not set the evaluation fails.
+
+In a second flavor the function `env` accepts multiple arguments and/or list arguments, which are joined to a single list. Every entry in this list is used as name of an environment variable and the result of the function is a map of the given given variables as yaml element. Hereby non-existent environment variables are omitted.
+
 ### `(( read("file.yml") ))` 
 
 Read a file and return its content. There is support for two content types: `yaml` files and `text` files.
@@ -1490,7 +1497,7 @@ utils:
       subnets:
       - range: (( b "/" .network.size ))
         reserved: (( [] lower upper ))
-        static_ips:
+        static:
           - (( first " - " first + s - 1 ))
 ```
 
@@ -1511,7 +1518,7 @@ networks:
     reserved:
     - 10.0.0.0 - 10.0.0.255
     - 10.0.2.0 - 10.0.255.255
-    static_ips:
+    static:
     - 10.0.1.0 - 10.0.1.29
 - name: cf2
   subnets:
@@ -1519,7 +1526,7 @@ networks:
     reserved:
     - 10.1.0.0 - 10.1.0.255
     - 10.1.2.0 - 10.1.255.255
-    static_ips:
+    static:
     - 10.1.1.0 - 10.1.1.29
 ```
 
@@ -1541,14 +1548,14 @@ networks:
   - range: 10.0.0.0/16
     reserved:
     - 10.0.1.0 - 10.0.255.255
-    static_ips:
+    static:
     - 10.0.0.2 - 10.0.0.31
 - name: cf2
   subnets:
   - range: 10.1.0.0/16
     reserved:
     - 10.1.1.0 - 10.1.255.255
-    static_ips:
+    static:
     - 10.1.0.2 - 10.1.0.31
 ```
 
@@ -1572,14 +1579,14 @@ networks:
   - range: 10.0.0.0/17
     reserved:
     - 10.0.0.128 - 10.0.127.255
-    static_ips:
+    static:
     - 10.0.0.2 - 10.0.0.31
 - name: cf2
   subnets:
   - range: 10.0.128.0/17
     reserved:
     - 10.0.128.128 - 10.0.255.255
-    static_ips:
+    static:
     - 10.0.128.2 - 10.0.128.31
 ```
 

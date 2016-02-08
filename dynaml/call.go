@@ -82,6 +82,9 @@ func (e CallExpr) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) 
 	case "eval":
 		result, sub, ok = func_eval(values, binding)
 
+	case "env":
+		result, sub, ok = func_env(values, binding)
+
 	case "read":
 		result, sub, ok = func_read(values, binding)
 
