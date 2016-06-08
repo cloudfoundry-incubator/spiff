@@ -59,6 +59,23 @@ Show structural differences between two deployment manifests.
 Unlike 'bosh diff', this command has semantic knowledge of a deployment
 manifest, and is not just text-based. It also doesn't modify either file.
 
+`spiff diff` ignores order in lists. For example, comparing the following files will yeild an empty diff:
+```yaml
+# a.yml
+list:
+- name: item-1
+- name: item-2
+  property: foo
+```
+
+```yaml
+# b.yml
+list:
+- name: item-2
+  property: foo
+- name: item-1
+```
+
 It's tailed for checking differences between one deployment and the next.
 
 Typical flow:
