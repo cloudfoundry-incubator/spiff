@@ -56,35 +56,25 @@ spiff merge cf-release/templates/cf-deployment.yml my-cloud-stub.yml
 
 Show structural differences between two deployment manifests.
 
-Unlike 'bosh diff', this command has semantic knowledge of a deployment
-manifest, and is not just text-based. It also doesn't modify either file.
+Unlike basic diffing tools and even `bosh diff`, this command has semantic 
+knowledge of a deployment manifest, and is not just text-based. For example,
+if two manifests are the same except they have some jobs listed in different
+orders, `spiff diff` will detect this, since job order matters in a manifest.
+On the other hand, if two manifests differ only in the order of their
+resource pools, for instance, then it will yield and empty diff since 
+resource pool order doesn't actually matter for a deployment.
 
-`spiff diff` ignores order in lists. For example, comparing the following files will yeild an empty diff:
-```yaml
-# a.yml
-list:
-- name: item-1
-- name: item-2
-  property: foo
-```
+Also unlike `bosh diff`, this command doesn't modify either file.
 
-```yaml
-# b.yml
-list:
-- name: item-2
-  property: foo
-- name: item-1
-```
-
-It's tailed for checking differences between one deployment and the next.
+It's tailored for checking differences between one deployment and the next.
 
 Typical flow:
 
 ```sh
-$ spiff merge template.yml [templates...] > deployment.yml
+$ spiff merge template.yml [templates...] > upgrade.yml
 $ bosh download manifest [deployment] current.yml
-$ spiff diff deployment.yml current.yml
-$ bosh deployment deployment.yml
+$ spiff diff upgrade.yml current.yml
+$ bosh deployment upgrade.yml
 $ bosh deploy
 ```
 
