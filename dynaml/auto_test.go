@@ -14,6 +14,7 @@ var _ = Describe("autos", func() {
 		It("sums up the instances of the jobs in the pool", func() {
 			binding := FakeBinding{
 				FoundFromRoot: map[string]yaml.Node{
+					"": node("dummy", nil),
 					"jobs": parseYAML(`
 - name: some_job
   resource_pool: some_pool
@@ -35,6 +36,7 @@ var _ = Describe("autos", func() {
 			It("returns nil", func() {
 				binding := FakeBinding{
 					FoundFromRoot: map[string]yaml.Node{
+						"": node("dummy", nil),
 						"jobs": parseYAML(`
 - name: some_job
   resource_pool: some_pool

@@ -15,8 +15,8 @@ foo:
   bar: 42
  `)
 
-		environment := Environment{
-			Scope: []map[string]yaml.Node{tree.Value().(map[string]yaml.Node)},
+		environment := DefaultEnvironment{
+			scope: newScope(nil, tree.Value().(map[string]yaml.Node)),
 		}
 
 		Context("when the first step is found", func() {
@@ -36,8 +36,8 @@ foos:
   baz: 42
 `)
 
-				environment := Environment{
-					Scope: []map[string]yaml.Node{tree.Value().(map[string]yaml.Node)},
+				environment := DefaultEnvironment{
+					scope: newScope(nil, tree.Value().(map[string]yaml.Node)),
 				}
 
 				It("treats the name as the key", func() {
@@ -65,12 +65,11 @@ foo:
     buzz: 42
 `)
 
-			environment := Environment{
-				Scope: []map[string]yaml.Node{
-					tree.Value().(map[string]yaml.Node),
-					tree.Value().(map[string]yaml.Node)["foo"].Value().(map[string]yaml.Node),
-					tree.Value().(map[string]yaml.Node)["foo"].Value().(map[string]yaml.Node)["bar"].Value().(map[string]yaml.Node),
-				},
+			environment := DefaultEnvironment{
+				scope: newScope(newScope(newScope(nil,
+					tree.Value().(map[string]yaml.Node)),
+					tree.Value().(map[string]yaml.Node)["foo"].Value().(map[string]yaml.Node)),
+					tree.Value().(map[string]yaml.Node)["foo"].Value().(map[string]yaml.Node)["bar"].Value().(map[string]yaml.Node)),
 			}
 
 			It("finds the root and the path", func() {
@@ -92,12 +91,11 @@ foo:
     buzz: 42
 `)
 
-			environment := Environment{
-				Scope: []map[string]yaml.Node{
-					tree.Value().(map[string]yaml.Node),
-					tree.Value().(map[string]yaml.Node)["foo"].Value().(map[string]yaml.Node),
-					tree.Value().(map[string]yaml.Node)["foo"].Value().(map[string]yaml.Node)["bar"].Value().(map[string]yaml.Node),
-				},
+			environment := DefaultEnvironment{
+				scope: newScope(newScope(newScope(nil,
+					tree.Value().(map[string]yaml.Node)),
+					tree.Value().(map[string]yaml.Node)["foo"].Value().(map[string]yaml.Node)),
+					tree.Value().(map[string]yaml.Node)["foo"].Value().(map[string]yaml.Node)["bar"].Value().(map[string]yaml.Node)),
 			}
 
 			It("finds the nearest occurrence", func() {
@@ -123,10 +121,8 @@ foo:
     baz: found
 `)
 
-		environment := Environment{
-			Scope: []map[string]yaml.Node{
-				tree.Value().(map[string]yaml.Node),
-			},
+		environment := DefaultEnvironment{
+			scope: newScope(nil, tree.Value().(map[string]yaml.Node)),
 		}
 
 		It("returns the node found by the path from the root", func() {
@@ -144,10 +140,8 @@ foo:
     - fizz: right
 `)
 
-			environment := Environment{
-				Scope: []map[string]yaml.Node{
-					tree.Value().(map[string]yaml.Node),
-				},
+			environment := DefaultEnvironment{
+				scope: newScope(nil, tree.Value().(map[string]yaml.Node)),
 			}
 
 			It("accepts [x] for following through lists", func() {
@@ -178,8 +172,8 @@ b: 2
 c: 4
 `)
 
-		environment := Environment{
-			Stubs: []yaml.Node{stub1, stub2},
+		environment := DefaultEnvironment{
+			stubs: []yaml.Node{stub1, stub2},
 		}
 
 		Context("when the first stub contains the path", func() {

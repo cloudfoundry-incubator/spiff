@@ -12,6 +12,7 @@ import (
 
 	"github.com/cloudfoundry-incubator/candiedyaml"
 	"github.com/cloudfoundry-incubator/spiff/compare"
+	"github.com/cloudfoundry-incubator/spiff/debug"
 	"github.com/cloudfoundry-incubator/spiff/flow"
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
@@ -20,19 +21,25 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "spiff"
 	app.Usage = "BOSH deployment manifest toolkit"
-	app.Version = "1.0.7"
+	app.Version = "1.0.8dev2"
 
 	app.Commands = []cli.Command{
 		{
 			Name:      "merge",
 			ShortName: "m",
 			Usage:     "merge stub files into a manifest template",
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "debug",
+					Usage: "print state info",
+				},
+			},
 			Action: func(c *cli.Context) {
 				if len(c.Args()) < 1 {
 					cli.ShowCommandHelp(c, "merge")
 					os.Exit(1)
 				}
-
+				debug.DebugFlag = c.Bool("debug")
 				merge(c.Args()[0], c.Args()[1:])
 			},
 		},

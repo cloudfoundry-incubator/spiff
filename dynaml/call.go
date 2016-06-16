@@ -2,38 +2,116 @@ package dynaml
 
 import (
 	"fmt"
-	"net"
 	"strings"
 
+	"github.com/cloudfoundry-incubator/spiff/debug"
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
 
 type CallExpr struct {
-	Name      string
+	Function  Expression
 	Arguments []Expression
 }
 
-func (e CallExpr) Evaluate(binding Binding) (yaml.Node, bool) {
-	switch e.Name {
-	case "static_ips":
-		indices := make([]int, len(e.Arguments))
-		for i, arg := range e.Arguments {
-			index, ok := arg.Evaluate(binding)
-			if !ok {
-				return nil, false
-			}
+func (e CallExpr) Evaluate(binding Binding) (interface{}, EvaluationInfo, bool) {
+	resolved := true
+	funcName := ""
+	var value interface{}
+	var info EvaluationInfo
 
-			index64, ok := index.Value().(int64)
+	ref, ok := e.Function.(ReferenceExpr)
+	if ok && len(ref.Path) == 1 && ref.Path[0] != "" && ref.Path[0] != "_" {
+		funcName = ref.Path[0]
+	} else {
+		value, info, ok = ResolveExpressionOrPushEvaluation(&e.Function, &resolved, &info, binding)
+		if ok {
+			_, ok = value.(LambdaValue)
 			if !ok {
-				return nil, false
+				debug.Debug("function: no string or lambda value: %T\n", value)
+				info.Issue = yaml.NewIssue("function call '%s' requires function name or lambda value", e.Function)
 			}
-			indices[i] = int(index64)
 		}
-
-		return generateStaticIPs(binding, indices)
 	}
 
-	return nil, false
+	if !ok {
+		debug.Debug("failed to resolve function: %s\n", info.Issue)
+		return nil, info, false
+	}
+
+	if funcName == "defined" {
+		return e.defined(binding)
+	}
+
+	values, info, ok := ResolveExpressionListOrPushEvaluation(&e.Arguments, &resolved, nil, binding)
+
+	if !ok {
+		debug.Debug("call args failed\n")
+		return nil, info, false
+	}
+
+	if !resolved {
+		return e, info, true
+	}
+
+	var result interface{}
+	var sub EvaluationInfo
+
+	switch funcName {
+	case "":
+		debug.Debug("calling lambda function %#v\n", value)
+		result, sub, ok = value.(LambdaValue).Evaluate(values, binding)
+
+	case "static_ips":
+		result, sub, ok = func_static_ips(e.Arguments, binding)
+
+	case "join":
+		result, sub, ok = func_join(values, binding)
+
+	case "split":
+		result, sub, ok = func_split(values, binding)
+
+	case "trim":
+		result, sub, ok = func_trim(values, binding)
+
+	case "length":
+		result, sub, ok = func_length(values, binding)
+
+	case "exec":
+		result, sub, ok = func_exec(values, binding)
+
+	case "eval":
+		result, sub, ok = func_eval(values, binding)
+
+	case "env":
+		result, sub, ok = func_env(values, binding)
+
+	case "read":
+		result, sub, ok = func_read(values, binding)
+
+	case "format":
+		result, sub, ok = func_format(values, binding)
+
+	case "error":
+		result, sub, ok = func_error(values, binding)
+
+	case "min_ip":
+		result, sub, ok = func_minIP(values, binding)
+
+	case "max_ip":
+		result, sub, ok = func_maxIP(values, binding)
+
+	case "num_ip":
+		result, sub, ok = func_numIP(values, binding)
+
+	default:
+		info.Issue = yaml.NewIssue("unknown function '%s'", funcName)
+		return nil, info, false
+	}
+
+	if ok && (result == nil || isExpression(result)) {
+		return e, sub.Join(info), true
+	}
+	return result, sub.Join(info), ok
 }
 
 func (e CallExpr) String() string {
@@ -42,160 +120,5 @@ func (e CallExpr) String() string {
 		args[i] = fmt.Sprintf("%s", e)
 	}
 
-	return fmt.Sprintf("%s(%s)", e.Name, strings.Join(args, ", "))
-}
-
-func generateStaticIPs(binding Binding, indices []int) (yaml.Node, bool) {
-	if len(indices) == 0 {
-		return nil, false
-	}
-
-	ranges, ok := findStaticIPRanges(binding)
-	if !ok {
-		return nil, false
-	}
-
-	instanceCount, ok := findInstanceCount(binding)
-	if !ok {
-		return nil, false
-	}
-
-	ipPool, ok := staticIPPool(ranges)
-	if !ok {
-		return nil, false
-	}
-
-	ips := []yaml.Node{}
-	for _, i := range indices {
-		if len(ipPool) <= i {
-			return nil, false
-		}
-
-		ips = append(ips, node(ipPool[i].String()))
-	}
-
-	if len(ips) < instanceCount {
-		return nil, false
-	}
-
-	return node(ips[:instanceCount]), true
-}
-
-func findInstanceCount(binding Binding) (int, bool) {
-	nearestInstances, found := binding.FindReference([]string{"instances"})
-	if !found {
-		return 0, false
-	}
-
-	instances, ok := nearestInstances.Value().(int64)
-	return int(instances), ok
-}
-
-func findStaticIPRanges(binding Binding) ([]string, bool) {
-	nearestNetworkName, found := binding.FindReference([]string{"name"})
-	if !found {
-		return nil, false
-	}
-
-	networkName, ok := nearestNetworkName.Value().(string)
-	if !ok {
-		return nil, false
-	}
-
-	subnets, found := binding.FindFromRoot(
-		[]string{"networks", networkName, "subnets"},
-	)
-
-	if !found {
-		return nil, false
-	}
-
-	subnetsList, ok := subnets.Value().([]yaml.Node)
-	if !ok {
-		return nil, false
-	}
-
-	allRanges := []string{}
-
-	for _, subnet := range subnetsList {
-		subnetMap, ok := subnet.Value().(map[string]yaml.Node)
-		if !ok {
-			return nil, false
-		}
-
-		static, ok := subnetMap["static"]
-
-		if !ok {
-			return nil, false
-		}
-
-		staticList, ok := static.Value().([]yaml.Node)
-		if !ok {
-			return nil, false
-		}
-
-		ranges := make([]string, len(staticList))
-
-		for i, r := range staticList {
-			ipsString, ok := r.Value().(string)
-			if !ok {
-				return nil, false
-			}
-
-			ranges[i] = ipsString
-		}
-
-		allRanges = append(allRanges, ranges...)
-	}
-
-	return allRanges, true
-}
-
-func staticIPPool(ranges []string) ([]net.IP, bool) {
-	ipPool := []net.IP{}
-
-	for _, r := range ranges {
-		segments := strings.Split(r, "-")
-		if len(segments) == 0 {
-			return nil, false
-		}
-
-		var start, end net.IP
-
-		start = net.ParseIP(strings.Trim(segments[0], " "))
-
-		if len(segments) == 1 {
-			end = start
-		} else {
-			end = net.ParseIP(strings.Trim(segments[1], " "))
-		}
-
-		ipPool = append(ipPool, ipRange(start, end)...)
-	}
-
-	return ipPool, true
-}
-
-func ipRange(a, b net.IP) []net.IP {
-	prev := a
-
-	ips := []net.IP{a}
-
-	for !prev.Equal(b) {
-		next := net.ParseIP(prev.String())
-		inc(next)
-		ips = append(ips, next)
-		prev = next
-	}
-
-	return ips
-}
-
-func inc(ip net.IP) {
-	for j := len(ip) - 1; j >= 0; j-- {
-		ip[j]++
-		if ip[j] > 0 {
-			break
-		}
-	}
+	return fmt.Sprintf("%s(%s)", e.Function, strings.Join(args, ", "))
 }

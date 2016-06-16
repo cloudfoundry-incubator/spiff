@@ -46,7 +46,7 @@ func sanitize(sourceName string, root interface{}) (Node, error) {
 			sanitized[str] = sub
 		}
 
-		return AnnotatedNode{sanitized, sourceName}, nil
+		return NewNode(sanitized, sourceName), nil
 
 	case []interface{}:
 		sanitized := []Node{}
@@ -60,10 +60,10 @@ func sanitize(sourceName string, root interface{}) (Node, error) {
 			sanitized = append(sanitized, sub)
 		}
 
-		return AnnotatedNode{sanitized, sourceName}, nil
+		return NewNode(sanitized, sourceName), nil
 
 	case string, []byte, int64, float64, bool, nil:
-		return AnnotatedNode{rootVal, sourceName}, nil
+		return NewNode(rootVal, sourceName), nil
 	}
 
 	return nil, errors.New(fmt.Sprintf("unknown type (%s) during sanitization: %#v\n", reflect.TypeOf(root).String(), root))
