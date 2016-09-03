@@ -29,6 +29,7 @@ Contents:
 			- [merging maps](#merging-maps)
 			- [merging lists](#merging-lists)
 	- [(( a || b ))](#-a--b-)
+	- [(( !foo ))](#-foo--2)
 	- [(( static_ips(0, 1, 3) ))](#-static_ips0-1-3-)
 
 
@@ -303,6 +304,24 @@ mything:
 
 This will try to merge in `mything.complicated_structure`, or, if it cannot be
 merged in, use the default specified in `foo.bar`.
+
+## `(( !foo ))`
+
+Leaves the string `(( !foo ))` in the resulting merge.
+
+e.g.: calling `spiff merge` on a file with the contents below:
+
+```yaml
+bar: (( !foo ))
+foo: 33
+```
+
+will simply result in:
+
+```yaml
+bar: (( !foo ))
+foo: 33
+```
 
 ## `(( static_ips(0, 1, 3) ))`
 
