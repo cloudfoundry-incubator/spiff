@@ -103,6 +103,22 @@ foo: (( auto ))
 		})
 	})
 
+	Context("when there are ignorable dynaml nodes start with '!'", func() {
+		It("ignores nodes", func() {
+			source := parseYAML(`
+---
+foo: ((!template_only.foo))
+`)
+
+			resolved := parseYAML(`
+---
+foo: ((!template_only.foo))
+`)
+
+			Expect(source).To(FlowAs(resolved))
+		})
+	})
+
 	Context("when a reference is made to a yet-to-be-resolved node, in a || expression", func() {
 		It("eventually resolves to the referenced node", func() {
 			source := parseYAML(`
