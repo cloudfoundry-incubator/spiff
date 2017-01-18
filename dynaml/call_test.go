@@ -145,5 +145,40 @@ var _ = Describe("calls", func() {
 				)
 			})
 		})
+
+		Context("when there is IP range in descending order", func() {
+			It("includes IPs in the pool in ascending order", func() {
+				subnets := parseYAML(`
+- static:
+    - 10.10.16.10 - 10.10.16.1
+`)
+
+				expr := CallExpr{
+					Name: "static_ips",
+					Arguments: []Expression{
+						IntegerExpr{0},
+						IntegerExpr{1},
+						IntegerExpr{2},
+					},
+				}
+
+				binding := FakeBinding{
+					FoundReferences: map[string]yaml.Node{
+						"name":      node("cf1"),
+						"instances": node(3),
+					},
+					FoundFromRoot: map[string]yaml.Node{
+						"networks.cf1.subnets": subnets,
+					},
+				}
+
+				Expect(expr).To(
+					EvaluateAs(
+						[]yaml.Node{node("10.10.16.1"), node("10.10.16.2"), node("10.10.16.3")},
+						binding,
+					),
+				)
+			})
+		})
 	})
 })
