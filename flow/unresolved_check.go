@@ -14,7 +14,6 @@ type UnresolvedNodes struct {
 
 type UnresolvedNode struct {
 	yaml.Node
-
 	Context []string
 	Path    []string
 }
@@ -53,7 +52,6 @@ func findUnresolvedNodes(root yaml.Node, context ...string) (nodes []UnresolvedN
 	case []yaml.Node:
 		for i, val := range val {
 			context := addContext(context, fmt.Sprintf("[%d]", i))
-
 			nodes = append(
 				nodes,
 				findUnresolvedNodes(val, context...)...,

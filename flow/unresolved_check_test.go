@@ -22,7 +22,7 @@ var _ = Describe("Reporting unresolved nodes", func() {
 				},
 				{
 					Node: yaml.NewNode(
-						dynaml.MergeExpr{},
+						dynaml.MergeExpr{[]string{"fizz", "fizzbuzz", "buzz"}},
 						"some-other-file.yml",
 					),
 					Context: []string{"fizz", "[2]", "buzz"},
