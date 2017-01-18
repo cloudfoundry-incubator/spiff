@@ -1,0 +1,10 @@
+---
+platform: linux
+image: docker:///concourse/static-golang
+
+inputs:
+  - name: spiff
+    path: gopath/src/github.com/cloudfoundry-incubator/spiff
+
+run:
+  path: gopath/src/github.com/cloudfoundry-incubator/spiff/ci/build.sh
